@@ -1,14 +1,19 @@
-import { Home } from 'lucide-react-native';
+import { FilePlus2, Home, Map, UserRound, ClipboardList } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useThemeColor } from 'heroui-native';
-import { useUniwind } from 'uniwind';
+import type { ColorValue } from 'react-native';
+
+const statusBarStyle = 'dark' as const;
+const icon =
+  (Icon: typeof Home) =>
+  ({ color, size }: { color: ColorValue; size: number }) => (
+    <Icon color={color} size={size ?? 23} strokeWidth={2.2} />
+  );
 
 export default function TabLayout() {
-  const { theme } = useUniwind();
-  const [background, foreground, border, accent, muted] = useThemeColor([
+  const [background, border, accent, muted] = useThemeColor([
     'background',
-    'foreground',
     'border',
     'accent',
     'muted',
@@ -16,29 +21,31 @@ export default function TabLayout() {
 
   return (
     <>
-      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={statusBarStyle} />
       <Tabs
         screenOptions={{
-          headerStyle: { backgroundColor: background },
-          headerTintColor: foreground,
-          headerTitleStyle: { color: foreground },
-          headerShadowVisible: false,
+          headerShown: false,
           sceneStyle: { backgroundColor: background },
           tabBarStyle: {
             backgroundColor: background,
             borderTopColor: border,
+            height: 72,
+            paddingTop: 7,
+            paddingBottom: 9,
           },
+          tabBarLabelStyle: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
           tabBarActiveTintColor: accent,
           tabBarInactiveTintColor: muted,
         }}
       >
+        <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: icon(Home) }} />
+        <Tabs.Screen name="report" options={{ title: 'Report', tabBarIcon: icon(FilePlus2) }} />
         <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Home',
-            tabBarIcon: ({ color, size }) => <Home color={color} size={size ?? 24} />,
-          }}
+          name="reports"
+          options={{ title: 'My Reports', tabBarIcon: icon(ClipboardList) }}
         />
+        <Tabs.Screen name="map" options={{ title: 'Map', tabBarIcon: icon(Map) }} />
+        <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: icon(UserRound) }} />
       </Tabs>
     </>
   );

@@ -26,6 +26,7 @@ import { initPostHog } from '@/lib/posthog';
 import { registerServiceWorker } from '@/lib/registerServiceWorker';
 import { reportErrorToParent } from '@/lib/reportPreviewError';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { CivicGuardProvider } from '@/lib/civicguard-store';
 
 /**
  * Custom ErrorBoundary that reports React render errors to the parent window (Bilt preview iframe)
@@ -141,10 +142,14 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ title: 'Habits', headerShown: false }} />
-        </Stack>
-        <InstallPrompt />
+        <CivicGuardProvider>
+          <Stack
+            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F6FAF8' } }}
+          >
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+          <InstallPrompt />
+        </CivicGuardProvider>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
   );
