@@ -1,6 +1,8 @@
 import type { ImageSourcePropType } from 'react-native';
 
-export type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
+import type { CivicIssueId } from '@/lib/civicguard-categories';
+
+export type Severity = 'Low' | 'Medium' | 'High' | 'Critical' | 'Requires Review';
 export type ReportStatus = 'Reported' | 'Assigned' | 'In Progress' | 'Resolved';
 
 export interface CivicReport {
@@ -17,20 +19,51 @@ export interface CivicReport {
   date: string;
   description: string;
   imageKey: SampleImageKey;
+  imageUri?: string;
 }
 
-export type SampleImageKey = 'pothole' | 'streetlight' | 'garbage';
+export type SampleImageKey =
+  | 'pothole'
+  | 'streetlight'
+  | 'garbage'
+  | 'fallen-tree'
+  | 'illegal-parking'
+  | 'flooded-street'
+  | 'open-manhole'
+  | 'damaged-sign'
+  | 'construction-debris'
+  | 'graffiti';
+
+export interface PrototypeScenario {
+  key: CivicIssueId;
+  imageKey: SampleImageKey;
+  label: string;
+}
 
 export const SAMPLE_IMAGES: Record<SampleImageKey, ImageSourcePropType> = {
   pothole: require('@/assets/images/pothole-sample.png'),
   streetlight: require('@/assets/images/streetlight-sample.png'),
   garbage: require('@/assets/images/garbage-sample.png'),
+  'fallen-tree': require('@/assets/images/fallen-tree-sample.png'),
+  'illegal-parking': require('@/assets/images/illegal-parking-sample.png'),
+  'flooded-street': require('@/assets/images/flooded-street-sample.png'),
+  'open-manhole': require('@/assets/images/open-manhole-sample.png'),
+  'damaged-sign': require('@/assets/images/damaged-sign-sample.png'),
+  'construction-debris': require('@/assets/images/construction-debris-sample.png'),
+  graffiti: require('@/assets/images/graffiti-sample.png'),
 };
 
-export const SAMPLE_OPTIONS: Array<{ key: SampleImageKey; label: string }> = [
-  { key: 'pothole', label: 'Pothole' },
-  { key: 'streetlight', label: 'Broken Streetlight' },
-  { key: 'garbage', label: 'Garbage' },
+export const PROTOTYPE_SCENARIOS: PrototypeScenario[] = [
+  { key: 'pothole', imageKey: 'pothole', label: 'Pothole' },
+  { key: 'garbage', imageKey: 'garbage', label: 'Garbage' },
+  { key: 'fallen-tree', imageKey: 'fallen-tree', label: 'Fallen Tree' },
+  { key: 'broken-streetlight', imageKey: 'streetlight', label: 'Broken Streetlight' },
+  { key: 'illegal-parking', imageKey: 'illegal-parking', label: 'Illegal Parking' },
+  { key: 'flooded-street', imageKey: 'flooded-street', label: 'Flooded Street' },
+  { key: 'open-manhole', imageKey: 'open-manhole', label: 'Open Manhole' },
+  { key: 'damaged-sign', imageKey: 'damaged-sign', label: 'Damaged Sign' },
+  { key: 'construction-debris', imageKey: 'construction-debris', label: 'Construction Debris' },
+  { key: 'graffiti', imageKey: 'graffiti', label: 'Graffiti' },
 ];
 
 export const NEW_CAIRO_REGION = {
@@ -43,7 +76,7 @@ export const NEW_CAIRO_REGION = {
 export const INITIAL_REPORTS: CivicReport[] = [
   {
     id: 'CG-2026-00127',
-    category: 'Pothole',
+    category: 'Pothole / Road Damage',
     severity: 'High',
     confidence: 94,
     status: 'In Progress',
@@ -62,7 +95,7 @@ export const INITIAL_REPORTS: CivicReport[] = [
     severity: 'Medium',
     confidence: 89,
     status: 'Resolved',
-    department: 'Public Lighting Department',
+    department: 'Street Lighting / Electricity Department',
     area: 'Fifth Settlement',
     latitude: 30.011,
     longitude: 31.486,
@@ -73,11 +106,11 @@ export const INITIAL_REPORTS: CivicReport[] = [
   },
   {
     id: 'CG-2026-00094',
-    category: 'Garbage',
+    category: 'Garbage / Litter',
     severity: 'Low',
     confidence: 91,
     status: 'Resolved',
-    department: 'Sanitation Department',
+    department: 'Waste Management Department',
     area: 'South 90th Street',
     latitude: 30.002,
     longitude: 31.499,
@@ -109,6 +142,7 @@ export const SEVERITY_COLORS: Record<Severity, string> = {
   Medium: '#D79716',
   High: '#E05B35',
   Critical: '#C73545',
+  'Requires Review': '#74847F',
 };
 
 export const STATUS_COLORS: Record<ReportStatus, string> = {

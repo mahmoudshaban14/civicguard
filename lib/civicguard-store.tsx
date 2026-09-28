@@ -7,17 +7,22 @@ import {
   type PropsWithChildren,
 } from 'react';
 
+import { analyzeCivicImage, type CivicAnalysisResult } from '@/lib/civicguard-ai';
+import type { CivicIssueCategory, CivicIssueId } from '@/lib/civicguard-categories';
 import {
   INITIAL_NOTIFICATIONS,
   INITIAL_REPORTS,
   type CivicReport,
   type ReportStatus,
   type SampleImageKey,
+  type Severity,
 } from '@/lib/civicguard-data';
 
-interface DraftReport {
+export interface DraftReport {
   imageKey: SampleImageKey;
+  scenarioKey: CivicIssueId | 'custom';
   imageUri?: string;
+  imageFileName?: string;
   description: string;
   latitude: number;
   longitude: number;
@@ -35,8 +40,11 @@ interface CivicGuardStore {
   reports: CivicReport[];
   notifications: NotificationItem[];
   draft: DraftReport;
+  analysisResult: CivicAnalysisResult | null;
+  lastSubmittedReport: CivicReport | null;
   updateDraft: (next: Partial<DraftReport>) => void;
   resetDraft: () => void;
+  analyzeDraft: (preferredCategory?: CivicIssueCategory) => Promise<CivicAnalysisResult>;
   submitDraft: () => CivicReport;
   updateStatus: (id: string, status: ReportStatus) => void;
   advanceReportStatus: (id: string) => void;
@@ -46,6 +54,7 @@ interface CivicGuardStore {
 
 const DEFAULT_DRAFT: DraftReport = {
   imageKey: 'pothole',
+  scenarioKey: 'pothole',
   description: '',
   latitude: 30.0074,
   longitude: 31.4913,
@@ -54,36 +63,83 @@ const DEFAULT_DRAFT: DraftReport = {
 
 const CivicGuardContext = createContext<CivicGuardStore | null>(null);
 
+function nextReportId(reports: CivicReport[]) {
+  const highestSequence = reports.reduce((highest, report) => {
+    const sequence = Number(report.id.split('-').at(-1));
+    return Number.isFinite(sequence) ? Math.max(highest, sequence) : highest;
+  }, 127);
+  return `CG-2026-${String(highestSequence + 1).padStart(5, '0')}`;
+}
+
+function formatReportDate() {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date());
+}
+
 export function CivicGuardProvider({ children }: PropsWithChildren) {
   const [reports, setReports] = useState(INITIAL_REPORTS);
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const [draft, setDraftState] = useState(DEFAULT_DRAFT);
+  const [analysisResult, setAnalysisResult] = useState<CivicAnalysisResult | null>(null);
+  const [lastSubmittedReport, setLastSubmittedReport] = useState<CivicReport | null>(null);
 
   const updateDraft = useCallback((next: Partial<DraftReport>) => {
     setDraftState((current) => ({ ...current, ...next }));
+    setAnalysisResult(null);
+    setLastSubmittedReport(null);
   }, []);
 
   const resetDraft = useCallback(() => {
     setDraftState(DEFAULT_DRAFT);
+    setAnalysisResult(null);
+    setLastSubmittedReport(null);
   }, []);
 
+  const analyzeDraft = useCallback(
+    async (preferredCategory?: CivicIssueCategory) => {
+      const result = await analyzeCivicImage(
+        {
+          imageKey: draft.imageKey,
+          scenarioKey: draft.scenarioKey,
+          uri: draft.imageUri,
+          fileName: draft.imageFileName,
+        },
+        draft.description,
+        { latitude: draft.latitude, longitude: draft.longitude, area: draft.area },
+        preferredCategory,
+      );
+      setAnalysisResult(result);
+      return result;
+    },
+    [draft],
+  );
+
   const submitDraft = useCallback(() => {
+    const analysis = analysisResult;
+    const severity: Severity = analysis?.severity ?? 'Requires Review';
     const report: CivicReport = {
-      id: 'CG-2026-00127',
-      category: 'Pothole',
-      severity: 'High',
-      confidence: 94,
+      id: nextReportId(reports),
+      category: analysis?.category ?? 'Other / Unrecognized Civic Issue',
+      severity,
+      confidence: analysis?.confidence ?? 0,
       status: 'Reported',
-      department: 'Road Maintenance Department',
+      department: analysis?.department ?? 'Manual Routing',
       area: draft.area,
       latitude: draft.latitude,
       longitude: draft.longitude,
       distance: '250m',
-      date: '28 Sep 2026, 10:24 AM',
-      description: draft.description || 'Large pothole affecting the right lane.',
+      date: formatReportDate(),
+      description: draft.description || analysis?.explanation || 'Submitted for manual review.',
       imageKey: draft.imageKey,
+      imageUri: draft.imageUri,
     };
-    setReports((current) => [report, ...current.filter((item) => item.id !== report.id)]);
+    setReports((current) => [report, ...current]);
+    setLastSubmittedReport(report);
     setNotifications((current) => [
       {
         id: `submitted-${Date.now()}`,
@@ -94,7 +150,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       ...current,
     ]);
     return report;
-  }, [draft]);
+  }, [analysisResult, draft, reports]);
 
   const updateStatus = useCallback((id: string, status: ReportStatus) => {
     setReports((current) =>
@@ -131,6 +187,8 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
     setReports(INITIAL_REPORTS);
     setNotifications(INITIAL_NOTIFICATIONS);
     setDraftState(DEFAULT_DRAFT);
+    setAnalysisResult(null);
+    setLastSubmittedReport(null);
   }, []);
 
   const value = useMemo(
@@ -138,8 +196,11 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       reports,
       notifications,
       draft,
+      analysisResult,
+      lastSubmittedReport,
       updateDraft,
       resetDraft,
+      analyzeDraft,
       submitDraft,
       updateStatus,
       advanceReportStatus,
@@ -148,7 +209,10 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
     }),
     [
       advanceReportStatus,
+      analysisResult,
+      analyzeDraft,
       draft,
+      lastSubmittedReport,
       markNotificationsRead,
       notifications,
       reports,

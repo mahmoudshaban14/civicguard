@@ -35,7 +35,8 @@ export default function DescriptionScreen() {
             </View>
             <Typography.Heading type="h5">Category</Typography.Heading>
             <Typography.Paragraph className="text-muted mt-2 text-sm">
-              AI will automatically identify the problem.
+              Prototype classification uses the selected scenario, image filename, and your
+              description. Vision model integration is planned.
             </Typography.Paragraph>
             <View className="mt-4 self-start rounded-full bg-white px-3 py-2">
               <Typography.Paragraph className="text-civic text-xs font-semibold">

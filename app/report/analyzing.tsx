@@ -4,6 +4,7 @@ import { Check, Cpu } from 'lucide-react-native';
 import { Typography } from 'heroui-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
+import { useCivicGuard } from '@/lib/civicguard-store';
 
 const steps = [
   'Analyzing image...',
@@ -13,6 +14,7 @@ const steps = [
   'Determining responsible department...',
 ];
 export default function AnalyzingScreen() {
+  const { analyzeDraft } = useCivicGuard();
   const [active, setActive] = useState(0);
   const [pulse] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -36,16 +38,19 @@ export default function AnalyzingScreen() {
     return () => animation.stop();
   }, [pulse]);
   useEffect(() => {
+    const analysis = analyzeDraft();
     const interval = setInterval(
       () => setActive((value) => Math.min(value + 1, steps.length)),
       650,
     );
-    const done = setTimeout(() => router.replace('/report/result'), 3900);
+    const done = setTimeout(() => {
+      void analysis.then(() => router.replace('/report/result'));
+    }, 3900);
     return () => {
       clearInterval(interval);
       clearTimeout(done);
     };
-  }, []);
+  }, [analyzeDraft]);
   return (
     <SafeAreaView className="bg-civic-deep flex-1 px-6" edges={['top', 'bottom']}>
       <View className="flex-1 items-center justify-center">

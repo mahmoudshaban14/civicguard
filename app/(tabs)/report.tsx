@@ -7,19 +7,29 @@ import { router } from 'expo-router';
 
 import { AppHeader } from '@/components/civic/AppHeader';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
-import { SAMPLE_IMAGES, SAMPLE_OPTIONS, type SampleImageKey } from '@/lib/civicguard-data';
+import {
+  PROTOTYPE_SCENARIOS,
+  SAMPLE_IMAGES,
+  type PrototypeScenario,
+  type SampleImageKey,
+} from '@/lib/civicguard-data';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
-const samples = SAMPLE_OPTIONS;
+const samples = PROTOTYPE_SCENARIOS;
 
 export default function ReportScreen() {
   const { updateDraft, resetDraft } = useCivicGuard();
   const [selected, setSelected] = useState<SampleImageKey | null>(null);
   const [customUri, setCustomUri] = useState<string | null>(null);
-  const selectSample = (key: SampleImageKey) => {
-    setSelected(key);
+  const selectSample = (scenario: PrototypeScenario) => {
+    setSelected(scenario.imageKey);
     setCustomUri(null);
-    updateDraft({ imageKey: key });
+    updateDraft({
+      imageKey: scenario.imageKey,
+      scenarioKey: scenario.key,
+      imageUri: undefined,
+      imageFileName: `${scenario.key}_01.png`,
+    });
   };
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -34,9 +44,15 @@ export default function ReportScreen() {
       allowsEditing: true,
     });
     if (!result.canceled) {
-      setCustomUri(result.assets[0].uri);
-      setSelected('pothole');
-      updateDraft({ imageKey: 'pothole' });
+      const asset = result.assets[0];
+      setCustomUri(asset.uri);
+      setSelected(null);
+      updateDraft({
+        imageKey: 'pothole',
+        scenarioKey: 'custom',
+        imageUri: asset.uri,
+        imageFileName: asset.fileName ?? 'camera-photo.jpg',
+      });
     }
   };
   const choosePhoto = async () => {
@@ -49,9 +65,15 @@ export default function ReportScreen() {
       allowsEditing: true,
     });
     if (!result.canceled) {
-      setCustomUri(result.assets[0].uri);
-      setSelected('pothole');
-      updateDraft({ imageKey: 'pothole' });
+      const asset = result.assets[0];
+      setCustomUri(asset.uri);
+      setSelected(null);
+      updateDraft({
+        imageKey: 'pothole',
+        scenarioKey: 'custom',
+        imageUri: asset.uri,
+        imageFileName: asset.fileName ?? 'gallery-photo.jpg',
+      });
     }
   };
   const imageSource = customUri ? { uri: customUri } : selected ? SAMPLE_IMAGES[selected] : null;
@@ -88,9 +110,12 @@ export default function ReportScreen() {
             <Button.Label>Gallery</Button.Label>
           </Button>
         </View>
-        <Typography.Heading type="h5" className="mb-3">
-          Demo samples
+        <Typography.Heading type="h5" className="mb-1">
+          Prototype Demonstration Mode
         </Typography.Heading>
+        <Typography.Paragraph className="text-muted mb-3 text-xs">
+          Choose a predictable civic issue scenario for the presentation.
+        </Typography.Paragraph>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -99,11 +124,11 @@ export default function ReportScreen() {
           {samples.map((sample) => (
             <Pressable
               key={sample.key}
-              onPress={() => selectSample(sample.key)}
-              className={`bg-surface w-28 overflow-hidden rounded-2xl border-2 ${selected === sample.key && !customUri ? 'border-civic' : 'border-transparent'}`}
+              onPress={() => selectSample(sample)}
+              className={`bg-surface w-28 overflow-hidden rounded-2xl border-2 ${selected === sample.imageKey && !customUri ? 'border-civic' : 'border-transparent'}`}
             >
               <Image
-                source={SAMPLE_IMAGES[sample.key]}
+                source={SAMPLE_IMAGES[sample.imageKey]}
                 style={{ width: '100%', height: 76 }}
                 resizeMode="cover"
               />

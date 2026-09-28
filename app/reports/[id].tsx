@@ -29,7 +29,7 @@ export default function ReportDetailsScreen() {
         right={<StatusBadge value={report.status} />}
       />
       <Image
-        source={SAMPLE_IMAGES[report.imageKey]}
+        source={report.imageUri ? { uri: report.imageUri } : SAMPLE_IMAGES[report.imageKey]}
         style={{ width: '100%', height: 220, borderRadius: 28 }}
         resizeMode="cover"
       />

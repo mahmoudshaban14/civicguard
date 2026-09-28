@@ -1,23 +1,40 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
-import { Button, Typography } from 'heroui-native';
+import { Button, Spinner, Typography } from 'heroui-native';
 import { Check } from 'lucide-react-native';
 import { router } from 'expo-router';
+
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
+import type { CivicReport } from '@/lib/civicguard-data';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function ReportSuccessScreen() {
-  const { submitDraft, reports } = useCivicGuard();
+  const { submitDraft, lastSubmittedReport } = useCivicGuard();
   const submitted = useRef(false);
+  const [submittedReport, setSubmittedReport] = useState<CivicReport | null>(null);
   const [scale] = useState(() => new Animated.Value(0.7));
+
   useEffect(() => {
     if (!submitted.current) {
-      submitDraft();
+      setSubmittedReport(submitDraft());
       submitted.current = true;
     }
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 6 }).start();
   }, [scale, submitDraft]);
-  const report = reports.find((item) => item.id === 'CG-2026-00127') ?? reports[0];
+
+  const report = submittedReport ?? lastSubmittedReport;
+
+  if (!report) {
+    return (
+      <SafeAreaView
+        className="bg-background flex-1 items-center justify-center"
+        edges={['top', 'bottom']}
+      >
+        <Spinner />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="bg-background flex-1 px-5" edges={['top', 'bottom']}>
       <View className="flex-1 justify-center">
@@ -35,17 +52,15 @@ export default function ReportSuccessScreen() {
         </Typography.Paragraph>
         <View className="border-border bg-surface mt-8 overflow-hidden rounded-[28px] border">
           <Row label="Report ID" value={report.id} />
-          <Row label="Category" value="Pothole" />
-          <Row label="Severity" value="High" />
-          <Row label="Location" value="New Cairo" />
-          <Row label="Department" value="Road Maintenance" />
-          <Row label="Status" value="Reported" last />
+          <Row label="Category" value={report.category} />
+          <Row label="Severity" value={report.severity} />
+          <Row label="Location" value={report.area} />
+          <Row label="Department" value={report.department} />
+          <Row label="Status" value={report.status} last />
         </View>
       </View>
       <Button
-        onPress={() =>
-          router.replace({ pathname: '/reports/[id]', params: { id: 'CG-2026-00127' } })
-        }
+        onPress={() => router.replace({ pathname: '/reports/[id]', params: { id: report.id } })}
       >
         <Button.Label>Track Report</Button.Label>
       </Button>
@@ -55,11 +70,14 @@ export default function ReportSuccessScreen() {
     </SafeAreaView>
   );
 }
+
 function Row({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
-    <View className={`flex-row justify-between p-4 ${last ? '' : 'border-border border-b'}`}>
+    <View className={`flex-row justify-between gap-4 p-4 ${last ? '' : 'border-border border-b'}`}>
       <Typography.Paragraph className="text-muted text-sm">{label}</Typography.Paragraph>
-      <Typography.Paragraph className="text-sm font-semibold">{value}</Typography.Paragraph>
+      <Typography.Paragraph className="flex-1 text-right text-sm font-semibold">
+        {value}
+      </Typography.Paragraph>
     </View>
   );
 }

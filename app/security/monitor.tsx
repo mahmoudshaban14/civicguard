@@ -46,7 +46,7 @@ export default function SecurityMonitorScreen() {
           <Activity size={26} color="#C8F169" />
           <View className="rounded-full bg-white/10 px-3 py-1">
             <Typography.Paragraph className="text-xs text-white">
-              {running ? 'Monitoring' : 'Live Demo'}
+              {running ? 'Simulating Traffic' : 'Demo Traffic'}
             </Typography.Paragraph>
           </View>
         </View>
@@ -79,7 +79,8 @@ export default function SecurityMonitorScreen() {
             <Row label="Response" value="HTTP 429 · Too Many Requests" />
             <Row label="Blocked Requests" value="1,842" />
             <Row label="Status" value="Temporarily Throttled" />
-            <Row label="Security Event" value="API Request Flooding" />
+            <Row label="Security Event" value="Request Flooding Detected" />
+            <Row label="Action" value="Temporary Request Throttling" />
           </View>
         </View>
       ) : (
@@ -95,7 +96,8 @@ export default function SecurityMonitorScreen() {
         <Button.Label>{running ? 'Simulating…' : 'Simulate Suspicious Traffic'}</Button.Label>
       </Button>
       <Typography.Paragraph className="text-muted mt-4 text-center text-xs">
-        Visual simulation only. No network traffic is generated.
+        Simulated telemetry only. No backend rate limiter is connected and no network traffic is
+        generated.
       </Typography.Paragraph>
     </Screen>
   );

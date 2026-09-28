@@ -19,7 +19,7 @@ export function ReportCard({
       className="border-border bg-surface mb-3 flex-row overflow-hidden rounded-3xl border p-3 active:opacity-80"
     >
       <Image
-        source={SAMPLE_IMAGES[report.imageKey]}
+        source={report.imageUri ? { uri: report.imageUri } : SAMPLE_IMAGES[report.imageKey]}
         style={{ width: compact ? 70 : 82, height: compact ? 70 : 82, borderRadius: 16 }}
         resizeMode="cover"
       />

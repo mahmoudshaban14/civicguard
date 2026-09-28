@@ -17,10 +17,11 @@ export default function SecurityScreen() {
       <View className="bg-civic-deep mb-4 rounded-[28px] p-5">
         <ShieldCheck size={32} color="#C8F169" />
         <Typography.Heading type="h3" className="mt-4 text-white">
-          Protection is active
+          Prototype safeguards configured
         </Typography.Heading>
         <Typography.Paragraph className="mt-2 text-sm leading-5 text-white/65">
-          CivicGuard protects its backend concept from excessive requests and automated spam.
+          This local screen demonstrates how a future CivicGuard backend could limit excessive
+          requests and automated spam.
         </Typography.Paragraph>
       </View>
       <View className="border-border bg-surface mb-5 overflow-hidden rounded-3xl border">
