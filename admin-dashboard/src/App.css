@@ -26,6 +26,16 @@
   /* Interaction */
   --cg-primary: var(--cg-blue);
   --cg-primary-hover: #2366DF;
+
+  /* Compatibility aliases */
+  --navy: var(--cg-navy);
+  --blue: var(--cg-blue);
+  --teal: var(--cg-teal);
+  --background: var(--cg-background);
+  --surface: var(--cg-surface);
+  --border: var(--cg-border);
+  --text: var(--cg-text);
+  --text-muted: var(--cg-text-muted);
 }
 
 
