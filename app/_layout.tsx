@@ -98,12 +98,6 @@ export default function RootLayout() {
         link.crossOrigin = 'anonymous';
         document.head.appendChild(link);
       }
-
-      // Note: The @import in global.css and the link tag above ensure Inter font loads
-      // expo-font will register the font family names (Inter_400Regular, etc.)
-      // If expo-font fails due to proxy issues, the fonts should still be available
-      // via the direct Google Fonts CDN link, though the specific font family names
-      // might not be registered. The app should still render with Inter font.
     }
   }, []);
 
