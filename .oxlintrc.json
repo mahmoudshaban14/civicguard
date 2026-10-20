@@ -62,6 +62,8 @@
     "context",
     ".expo",
     "node_modules",
+    "admin-dashboard",
+    "supabase",
     "android/app/build",
     "uniwind-types.d.ts"
   ],

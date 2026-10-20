@@ -1,5 +1,5 @@
 /**
- * Report runtime errors to the parent window when this app is embedded in an iframe (e.g. Bilt web preview).
+ * Report runtime errors to the parent window when this app is embedded in an iframe (e.g. web preview).
  * Parent expects: postMessage({ type: 'error', message: string }, targetOrigin)
  */
 

@@ -1,8 +1,9 @@
 {
-  "name": "bilt-starter",
+  "name": "civicguard",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
+    "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "expo-check": "expo install --check --npm",
@@ -14,7 +15,6 @@
     "format:check": "oxfmt --check ."
   },
   "dependencies": {
-    "@biltme/backend": "^0.7.1",
     "@expo-google-fonts/inter": "~0.4.2",
     "@expo/config": "~57.0.9",
     "@gorhom/bottom-sheet": "^5.2.9",

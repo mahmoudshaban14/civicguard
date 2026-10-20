@@ -13,7 +13,7 @@ import { Text } from 'heroui-native';
  *   "Share → Add to Home Screen" hint (dismissal persisted).
  *
  * Hidden when already installed (standalone display mode) and inside iframes
- * (the Bilt live preview embeds the app in one).
+ * (live preview embeds the app in one).
  */
 
 // Chrome's install event — not yet in lib.dom.
@@ -37,7 +37,7 @@ function isEligibleBrowserContext(): boolean {
     window.matchMedia('(display-mode: standalone)').matches ||
     Reflect.get(navigator, 'standalone') === true;
   if (standalone) return false;
-  // Embedded (e.g. the Bilt live preview iframe) — installing isn't possible there.
+  // Embedded (e.g. inside an iframe) — installing isn't possible there.
   if (window.self !== window.top) return false;
   return true;
 }

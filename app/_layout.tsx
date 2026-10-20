@@ -29,7 +29,7 @@ import { InstallPrompt } from '@/components/InstallPrompt';
 import { CivicGuardProvider } from '@/lib/civicguard-store';
 
 /**
- * Custom ErrorBoundary that reports React render errors to the parent window (Bilt preview iframe)
+ * Custom ErrorBoundary that reports React render errors to the parent window (preview iframe)
  * and then renders the default Expo error UI.
  */
 function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
@@ -57,7 +57,7 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
-  // Report uncaught JS errors and unhandled promise rejections to parent (Bilt preview iframe)
+  // Report uncaught JS errors and unhandled promise rejections to parent (preview iframe)
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return undefined;
 

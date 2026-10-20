@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import {
   ChevronRight,
   Bell,
@@ -30,7 +31,7 @@ const items = [
 export default function ProfileScreen() {
   const { resetDemo } = useCivicGuard();
 
-  async function handleLogout() {
+  const handleLogout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       Alert.alert('خطأ', error.message);
@@ -38,7 +39,7 @@ export default function ProfileScreen() {
       Alert.alert('تم', 'تم تسجيل الخروج بنجاح!');
       router.replace('/auth/login');
     }
-  }
+  }, []);
 
   return (
     <Screen>
@@ -60,7 +61,7 @@ export default function ProfileScreen() {
         {items.map(({ label, icon: Icon, route }, index) => (
           <Pressable
             key={label}
-            onPress={() => router.push(route as any)}
+            onPress={() => router.push(route)}
             className={`active:bg-default flex-row items-center px-4 py-4 ${
               index < items.length - 1 ? 'border-border border-b' : ''
             }`}

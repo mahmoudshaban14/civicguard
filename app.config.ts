@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: 'CivicGuard',
     slug: 'civicguard',
-    version: process.env.BILT_APP_VERSION ?? '1.0.0',
+    version: process.env.APP_VERSION ?? '1.0.0',
     orientation: 'portrait',
     userInterfaceStyle: 'automatic',
     scheme: 'civicguard',
@@ -25,10 +25,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ITSAppUsesNonExemptEncryption: false,
       },
       supportsTablet: true,
-      bundleIdentifier: process.env.BILT_IOS_BUNDLE_ID ?? 'me.bilt.civicguard',
+      bundleIdentifier: process.env.IOS_BUNDLE_ID ?? 'com.civicguard.app',
     },
     android: {
-      package: process.env.BILT_ANDROID_PACKAGE ?? 'me.bilt.civicguard',
+      package: process.env.ANDROID_PACKAGE ?? 'com.civicguard.app',
     },
     web: {
       bundler: 'metro',
@@ -38,7 +38,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       favicon: './public/icons/icon-192.png',
     },
     extra: {
-      appStoreAppId: process.env.BILT_APP_STORE_APP_ID,
+      appStoreAppId: process.env.APP_STORE_APP_ID,
     },
     plugins: ['expo-router', 'expo-font', 'expo-splash-screen', ...nativePlugins],
     experiments: {
