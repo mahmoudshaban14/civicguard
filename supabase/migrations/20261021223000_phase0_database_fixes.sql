@@ -254,7 +254,7 @@ alter table public.reports add column if not exists assigned_to uuid references 
 alter table public.reports add column if not exists duplicate_of uuid references public.reports(id);
 alter table public.reports add column if not exists area_name text;
 alter table public.reports add column if not exists resolved_at timestamptz;
-alter table public.reports add column if not exists location geography(Point, 4326);
+alter table public.reports add column if not exists location extensions.geography(Point, 4326);
 
 create index if not exists reports_location_gist on public.reports using gist (location);
 create index if not exists reports_user_created_idx on public.reports (user_id, created_at desc);
@@ -277,7 +277,7 @@ returns trigger language plpgsql set search_path = '' as $$
 begin
   if new.longitude is not null and new.latitude is not null and new.location is null then
     begin
-      new.location := extensions.st_setsrid(extensions.st_makepoint(new.longitude, new.latitude), 4326)::geography;
+      new.location := extensions.st_setsrid(extensions.st_makepoint(new.longitude, new.latitude), 4326)::extensions.geography;
     exception when others then
       null;
     end;
