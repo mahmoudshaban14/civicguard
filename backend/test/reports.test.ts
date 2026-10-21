@@ -291,6 +291,59 @@ describe('POST /v1/reports', () => {
     expect((insertedData as unknown as Record<string, unknown>).severity).toBe('High');
     expect((insertedData as unknown as Record<string, unknown>).status).toBe('submitted');
   });
+
+  it('should return 400 when image_path belongs to another user folder', async () => {
+    const mockUser = { id: 'usr-123', email: 'citizen@example.com' };
+    const mockProfile = { id: 'usr-123', role: 'citizen', department_id: null };
+    const mockCategory = {
+      id: 'pothole',
+      label: 'Pothole',
+      department: 'Roads',
+      department_id: 'dept-123',
+      default_severity: 'Low',
+    };
+
+    const mockSupabase = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        }),
+      },
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+          };
+        }
+        if (table === 'categories') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: mockCategory, error: null }),
+          };
+        }
+        return {};
+      }),
+    };
+
+    vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+    const res = await request(app)
+      .post('/v1/reports')
+      .set('Authorization', 'Bearer valid-token')
+      .send({
+        category_id: 'pothole',
+        latitude: 30.0,
+        longitude: 31.0,
+        image_path: 'other-user-999/victim-photo.jpg',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_IMAGE_PATH');
+  });
 });
 
 describe('GET /v1/reports/:id', () => {

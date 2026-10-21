@@ -208,7 +208,7 @@ describe('Authority Routes (/v1/authority)', () => {
   });
 
   describe('POST /v1/authority/reports/:id/assign', () => {
-    it('should assign department to report', async () => {
+    it('should assign department to report as admin', async () => {
       const mockUser = { id: 'usr-admin', email: 'admin@example.com' };
       const mockProfile = { id: 'usr-admin', role: 'admin', department_id: null };
       const mockDept = { id: validDeptId, name: 'Road Maintenance Department' };
@@ -222,6 +222,87 @@ describe('Authority Routes (/v1/authority)', () => {
         status: 'assigned',
         assigned_department_id: validDeptId,
         department: 'Road Maintenance Department',
+        status_changed_by: 'usr-admin',
+        status_note: 'Assigned via admin',
+      };
+
+      const mockUpdate = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: updatedReport, error: null }),
+          }),
+        }),
+      });
+
+      const mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: vi.fn().mockImplementation((table: string) => {
+          if (table === 'profiles') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            };
+          }
+          if (table === 'departments') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockDept, error: null }),
+            };
+          }
+          if (table === 'reports') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: currentReport, error: null }),
+              update: mockUpdate,
+            };
+          }
+          return {};
+        }),
+      };
+
+      vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+      const res = await request(app)
+        .post(`/v1/authority/reports/${validReportId}/assign`)
+        .set('Authorization', 'Bearer admin-token')
+        .send({ department_id: validDeptId, note: 'Assigned via admin' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.report.assigned_department_id).toBe(validDeptId);
+      expect(res.body.report.status).toBe('assigned');
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status_changed_by: 'usr-admin',
+          status_note: 'Assigned via admin',
+        }),
+      );
+    });
+
+    it('should allow authority user to reassign report belonging to own department', async () => {
+      const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
+      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const newDeptId = '33333333-4444-5555-6666-777777777777';
+      const mockDept = { id: newDeptId, name: 'Waste Management Department' };
+      const currentReport = {
+        id: validReportId,
+        status: 'assigned',
+        assigned_department_id: validDeptId, // matches authority's department
+      };
+      const updatedReport = {
+        id: validReportId,
+        status: 'assigned',
+        assigned_department_id: newDeptId,
+        department: 'Waste Management Department',
+        status_changed_by: 'usr-auth',
+        status_note: 'Reassigning to waste',
       };
 
       const mockSupabase = {
@@ -268,12 +349,120 @@ describe('Authority Routes (/v1/authority)', () => {
 
       const res = await request(app)
         .post(`/v1/authority/reports/${validReportId}/assign`)
-        .set('Authorization', 'Bearer admin-token')
-        .send({ department_id: validDeptId });
+        .set('Authorization', 'Bearer auth-token')
+        .send({ department_id: newDeptId, note: 'Reassigning to waste' });
 
       expect(res.status).toBe(200);
-      expect(res.body.report.assigned_department_id).toBe(validDeptId);
-      expect(res.body.report.status).toBe('assigned');
+      expect(res.body.report.assigned_department_id).toBe(newDeptId);
+    });
+
+    it('should return 403 when authority user tries to reassign report of another department', async () => {
+      const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
+      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const otherDeptId = '99999999-8888-7777-6666-555555555555';
+      const mockDept = { id: otherDeptId, name: 'Other Department' };
+      const currentReport = {
+        id: validReportId,
+        status: 'assigned',
+        assigned_department_id: otherDeptId, // does NOT match authority's department
+      };
+
+      const mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: vi.fn().mockImplementation((table: string) => {
+          if (table === 'profiles') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            };
+          }
+          if (table === 'departments') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockDept, error: null }),
+            };
+          }
+          if (table === 'reports') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: currentReport, error: null }),
+            };
+          }
+          return {};
+        }),
+      };
+
+      vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+      const res = await request(app)
+        .post(`/v1/authority/reports/${validReportId}/assign`)
+        .set('Authorization', 'Bearer auth-token')
+        .send({ department_id: otherDeptId });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('FORBIDDEN');
+    });
+
+    it('should return 403 when authority user has no department_id', async () => {
+      const mockUser = { id: 'usr-auth-nodept', email: 'nodept@example.com' };
+      const mockProfile = { id: 'usr-auth-nodept', role: 'authority', department_id: null };
+      const mockDept = { id: validDeptId, name: 'Road Maintenance' };
+      const currentReport = {
+        id: validReportId,
+        status: 'assigned',
+        assigned_department_id: validDeptId,
+      };
+
+      const mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: vi.fn().mockImplementation((table: string) => {
+          if (table === 'profiles') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            };
+          }
+          if (table === 'departments') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockDept, error: null }),
+            };
+          }
+          if (table === 'reports') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: currentReport, error: null }),
+            };
+          }
+          return {};
+        }),
+      };
+
+      vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+      const res = await request(app)
+        .post(`/v1/authority/reports/${validReportId}/assign`)
+        .set('Authorization', 'Bearer auth-token')
+        .send({ department_id: validDeptId });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('FORBIDDEN');
     });
   });
 });
