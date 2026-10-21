@@ -31,23 +31,19 @@ export async function listAuthorityReports(user: AuthUser, query: AuthorityRepor
       id,
       report_code,
       user_id,
-      category_id,
       category,
       status,
       severity,
       confidence,
       description,
-      area_name,
       latitude,
       longitude,
       image_path,
       explanation,
       department,
-      assigned_department_id,
       requires_manual_review,
       created_at,
-      updated_at,
-      resolved_at
+      updated_at
     `)
     .order('created_at', { ascending: false })
     .range(query.offset, query.offset + query.limit - 1);
@@ -122,12 +118,10 @@ export async function updateReportStatus(
   // 4. Update status in database
   const updatePayload: Record<string, unknown> = {
     status: input.status,
+    status_changed_by: user.id,
+    status_note: input.note ?? null,
     updated_at: new Date().toISOString(),
   };
-
-  if (input.status === 'resolved') {
-    updatePayload.resolved_at = new Date().toISOString();
-  }
 
   const { data: updatedReport, error: updateError } = await supabase
     .from('reports')
@@ -190,6 +184,8 @@ export async function assignReportDepartment(
       assigned_department_id: dept.id,
       department: dept.name,
       status: report.status === 'manual_review_required' ? 'assigned' : report.status,
+      status_changed_by: user.id,
+      status_note: input.note ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', reportId)
