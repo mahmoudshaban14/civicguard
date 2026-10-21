@@ -177,7 +177,21 @@ export async function assignReportDepartment(
     throw new AppError(404, 'NOT_FOUND', 'Report not found');
   }
 
-  // 3. Update department on report
+  // 3. Department scoping check for authority users
+  if (user.role === 'authority') {
+    if (!user.department_id) {
+      throw new AppError(403, 'FORBIDDEN', 'Authority user is not associated with any department');
+    }
+    if (report.assigned_department_id !== user.department_id) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Authority users can only reassign reports currently assigned to their own department',
+      );
+    }
+  }
+
+  // 4. Update department on report
   const { data: updatedReport, error: updateError } = await supabase
     .from('reports')
     .update({
