@@ -8,6 +8,7 @@ import { basicRateLimiter } from './middleware/rate-limit.js';
 import { reportsRouter } from './modules/reports/routes.js';
 import { uploadsRouter } from './modules/uploads/routes.js';
 import { notificationsRouter } from './modules/notifications/routes.js';
+import { authorityRouter } from './modules/authority/routes.js';
 
 export const app = express();
 
@@ -54,6 +55,7 @@ app.get('/health', (_req, res) => {
 app.use('/v1/reports', reportsRouter);
 app.use('/v1/uploads', uploadsRouter);
 app.use('/v1/notifications', notificationsRouter);
+app.use('/v1/authority', authorityRouter);
 
 // 404 Route Handler
 app.use((req, res) => {
