@@ -26,3 +26,14 @@ export const listReportsQuerySchema = z.object({
 });
 
 export type ListReportsQuery = z.infer<typeof listReportsQuerySchema>;
+
+export const createReportSchema = z.object({
+  category_id: z.string().min(1, 'category_id is required'),
+  description: z.string().max(2000, 'Description must not exceed 2000 characters').optional(),
+  latitude: z.number().min(-90).max(90, 'Latitude must be between -90 and 90'),
+  longitude: z.number().min(-180).max(180, 'Longitude must be between -180 and 180'),
+  area_name: z.string().max(255).optional(),
+  image_path: z.string().optional(),
+});
+
+export type CreateReportInput = z.infer<typeof createReportSchema>;
