@@ -1,0 +1,243 @@
+
+.gis-section {
+  margin: 32px 0;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  color: #0f172a;
+}
+
+.gis-header,
+.gis-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.gis-header h2,
+.gis-details h3 {
+  margin: 0 0 8px;
+}
+
+.gis-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.gis-refresh,
+.gis-close,
+.gis-image-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.gis-refresh,
+.gis-image-button {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.gis-refresh:disabled,
+.gis-image-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.gis-close {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.gis-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.gis-metric {
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.gis-metric span,
+.gis-metric strong {
+  display: block;
+}
+
+.gis-metric span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.gis-metric strong {
+  margin-top: 8px;
+  font-size: 26px;
+}
+
+.gis-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.gis-filters label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gis-filters select {
+  min-width: 190px;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+}
+
+.gis-map-frame {
+  height: 520px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #f1f5f9;
+}
+
+.gis-map {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.gis-loading {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: #475569;
+}
+
+.gis-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 16px 0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.gis-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: capitalize;
+}
+
+.gis-legend-item i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.gis-details {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.gis-details dl {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.gis-details dt {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.gis-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.gis-image-preview {
+  margin-top: 16px;
+}
+
+.gis-image-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.gis-image-preview p,
+.gis-notice {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.gis-error {
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+  overflow-wrap: anywhere;
+}
+
+.leaflet-popup-content button {
+  margin-top: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .gis-section {
+    padding: 14px;
+  }
+
+  .gis-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gis-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .gis-map-frame {
+    height: 380px;
+  }
+
+  .gis-details dl {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .gis-details dd {
+    margin-bottom: 10px;
+  }
+}
+.gis-map {
+  background: #f1f5f9;
+}
