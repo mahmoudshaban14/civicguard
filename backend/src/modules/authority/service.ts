@@ -119,6 +119,7 @@ export async function updateReportStatus(
   const updatePayload: Record<string, unknown> = {
     status: input.status,
     status_changed_by: user.id,
+    updated_by: user.id,
     status_note: input.note ?? null,
     updated_at: new Date().toISOString(),
   };
@@ -199,6 +200,7 @@ export async function assignReportDepartment(
       department: dept.name,
       status: report.status === 'manual_review_required' ? 'assigned' : report.status,
       status_changed_by: user.id,
+      updated_by: user.id,
       status_note: input.note ?? null,
       updated_at: new Date().toISOString(),
     })
