@@ -3,6 +3,9 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import './App.css'
+import { LayoutDashboard, FileText, MapPinned, Sparkles } from 'lucide-react'
+import GISMap from './GISMap'
+import { getTranslation, translateStatus, translateCategory, type Language } from './i18n'
 
 type Profile = {
   id: string
@@ -18,6 +21,10 @@ type Report = {
 }
 
 function App() {
+    const [language, setLanguage] = useState<Language>(() => {
+    const savedLanguage = localStorage.getItem('civicguard-language')
+    return savedLanguage === 'en' ? 'en' : 'ar'
+  })
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [email, setEmail] = useState('')
@@ -30,7 +37,18 @@ function App() {
   const [reportsLoading, setReportsLoading] = useState(false)
   const [reportsError, setReportsError] = useState('')
   const [filter, setFilter] = useState('all')
+const [activePage, setActivePage] = useState<
+  'overview' | 'reports' | 'gis'
+>('overview')
 
+  useEffect(() => {
+  localStorage.setItem('civicguard-language', language)
+  document.documentElement.setAttribute('lang', language)
+  document.documentElement.setAttribute(
+    'dir',
+    language === 'ar' ? 'rtl' : 'ltr'
+  )
+}, [language])
   // Restore the current Supabase session and listen for login/logout.
   useEffect(() => {
     let mounted = true
@@ -194,7 +212,7 @@ function App() {
         <section className="auth-card">
           <div className="brand-icon">C</div>
           <h1>CivicGuard</h1>
-          <p>Verifying your account permissions...</p>
+          <p>{getTranslation(language, 'verifying')}</p>
         </section>
       </main>
     )
@@ -205,15 +223,14 @@ function App() {
       <main className="auth-page">
         <section className="auth-card">
           <div className="brand-icon">C</div>
-          <p className="eyebrow">CIVICGUARD MANAGEMENT</p>
-          <h1>Admin Portal</h1>
+          <p className="eyebrow">{getTranslation(language, 'management')}</p>
+          <h1>{getTranslation(language, 'adminPortal')}</h1>
           <p className="auth-description">
-            Sign in with an authorized administrator account to manage
-            citizen reports.
+            {getTranslation(language, 'loginDescription')}
           </p>
 
           <form onSubmit={handleSignIn}>
-            <label htmlFor="email">Email address</label>
+            <label htmlFor="email">{getTranslation(language, 'email')}</label>
             <input
               id="email"
               type="email"
@@ -224,12 +241,12 @@ function App() {
               required
             />
 
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{getTranslation(language, 'password')}</label>
             <input
               id="password"
               type="password"
               autoComplete="current-password"
-              placeholder="Enter your password"
+              placeholder={getTranslation(language, 'password')}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
@@ -242,7 +259,7 @@ function App() {
             )}
 
             <button type="submit" disabled={busy}>
-              {busy ? 'Signing in...' : 'Sign in'}
+              {busy ? getTranslation(language, 'signingIn') : getTranslation(language, 'signIn')}
             </button>
           </form>
 
@@ -260,7 +277,14 @@ function App() {
       : reports.filter((report) => report.status === filter)
 
   const countStatus = (status: string) =>
-    reports.filter((report) => report.status === status).length
+  reports.filter((report) => report.status === status).length
+
+const resolvedCount = countStatus('resolved')
+
+const resolvedRate =
+  reports.length === 0
+    ? 0
+    : Math.round((resolvedCount / reports.length) * 100)
 
   return (
     <div className="dashboard">
@@ -269,26 +293,52 @@ function App() {
           <div className="brand-icon">C</div>
           <div>
             <h2>CivicGuard</h2>
-            <p>ADMIN PORTAL</p>
+            <p>{getTranslation(language, 'adminPortal')}</p>
           </div>
         </div>
 
-        <p className="menu-label">WORKSPACE</p>
+        <p className="menu-label">{getTranslation(language, 'management')}</p>
 
         <nav className="navigation">
-          <a href="#overview" className="nav-link active">
-            <span>▦</span> Overview
-          </a>
-          <a href="#reports" className="nav-link">
-            <span>▤</span> Reports
-          </a>
-        </nav>
+  <a
+    href="#overview"
+    className={`nav-link ${activePage === 'overview' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('overview')
+    }}
+  >
+    <LayoutDashboard size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'overview')}
+  </a>
+
+  <a
+    href="#reports"
+    className={`nav-link ${activePage === 'reports' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('reports')
+    }}
+  >
+    <FileText size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'reports')}
+  </a>
+
+  <a
+    href="#gis"
+    className={`nav-link ${activePage === 'gis' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('gis')
+    }}
+  >
+    <MapPinned size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'gisMap')}
+  </a>
+</nav>
 
         <div className="sidebar-bottom">
           <div className="connection-indicator" />
           <div>
             <strong>Supabase</strong>
-            <p>Administrator session</p>
+            <p>{getTranslation(language, 'adminSession')}</p>
           </div>
         </div>
       </aside>
@@ -296,85 +346,126 @@ function App() {
       <main className="main-content" id="overview">
         <header className="topbar">
           <div>
-            <p className="breadcrumb">Workspace / Overview</p>
-            <h1>Admin Dashboard</h1>
+            <p className="breadcrumb">
+  {getTranslation(language, 'management')} /{' '}
+  {activePage === 'overview'
+    ? getTranslation(language, 'overview')
+    : activePage === 'reports'
+      ? getTranslation(language, 'reports')
+      : getTranslation(language, 'gisMap')}
+</p>
+
+<h1>
+  {activePage === 'overview'
+    ? getTranslation(language, 'dashboard')
+    : activePage === 'reports'
+      ? getTranslation(language, 'reports')
+      : getTranslation(language, 'gisMap')}
+</h1>
           </div>
 
           <div className="admin-badge">
             <span className="avatar">A</span>
-            <span>Administrator</span>
+            <span>{getTranslation(language, 'administrator')}</span>
             <button type="button" onClick={handleSignOut}>
               Sign out
             </button>
           </div>
+                    <button
+            type="button"
+            className="language-toggle"
+            onClick={() =>
+              setLanguage((current) => (current === 'ar' ? 'en' : 'ar'))
+            }
+          >
+            {language === 'ar' ? 'English' : 'العربية'}
+          </button>
         </header>
+
+{activePage === 'overview' && (
+  <>
 
         <section className="welcome">
           <div>
-            <p className="eyebrow">CIVICGUARD MANAGEMENT</p>
-            <h2>Street issues overview</h2>
+            <p className="eyebrow">{getTranslation(language, 'management')}</p>
+            <h2>{getTranslation(language, 'overview')}</h2>
             <p>
-              Review citizen reports and monitor their progress toward
-              resolution.
+              {getTranslation(language, 'loginDescription')}
             </p>
           </div>
-          <div className="welcome-icon">⌖</div>
+          <div className="welcome-icon"><Sparkles size={28} strokeWidth={1.7} aria-hidden="true" /></div>
         </section>
 
         <section className="stats-grid">
           <article className="stat-card">
-            <p>Total reports</p>
+            <p>{getTranslation(language, 'totalReports')}</p>
             <h3>{reports.length}</h3>
-            <span>Reports in the database</span>
+            <span>{getTranslation(language, 'totalReports')}</span>
           </article>
 
           <article className="stat-card">
-            <p>Under review</p>
+            <p>{getTranslation(language, 'underReview')}</p>
             <h3>{countStatus('under_review')}</h3>
-            <span>Awaiting review</span>
+            <span>{getTranslation(language, 'underReview')}</span>
           </article>
 
           <article className="stat-card">
-            <p>In progress</p>
+            <p>{getTranslation(language, 'inProgress')}</p>
             <h3>{countStatus('in_progress')}</h3>
-            <span>Currently being addressed</span>
+            <span>{getTranslation(language, 'inProgress')}</span>
           </article>
 
           <article className="stat-card">
-            <p>Resolved</p>
+            <p>{getTranslation(language, 'resolved')}</p>
             <h3>{countStatus('resolved')}</h3>
-            <span>Marked as resolved</span>
+            <span>{getTranslation(language, 'resolved')}</span>
+          </article>
+
+          <article className="stat-card resolution-rate-card">
+            <p>{getTranslation(language, 'resolutionRate')}</p>
+            <h3>{resolvedRate}%</h3>
+            <div className="resolution-rate-track">
+              <div
+                className="resolution-rate-fill"
+                style={{ width: `${resolvedRate}%` }}
+              />
+            </div>
+            <span>
+              {resolvedCount} / {reports.length}
+            </span>
           </article>
         </section>
-
-        <section className="reports-section" id="reports">
+      </>
+)}
+        {activePage === 'reports' && (
+  <section className="reports-section" id="reports">
           <div className="section-heading">
             <div>
-              <h2>Recent reports</h2>
-              <p>Citizen-submitted street issues</p>
+              <h2>{getTranslation(language, 'allReports')}</h2>
+              <p>{getTranslation(language, 'mapDescription')}</p>
             </div>
 
             <select
-              aria-label="Filter reports by status"
+              aria-label={getTranslation(language, 'filterByStatus')}
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
             >
-              <option value="all">All reports</option>
-              <option value="submitted">Submitted</option>
-              <option value="ai_analyzed">AI analyzed</option>
-              <option value="assigned">Assigned</option>
-              <option value="under_review">Under review</option>
-              <option value="in_progress">In progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="rejected">Rejected</option>
+              <option value="all">{getTranslation(language, 'allStatuses')}</option>
+              <option value="submitted">{translateStatus('submitted', language)}</option>
+              <option value="ai_analyzed">{translateStatus('ai_analyzed', language)}</option>
+              <option value="assigned">{translateStatus('assigned', language)}</option>
+              <option value="under_review">{translateStatus('under_review', language)}</option>
+              <option value="in_progress">{translateStatus('in_progress', language)}</option>
+              <option value="resolved">{translateStatus('resolved', language)}</option>
+              <option value="rejected">{translateStatus('rejected', language)}</option>
               <option value="manual_review_required">
-                Manual review required
+                {translateStatus('manual_review_required', language)}
               </option>
             </select>
           </div>
 
           {reportsLoading && (
-            <p className="empty-state">Loading reports...</p>
+            <p className="empty-state">{getTranslation(language, 'loading')}</p>
           )}
 
           {reportsError && (
@@ -388,10 +479,10 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>REPORT</th>
-                    <th>CATEGORY</th>
-                    <th>STATUS</th>
-                    <th>DATE</th>
+                    <th>{getTranslation(language, 'report')}</th>
+                    <th>{getTranslation(language, 'category')}</th>
+                    <th>{getTranslation(language, 'status')}</th>
+                    <th>{getTranslation(language, 'date')}</th>
                   </tr>
                 </thead>
 
@@ -399,11 +490,10 @@ function App() {
                   {filteredReports.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="empty-state">
-                        <div className="empty-icon">▤</div>
-                        <h3>No reports found</h3>
+                        <div className="empty-icon"><FileText size={28} strokeWidth={1.8} aria-hidden="true" /></div>
+                        <h3>{getTranslation(language, 'noReports')}</h3>
                         <p>
-                          Reports will appear here when they are available
-                          in the database.
+                          {getTranslation(language, 'reportsEmptyDescription')}
                         </p>
                       </td>
                     </tr>
@@ -413,10 +503,10 @@ function App() {
                         <td>
                           <strong>{report.report_code}</strong>
                         </td>
-                        <td>{report.category || 'Uncategorized'}</td>
+                        <td>{report.category ? translateCategory(report.category, language) : getTranslation(language, 'uncategorized')}</td>
                         <td>
                           <span className="status-badge">
-                            {report.status.replaceAll('_', ' ')}
+                            {translateStatus(report.status, language)}
                           </span>
                         </td>
                         <td>
@@ -430,6 +520,8 @@ function App() {
             </div>
           )}
         </section>
+)}
+{activePage === 'gis' && <GISMap language={language} />}
 
         <footer>CivicGuard Admin Portal · Development environment</footer>
       </main>
@@ -438,3 +530,5 @@ function App() {
 }
 
 export default App
+
+

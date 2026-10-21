@@ -1,0 +1,512 @@
+
+import { useEffect, useState, type FormEvent } from 'react'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase'
+import './App.css'
+import GISMap from './GISMap'
+
+type Profile = {
+  id: string
+  role: string
+}
+
+type Report = {
+  id: string
+  report_code: string
+  category: string | null
+  status: string
+  created_at: string
+}
+
+function App() {
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
+  const [checkingProfile, setCheckingProfile] = useState(false)
+  const [reports, setReports] = useState<Report[]>([])
+  const [reportsLoading, setReportsLoading] = useState(false)
+  const [reportsError, setReportsError] = useState('')
+  const [filter, setFilter] = useState('all')
+const [activePage, setActivePage] = useState<
+  'overview' | 'reports' | 'gis'
+>('overview')
+
+  // Restore the current Supabase session and listen for login/logout.
+  useEffect(() => {
+    let mounted = true
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setUser(session?.user ?? null)
+        setProfile(null)
+        setReports([])
+        setError('')
+      }
+    })
+
+    async function restoreSession() {
+      const { data, error: sessionError } =
+        await supabase.auth.getSession()
+
+      if (!mounted) return
+
+      if (sessionError) {
+        setError(sessionError.message)
+      }
+
+      setUser(data.session?.user ?? null)
+      setCheckingSession(false)
+    }
+
+    void restoreSession()
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  // Read the signed-in user's role from the profiles table.
+  useEffect(() => {
+    let mounted = true
+
+    async function checkAdminRole() {
+      if (!user) {
+        setProfile(null)
+        setCheckingProfile(false)
+        return
+      }
+
+      setCheckingProfile(true)
+      setError('')
+
+      const { data, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (!mounted) return
+
+      if (profileError) {
+        setProfile(null)
+        setError(
+          `Could not verify your account role: ${profileError.message}`,
+        )
+        setCheckingProfile(false)
+        return
+      }
+
+      const currentProfile = data as Profile | null
+
+      if (!currentProfile || currentProfile.role !== 'admin') {
+        setProfile(null)
+        setError('Access denied. This account is not an administrator.')
+        setCheckingProfile(false)
+        await supabase.auth.signOut()
+        return
+      }
+
+      setProfile(currentProfile)
+      setCheckingProfile(false)
+    }
+
+    void checkAdminRole()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
+
+  // Load reports only after the admin role has been verified.
+  useEffect(() => {
+    let mounted = true
+
+    async function loadReports() {
+      if (!user || profile?.role !== 'admin') return
+
+      setReportsLoading(true)
+      setReportsError('')
+
+      const { data, error: queryError } = await supabase
+        .from('reports')
+        .select('id, report_code, category, status, created_at')
+        .order('created_at', { ascending: false })
+
+      if (!mounted) return
+
+      if (queryError) {
+        setReports([])
+        setReportsError(
+          `Reports could not be loaded: ${queryError.message}`,
+        )
+      } else {
+        setReports((data ?? []) as Report[])
+      }
+
+      setReportsLoading(false)
+    }
+
+    void loadReports()
+
+    return () => {
+      mounted = false
+    }
+  }, [user, profile])
+
+  async function handleSignIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+    setBusy(true)
+
+    try {
+      const { error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+
+      if (signInError) {
+        setError(signInError.message)
+      }
+    } catch {
+      setError('An unexpected error occurred while signing in.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleSignOut() {
+    setError('')
+
+    const { error: signOutError } = await supabase.auth.signOut()
+
+    if (signOutError) {
+      setError(`Could not sign out: ${signOutError.message}`)
+    }
+  }
+
+  if (checkingSession || (user && checkingProfile)) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <div className="brand-icon">C</div>
+          <h1>CivicGuard</h1>
+          <p>Verifying your account permissions...</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (!user || profile?.role !== 'admin') {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <div className="brand-icon">C</div>
+          <p className="eyebrow">CIVICGUARD MANAGEMENT</p>
+          <h1>Admin Portal</h1>
+          <p className="auth-description">
+            Sign in with an authorized administrator account to manage
+            citizen reports.
+          </p>
+
+          <form onSubmit={handleSignIn}>
+            <label htmlFor="email">Email address</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="username"
+              placeholder="admin@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+
+            {error && (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
+            )}
+
+            <button type="submit" disabled={busy}>
+              {busy ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="auth-footer">
+            Restricted access · Authorized administrators only
+          </p>
+        </section>
+      </main>
+    )
+  }
+
+  const filteredReports =
+    filter === 'all'
+      ? reports
+      : reports.filter((report) => report.status === filter)
+
+  const countStatus = (status: string) =>
+  reports.filter((report) => report.status === status).length
+
+const resolvedCount = countStatus('resolved')
+
+const resolvedRate =
+  reports.length === 0
+    ? 0
+    : Math.round((resolvedCount / reports.length) * 100)
+
+  return (
+    <div className="dashboard">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-icon">C</div>
+          <div>
+            <h2>CivicGuard</h2>
+            <p>ADMIN PORTAL</p>
+          </div>
+        </div>
+
+        <p className="menu-label">WORKSPACE</p>
+
+        <nav className="navigation">
+  <a
+    href="#overview"
+    className={`nav-link ${activePage === 'overview' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('overview')
+    }}
+  >
+    <span>▦</span> Overview
+  </a>
+
+  <a
+    href="#reports"
+    className={`nav-link ${activePage === 'reports' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('reports')
+    }}
+  >
+    <span>▤</span> Reports
+  </a>
+
+  <a
+    href="#gis"
+    className={`nav-link ${activePage === 'gis' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('gis')
+    }}
+  >
+    <span>◎</span> GIS Map
+  </a>
+</nav>
+
+        <div className="sidebar-bottom">
+          <div className="connection-indicator" />
+          <div>
+            <strong>Supabase</strong>
+            <p>Administrator session</p>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main-content" id="overview">
+        <header className="topbar">
+          <div>
+            <p className="breadcrumb">
+  Workspace /{' '}
+  {activePage === 'overview'
+    ? 'Overview'
+    : activePage === 'reports'
+      ? 'Reports'
+      : 'GIS Map'}
+</p>
+
+<h1>
+  {activePage === 'overview'
+    ? 'Admin Dashboard'
+    : activePage === 'reports'
+      ? 'Reports Management'
+      : 'Geographic Information System'}
+</h1>
+          </div>
+
+          <div className="admin-badge">
+            <span className="avatar">A</span>
+            <span>Administrator</span>
+            <button type="button" onClick={handleSignOut}>
+              Sign out
+            </button>
+          </div>
+        </header>
+
+{activePage === 'overview' && (
+  <>
+
+        <section className="welcome">
+          <div>
+            <p className="eyebrow">CIVICGUARD MANAGEMENT</p>
+            <h2>Street issues overview</h2>
+            <p>
+              Review citizen reports and monitor their progress toward
+              resolution.
+            </p>
+          </div>
+          <div className="welcome-icon">⌖</div>
+        </section>
+
+        <section className="stats-grid">
+          <article className="stat-card">
+            <p>Total reports</p>
+            <h3>{reports.length}</h3>
+            <span>Reports in the database</span>
+          </article>
+
+          <article className="stat-card">
+            <p>Under review</p>
+            <h3>{countStatus('under_review')}</h3>
+            <span>Awaiting review</span>
+          </article>
+
+          <article className="stat-card">
+            <p>In progress</p>
+            <h3>{countStatus('in_progress')}</h3>
+            <span>Reports being addressed</span>
+          </article>
+
+          <article className="stat-card">
+            <p>Resolved</p>
+            <h3>{countStatus('resolved')}</h3>
+            <span>Marked as resolved</span>
+          </article>
+
+          <article className="stat-card resolution-rate-card">
+            <p>Overall Resolution Rate</p>
+            <h3>{resolvedRate}%</h3>
+            <div className="resolution-rate-track">
+              <div
+                className="resolution-rate-fill"
+                style={{ width: `${resolvedRate}%` }}
+              />
+            </div>
+            <span>
+              {resolvedCount} of {reports.length} reports resolved
+            </span>
+          </article>
+        </section>
+      </>
+)}
+        {activePage === 'reports' && (
+  <section className="reports-section" id="reports">
+          <div className="section-heading">
+            <div>
+              <h2>Recent reports</h2>
+              <p>Citizen-submitted street issues</p>
+            </div>
+
+            <select
+              aria-label="Filter reports by status"
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            >
+              <option value="all">All reports</option>
+              <option value="submitted">Submitted</option>
+              <option value="ai_analyzed">AI analyzed</option>
+              <option value="assigned">Assigned</option>
+              <option value="under_review">Under review</option>
+              <option value="in_progress">In progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Rejected</option>
+              <option value="manual_review_required">
+                Manual review required
+              </option>
+            </select>
+          </div>
+
+          {reportsLoading && (
+            <p className="empty-state">Loading reports...</p>
+          )}
+
+          {reportsError && (
+            <p className="auth-error" role="alert">
+              {reportsError}
+            </p>
+          )}
+
+          {!reportsLoading && !reportsError && (
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>REPORT</th>
+                    <th>CATEGORY</th>
+                    <th>STATUS</th>
+                    <th>DATE</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredReports.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="empty-state">
+                        <div className="empty-icon">▤</div>
+                        <h3>No reports found</h3>
+                        <p>
+                          Reports will appear here when they are available
+                          in the database.
+                        </p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredReports.map((report) => (
+                      <tr key={report.id}>
+                        <td>
+                          <strong>{report.report_code}</strong>
+                        </td>
+                        <td>{report.category || 'Uncategorized'}</td>
+                        <td>
+                          <span className="status-badge">
+                            {report.status.replaceAll('_', ' ')}
+                          </span>
+                        </td>
+                        <td>
+                          {new Date(report.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+)}
+{activePage === 'gis' && <GISMap />}
+
+        <footer>CivicGuard Admin Portal · Development environment</footer>
+      </main>
+    </div>
+  )
+}
+
+export default App
