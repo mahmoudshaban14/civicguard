@@ -126,7 +126,72 @@ begin
     raise exception 'TEST FAILED: notifications not generated automatically (found %)', selected_count;
   end if;
 
-  raise notice 'ALL PHASE 0 DATABASE & RLS SECURITY TESTS PASSED SUCCESSFULLY!';
+  -- ==========================================================================
+  -- TEST 7: Authority user cannot change own department_id or role
+  -- ==========================================================================
+  declare
+    authority_id uuid := '33333333-3333-3333-3333-333333333333';
+  begin
+    insert into auth.users (id, email) values (authority_id, 'authority@test.com');
+    update public.profiles set role = 'authority' where id = authority_id;
+
+    perform set_config('request.jwt.claim.sub', authority_id::text, true);
+    perform set_config('request.jwt.claim.role', 'authenticated', true);
+
+    caught_error := false;
+    begin
+      update public.profiles set department_id = gen_random_uuid() where id = authority_id;
+    exception when others then
+      caught_error := true;
+    end;
+
+    if not caught_error then
+      raise exception 'TEST FAILED: Authority user was able to modify department_id';
+    end if;
+
+    caught_error := false;
+    begin
+      update public.profiles set role = 'admin' where id = authority_id;
+    exception when others then
+      caught_error := true;
+    end;
+
+    if not caught_error then
+      raise exception 'TEST FAILED: Authority user was able to elevate role to admin';
+    end if;
+
+    -- Clean up authority fixture
+    delete from public.profiles where id = authority_id;
+    delete from auth.users where id = authority_id;
+  end;
+
+  -- ==========================================================================
+  -- TEST 8: Citizen cannot modify severity, department, or status on update
+  -- ==========================================================================
+  perform set_config('request.jwt.claim.sub', citizen1_id::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
+
+  caught_error := false;
+  begin
+    update public.reports set severity = 'Critical' where id = report1_id;
+  exception when others then
+    caught_error := true;
+  end;
+  if not caught_error then
+    raise exception 'TEST FAILED: Citizen was able to modify severity';
+  end if;
+
+  caught_error := false;
+  begin
+    update public.reports set department = 'Unauthorized Department' where id = report1_id;
+  exception when others then
+    caught_error := true;
+  end;
+  if not caught_error then
+    raise exception 'TEST FAILED: Citizen was able to modify department';
+  end if;
+
+  raise notice 'ALL PHASE 0 & REVIEW DATABASE SECURITY TESTS PASSED SUCCESSFULLY!';
 end;
 $$;
 

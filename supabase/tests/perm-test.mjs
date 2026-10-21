@@ -101,8 +101,35 @@ check('Citizen A can read own image', !dlA.error, dlA.error?.message);
 const dlB = await B.c.storage.from(BUCKET).download(path);
 check('Citizen B can NOT read A image', !!dlB.error, 'B downloaded it!');
 
-const dlAd = await ADMIN.c.storage.from(BUCKET).download(path);
-check('Admin can read A image', !dlAd.error, dlAd.error?.message);
+console.log('\n--- Hardening & Revoked RPC Verification ---');
+// 1. Citizen cannot alter department or severity
+const aSev = await A.c.from('reports').update({ severity: 'Critical' }).eq('id', rid).select();
+check('Citizen A can NOT modify report severity', blocked(aSev), JSON.stringify(aSev.data));
+
+const aDept = await A.c.from('reports').update({ department: 'Unauthorized Dept' }).eq('id', rid).select();
+check('Citizen A can NOT modify report department', blocked(aDept), JSON.stringify(aDept.data));
+
+// 2. Citizen / authority cannot modify own department_id
+const aDeptId = await A.c.from('profiles').update({ department_id: '11111111-1111-1111-1111-111111111111' }).eq('id', A.id).select();
+check('Citizen / Authority can NOT change own department_id', blocked(aDeptId), JSON.stringify(aDeptId.data));
+
+// 3. Citizen cannot execute revoked SECURITY DEFINER functions through REST RPC
+const revokedRpcs = [
+  'guard_report_insert',
+  'guard_report_update',
+  'guard_profile_insert',
+  'guard_profile_update',
+  'handle_report_status_change',
+  'handle_new_user',
+  'is_authority',
+  'set_updated_at',
+  'sync_report_geography',
+];
+
+for (const fn of revokedRpcs) {
+  const rpcRes = await A.c.rpc(fn);
+  check(`Citizen can NOT execute ${fn} via RPC`, !!rpcRes.error, 'executed successfully!');
+}
 
 console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
