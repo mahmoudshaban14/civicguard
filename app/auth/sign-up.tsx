@@ -18,7 +18,7 @@ export default function SignUpScreen() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: email.trim(),
       password: password,
       options: {
@@ -34,19 +34,6 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert([
-        {
-          id: data.user.id,
-          full_name: fullName.trim(),
-          role: 'citizen',
-        },
-      ]);
-
-      if (profileError) {
-        console.log('Profile Sync Error:', profileError.message);
-      }
-    }
 
     setLoading(false);
     Alert.alert('تم بنجاح', 'تم إنشاء الحساب بنجاح!', [
