@@ -220,3 +220,73 @@ export async function getReportById(user: AuthUser, reportId: string) {
     signedImageUrl,
   };
 }
+
+// Bounding box approximation helper for geography distance search
+function getBoundingBox(lat: number, lng: number, radiusMeters: number) {
+  const earthRadius = 6371000; // in meters
+  const dLat = (radiusMeters / earthRadius) * (180 / Math.PI);
+  const dLng = (radiusMeters / (earthRadius * Math.cos((lat * Math.PI) / 180))) * (180 / Math.PI);
+
+  return {
+    minLat: lat - dLat,
+    maxLat: lat + dLat,
+    minLng: lng - dLng,
+    maxLng: lng + dLng,
+  };
+}
+
+// Haversine formula for exact distance filtering
+function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000; // meters
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export async function getNearbyReports(query: import('./schema.js').NearbyReportsQuery) {
+  const supabase = getSupabaseAdmin();
+
+  const bbox = getBoundingBox(query.lat, query.lng, query.radius);
+
+  // Filter with bounding box on latitude and longitude
+  // Only select public fields (no reporter user_id or sensitive data)
+  const { data, error } = await supabase
+    .from('reports')
+    .select(`
+      id,
+      report_code,
+      category_id,
+      category,
+      status,
+      severity,
+      area_name,
+      latitude,
+      longitude,
+      created_at
+    `)
+    .gte('latitude', bbox.minLat)
+    .lte('latitude', bbox.maxLat)
+    .gte('longitude', bbox.minLng)
+    .lte('longitude', bbox.maxLng)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch nearby reports: ${error.message}`);
+  }
+
+  // Exact radius filtering using Haversine calculation and limit slice
+  const nearbyReports = (data ?? [])
+    .filter((rep) => {
+      if (rep.latitude === null || rep.longitude === null) return false;
+      const distance = calculateDistanceMeters(query.lat, query.lng, rep.latitude, rep.longitude);
+      return distance <= query.radius;
+    })
+    .slice(0, query.limit);
+
+  return nearbyReports;
+}

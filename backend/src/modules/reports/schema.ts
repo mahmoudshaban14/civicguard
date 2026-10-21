@@ -43,3 +43,12 @@ export const getReportParamsSchema = z.object({
 });
 
 export type GetReportParams = z.infer<typeof getReportParamsSchema>;
+
+export const nearbyReportsQuerySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90, 'Latitude must be between -90 and 90'),
+  lng: z.coerce.number().min(-180).max(180, 'Longitude must be between -180 and 180'),
+  radius: z.coerce.number().min(100).max(50000).default(5000), // meters (default 5km, max 50km)
+  limit: z.coerce.number().min(1).max(100).default(50),
+});
+
+export type NearbyReportsQuery = z.infer<typeof nearbyReportsQuerySchema>;

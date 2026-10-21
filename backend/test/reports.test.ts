@@ -506,3 +506,122 @@ describe('GET /v1/reports/:id', () => {
     expect(res.body).toHaveProperty('signedImageUrl', 'https://example.com/storage/signed-pothole.jpg');
   });
 });
+
+describe('GET /v1/reports/nearby', () => {
+  it('should return 401 without an Authorization header', async () => {
+    const res = await request(app).get('/v1/reports/nearby?lat=30.0444&lng=31.2357');
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
+  });
+
+  it('should return 400 when lat or lng is missing or invalid', async () => {
+    const mockUser = { id: 'usr-123', email: 'citizen@example.com' };
+    const mockProfile = { id: 'usr-123', role: 'citizen', department_id: null };
+
+    const mockSupabase = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        }),
+      },
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+          };
+        }
+        return {};
+      }),
+    };
+
+    vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+    const res = await request(app)
+      .get('/v1/reports/nearby?lat=invalid&lng=31.2357')
+      .set('Authorization', 'Bearer valid-token');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('should return 200 with nearby reports filtered by distance', async () => {
+    const mockUser = { id: 'usr-123', email: 'citizen@example.com' };
+    const mockProfile = { id: 'usr-123', role: 'citizen', department_id: null };
+
+    // Downtown Cairo: 30.0444, 31.2357
+    // Report 1: ~100m away (30.0450, 31.2357) -> should be included in 1000m
+    // Report 2: ~20km away (30.2000, 31.2357) -> should be filtered out
+    const mockCandidateReports = [
+      {
+        id: 'rep-near-1',
+        report_code: 'CG-2026-00001',
+        category_id: 'pothole',
+        category: 'Pothole / Road Damage',
+        status: 'submitted',
+        severity: 'High',
+        area_name: 'Tahrir Square',
+        latitude: 30.045,
+        longitude: 31.2357,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'rep-far-2',
+        report_code: 'CG-2026-00002',
+        category_id: 'garbage',
+        category: 'Garbage / Litter',
+        status: 'in_progress',
+        severity: 'Medium',
+        area_name: 'Far Suburb',
+        latitude: 30.2,
+        longitude: 31.2357,
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    const mockQueryBuilder = {
+      select: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: mockCandidateReports, error: null }),
+    };
+
+    const mockSupabase = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        }),
+      },
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+          };
+        }
+        if (table === 'reports') {
+          return mockQueryBuilder;
+        }
+        return {};
+      }),
+    };
+
+    vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+    const res = await request(app)
+      .get('/v1/reports/nearby?lat=30.0444&lng=31.2357&radius=1000')
+      .set('Authorization', 'Bearer valid-token');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('reports');
+    expect(Array.isArray(res.body.reports)).toBe(true);
+    expect(res.body.reports.length).toBe(1);
+    expect(res.body.reports[0].id).toBe('rep-near-1');
+    expect(res.body.reports[0]).not.toHaveProperty('user_id'); // Privacy: user_id omitted
+  });
+});

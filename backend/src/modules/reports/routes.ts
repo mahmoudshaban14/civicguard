@@ -5,8 +5,14 @@ import {
   listReportsQuerySchema,
   createReportSchema,
   getReportParamsSchema,
+  nearbyReportsQuerySchema,
 } from './schema.js';
-import { listReports, createReport, getReportById } from './service.js';
+import {
+  listReports,
+  createReport,
+  getReportById,
+  getNearbyReports,
+} from './service.js';
 
 export const reportsRouter = Router();
 
@@ -37,6 +43,23 @@ reportsRouter.post(
     try {
       const report = await createReport(req.user!, req.body);
       res.status(201).json({ report });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /v1/reports/nearby?lat=...&lng=...&radius=...
+reportsRouter.get(
+  '/nearby',
+  requireAuth,
+  validate({ query: nearbyReportsQuerySchema }),
+  async (req, res, next) => {
+    try {
+      const reports = await getNearbyReports(
+        req.query as unknown as import('./schema.js').NearbyReportsQuery,
+      );
+      res.json({ reports });
     } catch (err) {
       next(err);
     }
