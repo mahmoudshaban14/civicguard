@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
-import { listReportsQuerySchema, createReportSchema } from './schema.js';
-import { listReports, createReport } from './service.js';
+import {
+  listReportsQuerySchema,
+  createReportSchema,
+  getReportParamsSchema,
+} from './schema.js';
+import { listReports, createReport, getReportById } from './service.js';
 
 export const reportsRouter = Router();
 
@@ -33,6 +37,21 @@ reportsRouter.post(
     try {
       const report = await createReport(req.user!, req.body);
       res.status(201).json({ report });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /v1/reports/:id
+reportsRouter.get(
+  '/:id',
+  requireAuth,
+  validate({ params: getReportParamsSchema }),
+  async (req, res, next) => {
+    try {
+      const result = await getReportById(req.user!, req.params.id as string);
+      res.json(result);
     } catch (err) {
       next(err);
     }

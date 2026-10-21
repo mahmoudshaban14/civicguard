@@ -37,3 +37,9 @@ export const createReportSchema = z.object({
 });
 
 export type CreateReportInput = z.infer<typeof createReportSchema>;
+
+export const getReportParamsSchema = z.object({
+  id: z.string().uuid('Report id must be a valid UUID'),
+});
+
+export type GetReportParams = z.infer<typeof getReportParamsSchema>;

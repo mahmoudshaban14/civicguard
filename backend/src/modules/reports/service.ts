@@ -125,3 +125,98 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
 
   return report;
 }
+
+export async function getReportById(user: AuthUser, reportId: string) {
+  const supabase = getSupabaseAdmin();
+
+  // 1. Fetch report details
+  const { data: report, error: reportError } = await supabase
+    .from('reports')
+    .select(`
+      id,
+      report_code,
+      user_id,
+      category_id,
+      category,
+      status,
+      severity,
+      confidence,
+      description,
+      area_name,
+      latitude,
+      longitude,
+      image_path,
+      explanation,
+      department,
+      assigned_department_id,
+      requires_manual_review,
+      created_at,
+      updated_at,
+      resolved_at
+    `)
+    .eq('id', reportId)
+    .maybeSingle();
+
+  if (reportError) {
+    throw new Error(`Failed to fetch report: ${reportError.message}`);
+  }
+
+  if (!report) {
+    throw new AppError(404, 'NOT_FOUND', 'Report not found');
+  }
+
+  // 2. Authorization check:
+  // - Citizens can only view their own reports
+  // - Authorities can view reports for their assigned department
+  // - Admins can view any report
+  if (user.role === 'citizen' && report.user_id !== user.id) {
+    throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view this report');
+  }
+
+  if (
+    user.role === 'authority' &&
+    user.department_id &&
+    report.assigned_department_id &&
+    report.assigned_department_id !== user.department_id
+  ) {
+    throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view reports from other departments');
+  }
+
+  // 3. Fetch timeline events from report_events
+  const { data: events, error: eventsError } = await supabase
+    .from('report_events')
+    .select(`
+      id,
+      report_id,
+      actor_id,
+      actor_role,
+      old_status,
+      new_status,
+      note,
+      created_at
+    `)
+    .eq('report_id', reportId)
+    .order('created_at', { ascending: true });
+
+  if (eventsError) {
+    throw new Error(`Failed to fetch report events: ${eventsError.message}`);
+  }
+
+  // 4. Generate signed image URL if image_path exists
+  let signedImageUrl: string | null = null;
+  if (report.image_path) {
+    const { data: signedData } = await supabase.storage
+      .from('report-images')
+      .createSignedUrl(report.image_path, 3600);
+
+    if (signedData?.signedUrl) {
+      signedImageUrl = signedData.signedUrl;
+    }
+  }
+
+  return {
+    report,
+    events: events ?? [],
+    signedImageUrl,
+  };
+}
