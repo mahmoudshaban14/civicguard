@@ -10,13 +10,14 @@ import { ReportCard } from '@/components/civic/ReportCard';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function HomeScreen() {
-  const { reports, notifications } = useCivicGuard();
+  const { reports, notifications, refreshReports, isLoading } = useCivicGuard();
   const [refreshing, setRefreshing] = useState(false);
   const unread = notifications.filter((item) => !item.read).length;
 
-  const refresh = () => {
+  const refresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 650);
+    await refreshReports().catch(() => {});
+    setRefreshing(false);
   };
 
   return (

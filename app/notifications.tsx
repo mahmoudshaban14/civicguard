@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import { Typography } from 'heroui-native';
 import { Bell, CheckCircle2, Clock3 } from 'lucide-react-native';
@@ -6,7 +7,11 @@ import { Screen } from '@/components/civic/Screen';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function NotificationsScreen() {
-  const { notifications } = useCivicGuard();
+  const { notifications, markNotificationsRead } = useCivicGuard();
+
+  useEffect(() => {
+    markNotificationsRead();
+  }, [markNotificationsRead]);
   return (
     <Screen>
       <AppHeader title="Notifications" eyebrow="UPDATES" showBack />
