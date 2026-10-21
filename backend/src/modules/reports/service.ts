@@ -77,6 +77,18 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
     throw new AppError(400, 'INVALID_CATEGORY', `Category '${input.category_id}' not found or inactive`);
   }
 
+  // Enforce image_path scoping: must start with <user.id>/ if provided
+  if (input.image_path) {
+    const expectedPrefix = `${user.id}/`;
+    if (!input.image_path.startsWith(expectedPrefix)) {
+      throw new AppError(
+        400,
+        'INVALID_IMAGE_PATH',
+        `image_path must be in the authenticated user's own storage folder ('${expectedPrefix}')`,
+      );
+    }
+  }
+
   // 2. Insert report with database-authoritative department, severity, user_id, and status 'submitted'
   const insertPayload = {
     user_id: user.id,
