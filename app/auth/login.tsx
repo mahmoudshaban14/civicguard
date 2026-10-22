@@ -24,7 +24,7 @@ export default function LoginScreen() {
 
   const t = {
     ar: {
-      title: 'تسجيل الدخول 🏛️',
+      title: 'تسجيل الدخول',
       subtitle: 'أدخل البريد الإلكتروني، الرقم القومي، أو رقم الهاتف للمتابعة',
       identifierLabel: 'البريد / الرقم القومي / الهاتف',
       identifierPlaceholder: 'إيميل، رقم قومي، أو رقم موبايل',
@@ -37,10 +37,11 @@ export default function LoginScreen() {
       passwordRequired: 'تحتاج لإدخال كلمة المرور',
       alertErrorMessage: 'بيانات الدخول غير صحيحة. يرجى التأكد من البيانات والمحاولة مجدداً.',
       switchLangText: 'English 🌐',
-      textAlign: 'right' as const,
+      textAlign: 'center' as const,
+      inputTextAlign: 'right' as const,
     },
     en: {
-      title: 'Log In 🏛️',
+      title: 'Log In',
       subtitle: 'Enter your Email, National ID, or Phone number to continue',
       identifierLabel: 'Email / National ID / Phone',
       identifierPlaceholder: 'Email, National ID, or Phone',
@@ -53,7 +54,8 @@ export default function LoginScreen() {
       passwordRequired: 'Please enter your password',
       alertErrorMessage: 'Invalid credentials. Please check your data and try again.',
       switchLangText: 'عربي 🇪🇬',
-      textAlign: 'left' as const,
+      textAlign: 'center' as const,
+      inputTextAlign: 'left' as const,
     },
   }[lang];
 
@@ -63,7 +65,7 @@ export default function LoginScreen() {
     setPasswordError('');
     setGeneralError('');
 
-    // 1. التحقق من الحقول الفارغة
+    // التحقق من الحقول الفارغة
     if (!identifier.trim()) {
       setIdentifierError(t.identifierRequired);
       hasError = true;
@@ -78,7 +80,7 @@ export default function LoginScreen() {
 
     setLoading(true);
 
-    // 2. محاولة تسجيل الدخول مع Supabase Auth
+    // محاولة تسجيل الدخول مع Supabase Auth
     const { error } = await supabase.auth.signInWithPassword({
       email: identifier.trim(),
       password: password,
@@ -144,6 +146,7 @@ export default function LoginScreen() {
             borderColor: '#E2E8F0',
           }}
         >
+          {/* تم سنترة العنوان والوصف في المنتصف */}
           <Text style={{ fontSize: 26, fontWeight: '800', color: '#0F172A', marginBottom: 6, textAlign: t.textAlign }}>
             {t.title}
           </Text>
@@ -171,7 +174,7 @@ export default function LoginScreen() {
 
           {/* حقل المعرف (إيميل / رقم قومي / هاتف) */}
           <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: t.textAlign, color: '#334155' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: lang === 'ar' ? 'right' : 'left', color: '#334155' }}>
               {t.identifierLabel}
             </Text>
             <TextInput
@@ -191,14 +194,14 @@ export default function LoginScreen() {
                 borderRadius: 14,
                 paddingVertical: 14,
                 paddingHorizontal: 16,
-                textAlign: t.textAlign,
+                textAlign: t.inputTextAlign,
                 fontSize: 14.5,
                 color: '#0F172A',
                 fontWeight: '500',
               }}
             />
             {identifierError ? (
-              <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: t.textAlign }}>
+              <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
                 ⚠️ {identifierError}
               </Text>
             ) : null}
@@ -206,7 +209,7 @@ export default function LoginScreen() {
 
           {/* حقل كلمة المرور */}
           <View style={{ marginBottom: 12 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: t.textAlign, color: '#334155' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: lang === 'ar' ? 'right' : 'left', color: '#334155' }}>
               {t.passwordLabel}
             </Text>
             <TextInput
@@ -226,14 +229,14 @@ export default function LoginScreen() {
                 borderRadius: 14,
                 paddingVertical: 14,
                 paddingHorizontal: 16,
-                textAlign: t.textAlign,
+                textAlign: t.inputTextAlign,
                 fontSize: 14.5,
                 color: '#0F172A',
                 fontWeight: '500',
               }}
             />
             {passwordError ? (
-              <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: t.textAlign }}>
+              <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
                 ⚠️ {passwordError}
               </Text>
             ) : null}

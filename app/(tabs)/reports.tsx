@@ -53,7 +53,7 @@ export default function ReportsScreen() {
       <FlatList
         data={reports}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
         ListHeaderComponent={
           <View style={{ marginBottom: 20, width: '100%' }}>
             {/* العنوان الرئيسي محاذاته تتغير تماماً حسب اللغة */}
@@ -93,7 +93,7 @@ export default function ReportsScreen() {
               setRefreshing(true);
               setTimeout(() => setRefreshing(false), 600);
             }}
-            tintColor="#167A62"
+            tintColor="#1E3A8A"
           />
         }
         ListEmptyComponent={
@@ -109,7 +109,7 @@ export default function ReportsScreen() {
               elevation: 2,
             }}
           >
-            <ClipboardList size={42} color="#167A62" />
+            <ClipboardList size={42} color="#1E3A8A" />
             <Text
               style={{
                 color: '#0F172A',

@@ -24,8 +24,8 @@ export interface DraftReport {
   imageUri?: string;
   imageFileName?: string;
   description: string;
-  latitude: number | null; // أصبح يقبل null للتأكد من إلزاميته
-  longitude: number | null;
+  latitude: number;
+  longitude: number;
   area: string;
 }
 
@@ -63,14 +63,13 @@ interface CivicGuardStore {
   resetDemo: () => void;
 }
 
-// تعديل الديفولت لتكون الإحداثيات فارغة (غير محددة) حتى يختارها المستخدم بوعي
 const DEFAULT_DRAFT: DraftReport = {
   imageKey: 'pothole',
   scenarioKey: 'pothole',
   description: '',
-  latitude: null,
-  longitude: null,
-  area: '',
+  latitude: 30.0074,
+  longitude: 31.4913,
+  area: 'New Cairo',
 };
 
 const INITIAL_NOTIFICATIONS: NotificationItem[] = [
@@ -88,6 +87,42 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     timeEstimateEn: 'Est. Resolution: 3 - 5 days',
     time: 'منذ ساعتين',
     read: false,
+  },
+  {
+    id: '2',
+    type: 'reward',
+    titleAr: 'تهانينا! كسبت +50 نقطة 🏆',
+    titleEn: 'Congrats! +50 Civic Points 🏆',
+    text: 'تم إغلاق البلاغ رقم #CG-2026-0980 بنجاح. شكراً لمساهمتك الإيجابية!',
+    textEn: 'Report #CG-2026-0980 resolved successfully. Thank you for your contribution!',
+    time: 'أمس',
+    read: false,
+  },
+  {
+    id: '3',
+    type: 'ai_block',
+    titleAr: 'تنبيه ذكاء اصطناعي 🤖',
+    titleEn: 'AI Safety Alert 🤖',
+    text: 'تم رفض الصورة المرفقة بواسطة الـ AI نظراً لعدم وضوح المعالم أو مخالفة الشروط.',
+    textEn: 'Image rejected by AI safety filter due to low quality or non-compliance.',
+    priorityAr: 'مرفوض آلياً (AI Rejected)',
+    priorityEn: 'AI Rejected',
+    priorityColor: '#E11D48',
+    time: 'منذ يومين',
+    read: true,
+  },
+  {
+    id: '4',
+    type: 'resolved',
+    titleAr: 'تم حل المشكلة بالكامل ✅',
+    titleEn: 'Issue Resolved ✅',
+    text: 'إنهاء أعمال صيانة أعمدة الإنارة المقطوعة في شارع النصر.',
+    textEn: 'Emergency team completed streetlight repairs at Al-Nasr St.',
+    priorityAr: 'أولوية متوسطة (Medium Priority)',
+    priorityEn: 'Medium Priority',
+    priorityColor: '#D97706',
+    time: 'منذ 3 أيام',
+    read: true,
   },
 ];
 
@@ -116,7 +151,10 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('reports')
@@ -178,11 +216,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
           fileName: draft.imageFileName,
         },
         draft.description,
-        { 
-          latitude: draft.latitude ?? 30.0074, 
-          longitude: draft.longitude ?? 31.4913, 
-          area: draft.area || 'Cairo' 
-        },
+        { latitude: draft.latitude, longitude: draft.longitude, area: draft.area },
         preferredCategory,
       );
       setAnalysisResult(result);
@@ -192,20 +226,6 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   );
 
   const submitDraft = useCallback(async () => {
-    // -------------------------------------------------------------
-    // الفحص الدفاعي الإلزامي للموقع الجغرافي (Defensive Validation)
-    // -------------------------------------------------------------
-    const lat = draft.latitude;
-    const lng = draft.longitude;
-
-    const isValidLat = lat !== null && typeof lat === 'number' && Number.isFinite(lat) && lat >= -90 && lat <= 90;
-    const isValidLng = lng !== null && typeof lng === 'number' && Number.isFinite(lng) && lng >= -180 && lng <= 180;
-
-    if (!isValidLat || !isValidLng) {
-      console.error('Validation Error: Missing or invalid geographic coordinates.', { lat, lng });
-      return null; // رفض إنشاء البلاغ تماماً لو الإحداثيات مش صحيحة
-    }
-
     const analysis = analysisResult;
     const rawSeverity = analysis?.severity ?? 'Medium';
     const safeSeverity = rawSeverity === 'Requires Review' ? 'Medium' : rawSeverity;
@@ -247,6 +267,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
             const { data: publicUrlData } = supabase.storage
               .from('reports')
               .getPublicUrl(fileName);
+
             publicImageUrl = publicUrlData.publicUrl;
           }
         } catch (imgErr) {
@@ -266,8 +287,8 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
             severity: safeSeverity,
             confidence: safeConfidence,
             department: department,
-            latitude: lat,
-            longitude: lng,
+            latitude: draft.latitude,
+            longitude: draft.longitude,
             description: draft.description || analysis?.explanation || 'Submitted for manual review.',
             image_path: publicImageUrl || draft.imageUri || null,
             explanation: analysis?.explanation || '',
@@ -290,9 +311,9 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
         confidence: data.confidence,
         status: data.status as ReportStatus,
         department: data.department,
-        area: draft.area || 'Current Location',
-        latitude: lat,
-        longitude: lng,
+        area: draft.area,
+        latitude: draft.latitude,
+        longitude: draft.longitude,
         distance: '250m',
         date: formatReportDate(data.created_at),
         description: data.description,
@@ -331,6 +352,19 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
     setReports((current) =>
       current.map((report) => (report.id === id ? { ...report, status } : report)),
     );
+    setNotifications((current) => [
+      {
+        id: `status-${Date.now()}`,
+        type: status === 'Resolved' ? 'resolved' : 'in_progress',
+        titleAr: `تحديث حالة البلاغ #${id}`,
+        titleEn: `Status Updated for #${id}`,
+        text: `تغيرت حالة البلاغ رقم ${id} إلى: ${status}.`,
+        textEn: `Your report ${id} is now ${status}.`,
+        time: 'الآن (Just now)',
+        read: false,
+      },
+      ...current,
+    ]);
   }, []);
 
   const advanceReportStatus = useCallback(

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PlusCircle, FileText, MapPin, ShieldCheck, CheckCircle2, Clock, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { PlusCircle, FileText, MapPin, ShieldCheck, CheckCircle2, Clock, ArrowRight, ArrowLeft, Camera, Sparkles } from 'lucide-react-native';
 
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { useCivicGuard } from '@/lib/civicguard-store';
@@ -31,7 +31,6 @@ export default function HomeScreen() {
     }, [])
   );
 
-  // حساب الإحصائيات السريعة للعرض الفوري
   const totalReports = reports.length;
   const resolvedReports = reports.filter(r => r.status === 'resolved' || r.status === 'تم الحل').length;
   const inProgressReports = totalReports - resolvedReports;
@@ -40,10 +39,11 @@ export default function HomeScreen() {
     ar: {
       appName: 'سويفت كير | CivicGuard',
       welcomeSubtitle: 'منصة بلاغات المواطنين الرسمية',
-      heroTitle: 'شارك في تحسين وتأمين مدينتك الآن',
-      heroDesc: 'قم بتوثيق وإرسال البلاغات المدنية للجهات المختصة بضغطة زر واحدة بكل سهولة.',
-      reportBtn: 'تقديم بلاغ جديد',
+      heroTitle: 'معاً لبيئة مدنية أذكى وأكثر أماناً بمصر',
+      heroDesc: 'قم بتوثيق وإرسال البلاغات المدنية للجهات المختصة بضغطة زر واحدة بكل سهولة وذكاء اصطناعي.',
+      reportBtn: 'التقاط وتوثيق',
       myReportsBtn: 'سجل بلاغاتي',
+      aiFeatureBtn: 'تحليل الذكاء الاصطناعي',
       statsResolved: 'تم حلها',
       statsInProgress: 'قيد المعالجة',
       statsTotal: 'إجمالي البلاغات',
@@ -57,10 +57,11 @@ export default function HomeScreen() {
     en: {
       appName: 'CivicGuard Egypt',
       welcomeSubtitle: 'Official Citizen Reporting Platform',
-      heroTitle: 'Make your city safer and cleaner today',
-      heroDesc: 'Document and submit civic issues to the authorities with just a tap.',
-      reportBtn: 'Submit New Report',
+      heroTitle: 'Together for a smarter and safer civic Egypt',
+      heroDesc: 'Document and submit civic issues to the authorities instantly with AI support.',
+      reportBtn: 'Capture & Document',
       myReportsBtn: 'My Reports',
+      aiFeatureBtn: 'AI Analysis',
       statsResolved: 'Resolved',
       statsInProgress: 'In Progress',
       statsTotal: 'Total Reports',
@@ -107,7 +108,7 @@ export default function HomeScreen() {
           }}
         >
           <Text style={{ color: '#93C5FD', fontSize: 12, fontWeight: '700', marginBottom: 8, textAlign: t.textAlign, textTransform: 'uppercase' }}>
-            {lang === 'ar' ? 'مبادرة تحسين الخدمات' : 'Civic Service Initiative'}
+            {lang === 'ar' ? 'مبادرة تحسين الخدمات المصرية' : 'Egypt Civic Initiative'}
           </Text>
           <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '800', marginBottom: 10, textAlign: t.textAlign, lineHeight: 30 }}>
             {t.heroTitle}
@@ -116,50 +117,53 @@ export default function HomeScreen() {
             {t.heroDesc}
           </Text>
 
-          {/* أزرار سريعة جوه الكارت */}
-          <View style={{ flexDirection: t.flexDirection, gap: 12 }}>
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/report' as any)}
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                flex: 1,
-                flexDirection: t.flexDirection,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <PlusCircle size={18} color="#1E3A8A" style={{ [lang === 'ar' ? 'marginLeft' : 'marginRight']: 6 }} />
-              <Text style={{ color: '#1E3A8A', fontWeight: '700', fontSize: 13 }}>
-                {t.reportBtn}
-              </Text>
-            </TouchableOpacity>
+          {/* أزرار سريعة جوه الكارت (تيك فوتو، سابميت، والذكاء الاصطناعي) */}
+          <View style={{ flexDirection: 'column', gap: 10 }}>
+            <View style={{ flexDirection: t.flexDirection, gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => router.push('/(tabs)/report' as any)}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 14,
+                  paddingVertical: 12,
+                  paddingHorizontal: 12,
+                  flex: 1,
+                  flexDirection: t.flexDirection,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Camera size={18} color="#1E3A8A" style={{ [lang === 'ar' ? 'marginLeft' : 'marginRight']: 6 }} />
+                <Text style={{ color: '#1E3A8A', fontWeight: '700', fontSize: 12.5 }}>
+                  {t.reportBtn}
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/reports' as any)}
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                borderRadius: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                flexDirection: t.flexDirection,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-              }}
-            >
-              <FileText size={18} color="#FFFFFF" style={{ [lang === 'ar' ? 'marginLeft' : 'marginRight']: 6 }} />
-              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
-                {t.myReportsBtn}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/(tabs)/reports' as any)}
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  borderRadius: 14,
+                  paddingVertical: 12,
+                  paddingHorizontal: 12,
+                  flex: 1,
+                  flexDirection: t.flexDirection,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                }}
+              >
+                <FileText size={18} color="#FFFFFF" style={{ [lang === 'ar' ? 'marginLeft' : 'marginRight']: 6 }} />
+                <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 12.5 }}>
+                  {t.myReportsBtn}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        {/* كارت الإحصائيات السريعة (اللي بيظهر قوة النظام ولينكس البلاغات) */}
+        {/* كارت الإحصائيات السريعة */}
         <View
           style={{
             flexDirection: t.flexDirection,
@@ -189,7 +193,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* قسم البلاغات القريبة (Nearby Issues Section) */}
+        {/* قسم البلاغات القريبة */}
         <View style={{ marginTop: 5 }}>
           <View style={{ flexDirection: t.flexDirection, justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A', textAlign: t.textAlign }}>

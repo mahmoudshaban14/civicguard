@@ -199,7 +199,7 @@ export default function SignUpScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
       <ScrollView contentContainerStyle={{ padding: 24, justifyContent: 'center', minHeight: '100%' }}>
         
-        {/* زر تحويل اللغة باللون الكحلي المطابق للصورة */}
+        {/* زر تحويل اللغة */}
         <View style={{ marginBottom: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
           <TouchableOpacity
             onPress={() => {
@@ -227,7 +227,7 @@ export default function SignUpScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* الكارت الرئيسي بنفس اللون والتصميم المطابق لصفحة اللوجن */}
+        {/* الكارت الرئيسي */}
         <View
           style={{
             backgroundColor: '#FFFFFF',
@@ -414,7 +414,7 @@ export default function SignUpScreen() {
             {errors.password ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>⚠️ {errors.password}</Text> : null}
           </View>
 
-          {/* زر إنشاء الحساب بالأزرق الملكي المطابق تماماً لزر تسجيل الدخول */}
+          {/* زر إنشاء الحساب */}
           <TouchableOpacity
             onPress={handleSignUp}
             disabled={loading}
@@ -441,7 +441,7 @@ export default function SignUpScreen() {
             )}
           </TouchableOpacity>
 
-          {/* رابط تسجيل الدخول بالأزرق */}
+          {/* رابط تسجيل الدخول */}
           <TouchableOpacity onPress={() => router.push('/auth/login' as any)}>
             <Text style={{ textAlign: 'center', color: '#2563EB', fontWeight: '700', fontSize: 13.5, marginTop: 4 }}>
               {t.loginLink}
