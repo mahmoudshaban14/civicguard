@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
@@ -10,13 +11,12 @@ import {
 import { analyzeCivicImage, type CivicAnalysisResult } from '@/lib/civicguard-ai';
 import type { CivicIssueCategory, CivicIssueId } from '@/lib/civicguard-categories';
 import {
-  INITIAL_NOTIFICATIONS,
-  INITIAL_REPORTS,
   type CivicReport,
   type ReportStatus,
   type SampleImageKey,
   type Severity,
 } from '@/lib/civicguard-data';
+import { supabase } from '@/lib/supabase';
 
 export interface DraftReport {
   imageKey: SampleImageKey;
@@ -24,14 +24,23 @@ export interface DraftReport {
   imageUri?: string;
   imageFileName?: string;
   description: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null; // أصبح يقبل null للتأكد من إلزاميته
+  longitude: number | null;
   area: string;
 }
 
-interface NotificationItem {
+export interface NotificationItem {
   id: string;
+  type?: 'ai_block' | 'in_progress' | 'resolved' | 'reward' | 'info';
+  titleAr?: string;
+  titleEn?: string;
   text: string;
+  textEn?: string;
+  priorityAr?: string;
+  priorityEn?: string;
+  priorityColor?: string;
+  timeEstimateAr?: string;
+  timeEstimateEn?: string;
   time: string;
   read: boolean;
 }
@@ -42,51 +51,110 @@ interface CivicGuardStore {
   draft: DraftReport;
   analysisResult: CivicAnalysisResult | null;
   lastSubmittedReport: CivicReport | null;
+  loading: boolean;
   updateDraft: (next: Partial<DraftReport>) => void;
   resetDraft: () => void;
   analyzeDraft: (preferredCategory?: CivicIssueCategory) => Promise<CivicAnalysisResult>;
-  submitDraft: () => CivicReport;
+  submitDraft: () => Promise<CivicReport | null>;
+  fetchReports: () => Promise<void>;
   updateStatus: (id: string, status: ReportStatus) => void;
   advanceReportStatus: (id: string) => void;
   markNotificationsRead: () => void;
   resetDemo: () => void;
 }
 
+// تعديل الديفولت لتكون الإحداثيات فارغة (غير محددة) حتى يختارها المستخدم بوعي
 const DEFAULT_DRAFT: DraftReport = {
   imageKey: 'pothole',
   scenarioKey: 'pothole',
   description: '',
-  latitude: 30.0074,
-  longitude: 31.4913,
-  area: 'New Cairo',
+  latitude: null,
+  longitude: null,
+  area: '',
 };
+
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: '1',
+    type: 'in_progress',
+    titleAr: 'جاري العمل على البلاغ 🛠️',
+    titleEn: 'Report In Progress 🛠️',
+    text: 'تم استلام بلاغك رقم #CG-2026-1042 وتحويله لطاقم صيانة الطرق.',
+    textEn: 'Your report #CG-2026-1042 has been assigned to the Road Maintenance Team.',
+    priorityAr: 'أولوية عالية (High Priority)',
+    priorityEn: 'High Priority',
+    priorityColor: '#DC2626',
+    timeEstimateAr: 'الوقت المتوقع للحل: 3 - 5 أيام',
+    timeEstimateEn: 'Est. Resolution: 3 - 5 days',
+    time: 'منذ ساعتين',
+    read: false,
+  },
+];
 
 const CivicGuardContext = createContext<CivicGuardStore | null>(null);
 
-function nextReportId(reports: CivicReport[]) {
-  const highestSequence = reports.reduce((highest, report) => {
-    const sequence = Number(report.id.split('-').at(-1));
-    return Number.isFinite(sequence) ? Math.max(highest, sequence) : highest;
-  }, 127);
-  return `CG-2026-${String(highestSequence + 1).padStart(5, '0')}`;
-}
-
-function formatReportDate() {
+function formatReportDate(dateString?: string) {
+  const d = dateString ? new Date(dateString) : new Date();
   return new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-  }).format(new Date());
+  }).format(d);
 }
 
 export function CivicGuardProvider({ children }: PropsWithChildren) {
-  const [reports, setReports] = useState(INITIAL_REPORTS);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [reports, setReports] = useState<CivicReport[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [draft, setDraftState] = useState(DEFAULT_DRAFT);
   const [analysisResult, setAnalysisResult] = useState<CivicAnalysisResult | null>(null);
   const [lastSubmittedReport, setLastSubmittedReport] = useState<CivicReport | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchReports = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching reports:', error);
+      } else if (data) {
+        const formattedReports: CivicReport[] = data.map((item) => ({
+          id: item.report_code || item.id,
+          category: item.category || 'Other / Unrecognized Civic Issue',
+          severity: (item.severity as Severity) || 'Medium',
+          confidence: item.confidence || 0,
+          status: (item.status as ReportStatus) || 'Reported',
+          department: item.department || 'Manual Routing',
+          area: 'Current Location',
+          latitude: item.latitude || 30.0074,
+          longitude: item.longitude || 31.4913,
+          distance: '250m',
+          date: formatReportDate(item.created_at),
+          description: item.description || '',
+          imageKey: 'pothole',
+          imageUri: item.image_path || undefined,
+        }));
+        setReports(formattedReports);
+      }
+    } catch (err) {
+      console.error('Fetch exception:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const updateDraft = useCallback((next: Partial<DraftReport>) => {
     setDraftState((current) => ({ ...current, ...next }));
@@ -110,7 +178,11 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
           fileName: draft.imageFileName,
         },
         draft.description,
-        { latitude: draft.latitude, longitude: draft.longitude, area: draft.area },
+        { 
+          latitude: draft.latitude ?? 30.0074, 
+          longitude: draft.longitude ?? 31.4913, 
+          area: draft.area || 'Cairo' 
+        },
         preferredCategory,
       );
       setAnalysisResult(result);
@@ -119,52 +191,146 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
     [draft],
   );
 
-  const submitDraft = useCallback(() => {
+  const submitDraft = useCallback(async () => {
+    // -------------------------------------------------------------
+    // الفحص الدفاعي الإلزامي للموقع الجغرافي (Defensive Validation)
+    // -------------------------------------------------------------
+    const lat = draft.latitude;
+    const lng = draft.longitude;
+
+    const isValidLat = lat !== null && typeof lat === 'number' && Number.isFinite(lat) && lat >= -90 && lat <= 90;
+    const isValidLng = lng !== null && typeof lng === 'number' && Number.isFinite(lng) && lng >= -180 && lng <= 180;
+
+    if (!isValidLat || !isValidLng) {
+      console.error('Validation Error: Missing or invalid geographic coordinates.', { lat, lng });
+      return null; // رفض إنشاء البلاغ تماماً لو الإحداثيات مش صحيحة
+    }
+
     const analysis = analysisResult;
-    const severity: Severity = analysis?.severity ?? 'Requires Review';
-    const report: CivicReport = {
-      id: nextReportId(reports),
-      category: analysis?.category ?? 'Other / Unrecognized Civic Issue',
-      severity,
-      confidence: analysis?.confidence ?? 0,
-      status: 'Reported',
-      department: analysis?.department ?? 'Manual Routing',
-      area: draft.area,
-      latitude: draft.latitude,
-      longitude: draft.longitude,
-      distance: '250m',
-      date: formatReportDate(),
-      description: draft.description || analysis?.explanation || 'Submitted for manual review.',
-      imageKey: draft.imageKey,
-      imageUri: draft.imageUri,
-    };
-    setReports((current) => [report, ...current]);
-    setLastSubmittedReport(report);
-    setNotifications((current) => [
-      {
-        id: `submitted-${Date.now()}`,
-        text: `Report ${report.id} was submitted successfully.`,
-        time: 'Just now',
-        read: false,
-      },
-      ...current,
-    ]);
-    return report;
-  }, [analysisResult, draft, reports]);
+    const rawSeverity = analysis?.severity ?? 'Medium';
+    const safeSeverity = rawSeverity === 'Requires Review' ? 'Medium' : rawSeverity;
+    const category = analysis?.category ?? 'Other / Unrecognized Civic Issue';
+    const department = analysis?.department ?? 'Manual Routing';
+
+    const rawConfidence = analysis?.confidence ?? 0.54;
+    const safeConfidence = rawConfidence > 1 ? rawConfidence / 100 : rawConfidence;
+
+    const isLowConfidence = safeConfidence < 0.70 || department === 'Manual Routing';
+    const needsManualReview = isLowConfidence || category.includes('Unrecognized');
+    const dbStatus = needsManualReview ? 'manual_review_required' : 'submitted';
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not logged in');
+        return null;
+      }
+
+      let publicImageUrl: string | null = null;
+
+      if (draft.imageUri) {
+        try {
+          const fileExt = draft.imageUri.split('.').pop() || 'jpg';
+          const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+          const response = await fetch(draft.imageUri);
+          const blob = await response.blob();
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('reports')
+            .upload(fileName, blob, {
+              contentType: `image/${fileExt === 'png' ? 'png' : 'jpeg'}`,
+              upsert: true,
+            });
+
+          if (!uploadError && uploadData) {
+            const { data: publicUrlData } = supabase.storage
+              .from('reports')
+              .getPublicUrl(fileName);
+            publicImageUrl = publicUrlData.publicUrl;
+          }
+        } catch (imgErr) {
+          console.error('Image upload exception:', imgErr);
+        }
+      }
+
+      const generatedCode = `CG-2026-${String(Math.floor(10000 + Math.random() * 90000))}`;
+
+      const { data, error } = await supabase
+        .from('reports')
+        .insert([
+          {
+            user_id: user.id,
+            report_code: generatedCode,
+            category: category,
+            severity: safeSeverity,
+            confidence: safeConfidence,
+            department: department,
+            latitude: lat,
+            longitude: lng,
+            description: draft.description || analysis?.explanation || 'Submitted for manual review.',
+            image_path: publicImageUrl || draft.imageUri || null,
+            explanation: analysis?.explanation || '',
+            requires_manual_review: needsManualReview,
+            status: dbStatus,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase Insert Error:', error);
+        return null;
+      }
+
+      const newReport: CivicReport = {
+        id: data.report_code || data.id,
+        category: data.category,
+        severity: data.severity as Severity,
+        confidence: data.confidence,
+        status: data.status as ReportStatus,
+        department: data.department,
+        area: draft.area || 'Current Location',
+        latitude: lat,
+        longitude: lng,
+        distance: '250m',
+        date: formatReportDate(data.created_at),
+        description: data.description,
+        imageKey: draft.imageKey,
+        imageUri: publicImageUrl || draft.imageUri,
+      };
+
+      setReports((current) => [newReport, ...current]);
+      setLastSubmittedReport(newReport);
+
+      setNotifications((current) => [
+        {
+          id: `submitted-${Date.now()}`,
+          type: 'info',
+          titleAr: 'تم تقديم البلاغ بنجاح 📝',
+          titleEn: 'Report Submitted Successfully 📝',
+          text: `تم استلام بلاغك رقم ${newReport.id} وهو قيد المراجعة الآن.`,
+          textEn: `Report ${newReport.id} was submitted successfully and is under review.`,
+          priorityAr: 'قيد المراجعة (Under Review)',
+          priorityEn: 'Under Review',
+          priorityColor: '#2563EB',
+          time: 'الآن (Just now)',
+          read: false,
+        },
+        ...current,
+      ]);
+
+      return newReport;
+    } catch (err) {
+      console.error('Submit exception:', err);
+      return null;
+    }
+  }, [analysisResult, draft]);
 
   const updateStatus = useCallback((id: string, status: ReportStatus) => {
     setReports((current) =>
       current.map((report) => (report.id === id ? { ...report, status } : report)),
     );
-    setNotifications((current) => [
-      {
-        id: `status-${Date.now()}`,
-        text: `Your report ${id} is now ${status}.`,
-        time: 'Just now',
-        read: false,
-      },
-      ...current,
-    ]);
   }, []);
 
   const advanceReportStatus = useCallback(
@@ -184,12 +350,11 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   }, []);
 
   const resetDemo = useCallback(() => {
-    setReports(INITIAL_REPORTS);
-    setNotifications(INITIAL_NOTIFICATIONS);
+    fetchReports();
     setDraftState(DEFAULT_DRAFT);
     setAnalysisResult(null);
     setLastSubmittedReport(null);
-  }, []);
+  }, [fetchReports]);
 
   const value = useMemo(
     () => ({
@@ -198,10 +363,12 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       draft,
       analysisResult,
       lastSubmittedReport,
+      loading,
       updateDraft,
       resetDraft,
       analyzeDraft,
       submitDraft,
+      fetchReports,
       updateStatus,
       advanceReportStatus,
       markNotificationsRead,
@@ -212,7 +379,9 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       analysisResult,
       analyzeDraft,
       draft,
+      fetchReports,
       lastSubmittedReport,
+      loading,
       markNotificationsRead,
       notifications,
       reports,

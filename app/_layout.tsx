@@ -10,16 +10,19 @@ import {
   useFonts,
 } from '@expo-google-fonts/inter';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { Platform } from 'react-native';
-import { useEffect } from 'react';
+import { Platform, View, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
 import * as DevClient from 'expo-dev-client';
 import { HeroUINativeProvider } from 'heroui-native';
 import { Uniwind } from 'uniwind';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ErrorBoundary as ExpoErrorBoundary,
   type ErrorBoundaryProps,
   SplashScreen,
   Stack,
+  useRouter,
+  useSegments,
 } from 'expo-router';
 
 import { initPostHog } from '@/lib/posthog';
@@ -27,11 +30,8 @@ import { registerServiceWorker } from '@/lib/registerServiceWorker';
 import { reportErrorToParent } from '@/lib/reportPreviewError';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { CivicGuardProvider } from '@/lib/civicguard-store';
+import { supabase } from '@/lib/supabase';
 
-/**
- * Custom ErrorBoundary that reports React render errors to the parent window (preview iframe)
- * and then renders the default Expo error UI.
- */
 function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   useEffect(() => {
     if (Platform.OS === 'web' && error) {
@@ -44,12 +44,17 @@ function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export { ErrorBoundary };
 
-// Starter is light-only by default. Remove this when implementing requested dark mode.
 Uniwind.setTheme('light');
 
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [session, setSession] = useState<any>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
+  const router = useRouter();
+  const segments = useSegments();
+
   const [loaded, error] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -57,7 +62,51 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
-  // Report uncaught JS errors and unhandled promise rejections to parent (preview iframe)
+  useEffect(() => {
+    async function checkOnboarding() {
+      try {
+        const value = await AsyncStorage.getItem('@has_seen_onboarding_v1_0_4');
+        setHasSeenOnboarding(value === 'true');
+      } catch (e) {
+        setHasSeenOnboarding(false);
+      }
+    }
+    checkOnboarding();
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setIsAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // توجيه ذكي بدون تكرار اللوب
+  useEffect(() => {
+    if (isAuthLoading || hasSeenOnboarding === null || (!loaded && !error)) return;
+
+    const currentSegment = segments[0];
+    const inAuthGroup = currentSegment === 'auth';
+    const inOnboarding = currentSegment === 'onboarding';
+
+    if (!session) {
+      if (!hasSeenOnboarding && !inOnboarding && !inAuthGroup) {
+        router.replace('/onboarding' as any);
+      } else if (hasSeenOnboarding && !inAuthGroup && !inOnboarding) {
+        router.replace('/auth/login');
+      }
+    } else if (session && (inAuthGroup || inOnboarding)) {
+      router.replace('/(tabs)');
+    }
+  }, [session, isAuthLoading, hasSeenOnboarding, loaded, error, segments]);
+
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return undefined;
 
@@ -81,11 +130,8 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Inject Google Fonts link tag for web to ensure fonts load through proxy
-  // Also register font family names as fallback if expo-font fails
   useEffect(() => {
     if (Platform.OS === 'web') {
-      // Check if link already exists
       const existingLink = document.querySelector(
         'link[href*="fonts.googleapis.com/css2?family=Inter"]',
       );
@@ -124,22 +170,27 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (loaded || error) {
+    if ((loaded || error) && !isAuthLoading && hasSeenOnboarding !== null) {
       void SplashScreen.hideAsync();
     }
-  }, [loaded, error]);
+  }, [loaded, error, isAuthLoading, hasSeenOnboarding]);
 
-  if (!loaded && !error) {
-    return null;
+  if ((!loaded && !error) || isAuthLoading || hasSeenOnboarding === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F1F5F9' }}>
+        <ActivityIndicator size="large" color="#1E3A8A" />
+      </View>
+    );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider>
         <CivicGuardProvider>
-          <Stack
-            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F6FAF8' } }}
-          >
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F6FAF8' } }}>
+            <Stack.Screen name="onboarding" />
+            <Stack.Screen name="auth/login" />
+            <Stack.Screen name="auth/sign-up" />
             <Stack.Screen name="(tabs)" />
           </Stack>
           <InstallPrompt />

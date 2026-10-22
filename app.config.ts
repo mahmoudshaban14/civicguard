@@ -39,6 +39,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     extra: {
       appStoreAppId: process.env.APP_STORE_APP_ID,
+      eas: {
+        projectId: 'b4fe1722-6ffc-4343-ac93-a018e3932fec',
+      },
     },
     plugins: ['expo-router', 'expo-font', 'expo-splash-screen', ...nativePlugins],
     experiments: {
