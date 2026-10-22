@@ -1587,3 +1587,404 @@ html[dir="ltr"] .dashboard .main-content {
   direction: rtl;
   text-align: center;
 }
+
+/* Login language switch */
+.auth-language-toggle {
+  display: block;
+  margin: 0 0 14px auto;
+  padding: 7px 12px;
+  border: 1px solid var(--border-color, #d7dee8);
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.admin-email,
+.sidebar-user-email {
+  overflow-wrap: anywhere;
+}
+
+.sidebar-session-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-signout {
+  flex-shrink: 0;
+}
+/* CivicGuard compact sidebar profile */
+.sidebar-bottom {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.sidebar-bottom .connection-indicator {
+  flex: 0 0 8px;
+  margin: 0;
+}
+.sidebar-session-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sidebar-session-info strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.sidebar-session-info p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  opacity: .72;
+}
+.sidebar-signout {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid #e2caca;
+  border-radius: 7px;
+  background: transparent;
+  color: #b33b3b;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .16s ease, border-color .16s ease;
+}
+.sidebar-signout:hover {
+  background: #fff0f0;
+  border-color: #d9a6a6;
+}
+.admin-email {
+  overflow-wrap: anywhere;
+}
+/* Keep administrator names on one line and prevent character wrapping. */
+.sidebar-session-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-session-info strong {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.admin-badge {
+  min-width: 0;
+}
+
+.admin-email {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+/* Fix sidebar administrator name being squeezed by the sign-out button. */
+.sidebar-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-session-info {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+}
+
+.sidebar-session-info strong {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.sidebar-signout {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 12px;
+}
+/* CivicGuard sidebar administrator layout refinement */
+.sidebar .brand {
+  min-width: 0;
+}
+
+.sidebar .brand .sidebar-admin-name {
+  margin: 0;
+  padding: 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-align: start;
+}
+
+.sidebar .sidebar-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  margin-top: auto;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  gap: 0;
+}
+
+.sidebar .sidebar-signout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  margin: 0;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: none;
+  outline-offset: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.sidebar .sidebar-signout:hover {
+  box-shadow: none;
+}
+
+.sidebar .sidebar-signout:focus-visible {
+  outline: 2px solid currentColor;
+}
+/* Prevent the administrator name from wrapping onto a second line. */
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sidebar .brand > div:last-child {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.sidebar .brand .sidebar-admin-name {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* CivicGuard RTL table and language button improvements */
+html[dir="rtl"] .reports-section .table-wrapper {
+  direction: rtl;
+}
+
+html[dir="rtl"] .reports-section table {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .reports-section th,
+html[dir="rtl"] .reports-section td {
+  text-align: right;
+}
+
+html[dir="ltr"] .reports-section .table-wrapper {
+  direction: ltr;
+}
+
+html[dir="ltr"] .reports-section table,
+html[dir="ltr"] .reports-section th,
+html[dir="ltr"] .reports-section td {
+  text-align: left;
+}
+
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 15px;
+  border: 1px solid #dbe5f0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff, #f2f7fc);
+  color: #173b60;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(20, 54, 86, 0.07);
+  transition: background 160ms ease, border-color 160ms ease,
+    box-shadow 160ms ease, transform 160ms ease;
+}
+
+.language-toggle:hover {
+  background: #eaf3fc;
+  border-color: #9dbbd8;
+  box-shadow: 0 5px 14px rgba(20, 54, 86, 0.12);
+  transform: translateY(-1px);
+}
+
+.language-toggle:focus-visible {
+  outline: 3px solid rgba(56, 132, 196, 0.3);
+  outline-offset: 3px;
+}
+
+.language-toggle svg {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 760px) {
+  .language-toggle {
+    align-self: flex-start;
+  }
+}
+
+
+
+/* Center only the four report table headings */
+.dashboard .reports-section .table-wrapper thead tr th {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.dashboard .reports-section .table-wrapper thead tr th .report-heading-center {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+/* Subtle vertical separators between report table columns */
+.dashboard .reports-section .table-wrapper thead th:not(:last-child),
+.dashboard .reports-section .table-wrapper tbody td:not(:last-child) {
+  border-inline-end: 1px solid #e8edf3;
+}
+/* CivicGuard report heading typography */
+.dashboard .reports-section .table-wrapper thead th {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #263445 !important;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+/* CivicGuard outer table border */
+.dashboard .reports-section .table-wrapper {
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.resolution-rate-card h3 .resolution-rate-percent {
+  font-size: 0.75em !important;
+  font-weight: 600;
+  margin-inline-start: 3px;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+
+
+
+
+/* Compact, centered dashboard statistic cards */
+.stats-grid > .stat-card:not(.resolution-rate-card) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 120px;
+  padding: 18px 16px;
+  gap: 8px;
+}
+
+.stats-grid > .stat-card:not(.resolution-rate-card) p {
+  margin: 0;
+}
+
+.stats-grid > .stat-card:not(.resolution-rate-card) h3 {
+  margin: 0;
+}
+
+/* Clearer page descriptions */
+.section-heading .page-description {
+  color: #475569;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.7;
+  margin-top: 8px;
+}
+
+
+
+/* Reports page description position only */
+.reports-section .section-heading .page-description {
+  margin-top: 0;
+  transform: translateY(-4px);
+}
+
+/* More readable reports page description */
+.reports-section .section-heading .page-description {
+  color: #334155;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.7;
+  margin-top: 0;
+}
+
+
+/* Resolution rate card: correct Arabic layout direction */
+.dashboard[dir="rtl"] .resolution-rate-card {
+  direction: rtl;
+  text-align: right;
+}
+
+.dashboard[dir="rtl"] .resolution-rate-card::before {
+  left: auto;
+  right: 0;
+}
+
+.dashboard[dir="rtl"] .resolution-rate-card .resolution-rate-track {
+  direction: rtl;
+}
+
+.dashboard[dir="rtl"] .resolution-rate-card .resolution-rate-fill {
+  margin-left: auto;
+  margin-right: 0;
+  background: linear-gradient(270deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.dashboard[dir="rtl"] .resolution-rate-card > span {
+  direction: rtl;
+  text-align: right;
+}
+
+.dashboard[dir="ltr"] .resolution-rate-card {
+  direction: ltr;
+  text-align: left;
+}
+
+.dashboard[dir="ltr"] .resolution-rate-card .resolution-rate-track {
+  direction: ltr;
+}

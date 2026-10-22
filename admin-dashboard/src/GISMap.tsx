@@ -1,7 +1,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import L from 'leaflet'
 import {
-  CircleMarker,
+  Marker,
   MapContainer,
   Popup,
   TileLayer,
@@ -10,13 +11,22 @@ import {
 import { supabase } from './lib/supabase'
 import 'leaflet/dist/leaflet.css'
 import './GISMap.css'
-import { getTranslation, type Language } from './i18n'
+import {
+  getTranslation,
+  translateCategory,
+  translateSeverity,
+  translateStatus,
+  type Language,
+  type TranslationKey,
+} from './i18n'
 
 type Report = {
   id: string
   report_code: string | null
   category: string | null
   status: string | null
+  severity: string | null
+  department: string | null
   created_at: string
   latitude: number | null
   longitude: number | null
@@ -43,6 +53,47 @@ type GovernoratesData = {
   features: GovernorateFeature[]
 }
 
+function translateGovernorate(name: string, language: Language): string {
+  if (language !== 'ar') return name
+
+  const translations: Record<string, string> = {
+    'Cairo': '\u0627\u0644\u0642\u0627\u0647\u0631\u0629',
+    'Giza': '\u0627\u0644\u062c\u064a\u0632\u0629',
+    'Alexandria': '\u0627\u0644\u0625\u0633\u0643\u0646\u062f\u0631\u064a\u0629',
+    'Qalyubia': '\u0627\u0644\u0642\u0644\u064a\u0648\u0628\u064a\u0629',
+    'Qalubia': '\u0627\u0644\u0642\u0644\u064a\u0648\u0628\u064a\u0629',
+    'Beheira': '\u0627\u0644\u0628\u062d\u064a\u0631\u0629',
+    'Matrouh': '\u0645\u0637\u0631\u0648\u062d',
+    'Damietta': '\u062f\u0645\u064a\u0627\u0637',
+    'Dakahlia': '\u0627\u0644\u062f\u0642\u0647\u0644\u064a\u0629',
+    'Kafr el-Sheikh': '\u0643\u0641\u0631 \u0627\u0644\u0634\u064a\u062e',
+    'Kafr El Sheikh': '\u0643\u0641\u0631 \u0627\u0644\u0634\u064a\u062e',
+    'Gharbia': '\u0627\u0644\u063a\u0631\u0628\u064a\u0629',
+    'Monufia': '\u0627\u0644\u0645\u0646\u0648\u0641\u064a\u0629',
+    'Al Sharqia': '\u0627\u0644\u0634\u0631\u0642\u064a\u0629',
+    'Sharqia': '\u0627\u0644\u0634\u0631\u0642\u064a\u0629',
+    'Ismailia': '\u0627\u0644\u0625\u0633\u0645\u0627\u0639\u064a\u0644\u064a\u0629',
+    'Port Said': '\u0628\u0648\u0631\u0633\u0639\u064a\u062f',
+    'Suez': '\u0627\u0644\u0633\u0648\u064a\u0633',
+    'North Sinai': '\u0634\u0645\u0627\u0644 \u0633\u064a\u0646\u0627\u0621',
+    'South Sinai': '\u062c\u0646\u0648\u0628 \u0633\u064a\u0646\u0627\u0621',
+    'Faiyum': '\u0627\u0644\u0641\u064a\u0648\u0645',
+    'Fayoum': '\u0627\u0644\u0641\u064a\u0648\u0645',
+    'Beni Suef': '\u0628\u0646\u064a \u0633\u0648\u064a\u0641',
+    'Minya': '\u0627\u0644\u0645\u0646\u064a\u0627',
+    'Assiut': '\u0623\u0633\u064a\u0648\u0637',
+    'Asyut': '\u0623\u0633\u064a\u0648\u0637',
+    'Sohag': '\u0633\u0648\u0647\u0627\u062c',
+    'Qena': '\u0642\u0646\u0627',
+    'Luxor': '\u0627\u0644\u0623\u0642\u0635\u0631',
+    'Aswan': '\u0623\u0633\u0648\u0627\u0646',
+    'Red Sea': '\u0627\u0644\u0628\u062d\u0631 \u0627\u0644\u0623\u062d\u0645\u0631',
+    'New Valley': '\u0627\u0644\u0648\u0627\u062f\u064a \u0627\u0644\u062c\u062f\u064a\u062f',
+    'South Valley': '\u062c\u0646\u0648\u0628 \u0627\u0644\u0648\u0627\u062f\u064a',
+  }
+
+  return translations[name.trim()] ?? name
+}
 function pointInRing(
   longitude: number,
   latitude: number,
@@ -113,6 +164,16 @@ const STATUS_COLORS: Record<string, string> = {
   manual_review_required: '#db2777',
 }
 
+
+const SEVERITY_COLORS: Record<string, string> = {
+  Low: '#16a34a',
+  Medium: '#eab308',
+  High: '#f97316',
+  Critical: '#dc2626',
+}
+const NO_SEVERITY_COLOR = '#94a3b8'
+const SEVERITY_LEVELS = ['Low', 'Medium', 'High', 'Critical'] as const
+const NONE_VALUE = '__none__'
 
 const EGYPT_BOUNDS: [[number, number], [number, number]] = [
   [21.5, 24.5],
@@ -272,13 +333,44 @@ function MapViewController({
 
   return null
 }
-function formatDate(value: string): string {
+function translateDepartment(value: string, language: Language): string {
+  if (language !== 'ar') return value
+
+  const department = value.trim().toLowerCase()
+
+  const translations: Record<string, string> = {
+    'electricity / public lighting': '\u0627\u0644\u0643\u0647\u0631\u0628\u0627\u0621 / \u0625\u0646\u0627\u0631\u0629 \u0627\u0644\u0634\u0648\u0627\u0631\u0639',
+    'municipal enforcement': '\u0627\u0644\u0631\u0642\u0627\u0628\u0629 \u0627\u0644\u0628\u0644\u062f\u064a\u0629',
+    'parks / municipal services': '\u0627\u0644\u062d\u062f\u0627\u0626\u0642 / \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0628\u0644\u062f\u064a\u0629',
+    'roads & infrastructure': '\u0627\u0644\u0637\u0631\u0642 \u0648\u0627\u0644\u0628\u0646\u064a\u0629 \u0627\u0644\u062a\u062d\u062a\u064a\u0629',
+    'sanitation / utilities': '\u0627\u0644\u0635\u0631\u0641 \u0627\u0644\u0635\u062d\u064a / \u0627\u0644\u0645\u0631\u0627\u0641\u0642',
+    'traffic management': '\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0631\u0648\u0631',
+    'waste management': '\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u062e\u0644\u0641\u0627\u062a',
+    'water & utilities': '\u0627\u0644\u0645\u064a\u0627\u0647 \u0648\u0627\u0644\u0645\u0631\u0627\u0641\u0642',
+  }
+
+  return translations[department] ?? value
+}
+function formatNumber(value: number, language: Language): string {
+  return value.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB')
+}
+function formatDate(value: string, language: Language): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString()
+
+  return date.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+    timeZone: 'Africa/Cairo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: language === 'ar',
+  })
 }
 
 function GISMap({ language }: { language: Language }) {
+  const t = (key: TranslationKey) => getTranslation(language, key)
   const [governorates, setGovernorates] =
     useState<GovernoratesData | null>(null)
   const [governorateFilter, setGovernorateFilter] = useState('all')
@@ -314,6 +406,9 @@ function GISMap({ language }: { language: Language }) {
   const [error, setError] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [severityFilter, setSeverityFilter] = useState('all')
+  const [departmentFilter, setDepartmentFilter] = useState('all')
+  const [view, setView] = useState<'map' | 'list'>('map')
   const [selected, setSelected] = useState<Report | null>(null)
   const [imageUrl, setImageUrl] = useState('')
   const [imageLoading, setImageLoading] = useState(false)
@@ -346,7 +441,7 @@ function GISMap({ language }: { language: Language }) {
       const { data, error: reportsError } = await supabase
         .from('reports')
         .select(
-          'id, report_code, category, status, created_at, latitude, longitude, image_path, description',
+          'id, report_code, category, status, severity, department, created_at, latitude, longitude, image_path, description',
         )
         .order('created_at', { ascending: false })
 
@@ -380,65 +475,83 @@ function GISMap({ language }: { language: Language }) {
     [reports],
   )
 
+  const departments = useMemo(
+    () =>
+      [...new Set(
+        reports
+          .map((report) => report.department)
+          .filter((department): department is string => Boolean(department)),
+      )].sort(),
+    [reports],
+  )
+
   const filteredReports = useMemo(() => {
-  const selectedGovernorate =
-    governorates?.features.find(
-      (feature) => feature.properties.name === governorateFilter,
-    ) ?? null
+    const selectedGovernorate =
+      governorates?.features.find(
+        (feature) => feature.properties.name === governorateFilter,
+      ) ?? null
 
-  return reports.filter((report) => {
-    if (
-      statusFilter !== 'all' &&
-      report.status !== statusFilter
-    ) {
-      return false
-    }
+    return reports.filter((report) => {
+      if (statusFilter !== 'all' && report.status !== statusFilter) {
+        return false
+      }
 
-    if (
-      categoryFilter !== 'all' &&
-      report.category !== categoryFilter
-    ) {
-      return false
-    }
+      if (categoryFilter !== 'all' && report.category !== categoryFilter) {
+        return false
+      }
 
-    if (!validCoordinates(report)) {
-      return true
-    }
+      if (severityFilter !== 'all') {
+        if (severityFilter === NONE_VALUE) {
+          if (report.severity !== null) return false
+        } else if (report.severity !== severityFilter) {
+          return false
+        }
+      }
 
-    const longitude = report.longitude!
-    const latitude = report.latitude!
+      if (departmentFilter !== 'all') {
+        if (departmentFilter === NONE_VALUE) {
+          if (report.department) return false
+        } else if (report.department !== departmentFilter) {
+          return false
+        }
+      }
 
-    // Exclude reports outside all Egyptian governorates.
-    const containingGovernorate = governorates?.features.find(
-      (feature) =>
+      if (!validCoordinates(report)) {
+        return true
+      }
+
+      const longitude = report.longitude!
+      const latitude = report.latitude!
+
+      // Exclude reports outside all Egyptian governorates.
+      const containingGovernorate = governorates?.features.find((feature) =>
         pointInGovernorate(longitude, latitude, feature),
-    )
-
-    if (governorates && !containingGovernorate) {
-      return false
-    }
-
-    if (selectedGovernorate) {
-      return (
-        pointInGovernorate(
-          longitude,
-          latitude,
-          selectedGovernorate,
-        )
       )
-    }
 
-    return true
-  })
-}, [reports, statusFilter, categoryFilter, governorateFilter, governorates])
+      if (governorates && !containingGovernorate) {
+        return false
+      }
+
+      if (selectedGovernorate) {
+        return pointInGovernorate(longitude, latitude, selectedGovernorate)
+      }
+
+      return true
+    })
+  }, [
+    reports,
+    statusFilter,
+    categoryFilter,
+    severityFilter,
+    departmentFilter,
+    governorateFilter,
+    governorates,
+  ])
 
   const mappedReports = useMemo(
     () => filteredReports.filter(validCoordinates),
     [filteredReports],
   )
-
-  const missingCoordinates = filteredReports.length - mappedReports.length
-
   async function viewImage(report: Report) {
     setImageUrl('')
     setImageError('')
@@ -488,8 +601,8 @@ function GISMap({ language }: { language: Language }) {
     <section className="gis-section">
       <div className="gis-header">
         <div>
-          <h2>{getTranslation(language, 'gisMap')}</h2>
-          <p>Geographic view of real reports stored in CivicGuard.</p>
+          
+          <p className="page-description">{t('mapDescription')}</p>
         </div>
         <button
           className="gis-refresh"
@@ -497,84 +610,134 @@ function GISMap({ language }: { language: Language }) {
           onClick={() => void loadReports()}
           disabled={loading}
         >
-          {loading ? 'Loading...' : 'Refresh reports'}
+          {loading ? t('loading') : t('refreshReports')}
         </button>
       </div>
 
       <div className="gis-metrics">
         <div className="gis-metric">
-          <span>Matching reports</span>
-          <strong>{filteredReports.length}</strong>
+          <span>{t('matchingReports')}</span>
+          <strong>{formatNumber(filteredReports.length, language)}</strong>
         </div>
         <div className="gis-metric">
-          <span>Mapped reports</span>
-          <strong>{mappedReports.length}</strong>
+          <span>{t('mappedReports')}</span>
+          <strong>{formatNumber(mappedReports.length, language)}</strong>
         </div>
-        <div className="gis-metric">
-          <span>Missing coordinates</span>
-          <strong>{missingCoordinates}</strong>
-        </div>
+        
       </div>
 
      <div className="gis-filters">
-  <label>
-    Status
-    <select
-      value={statusFilter}
-      onChange={(event) => setStatusFilter(event.target.value)}
-    >
-      <option value="all">All statuses</option>
-      {[...new Set(reports.map((report) => report.status).filter(Boolean))]
-        .sort()
-        .map((status) => (
-          <option key={status} value={status!}>
-            {status!.replaceAll('_', ' ')}
-          </option>
-        ))}
-    </select>
-  </label>
-
-  <label>
-    Category
-    <select
-      value={categoryFilter}
-      onChange={(event) => setCategoryFilter(event.target.value)}
-    >
-      <option value="all">All categories</option>
-      {categories.map((category) => (
-        <option key={category} value={category}>
-          {category.replaceAll('_', ' ')}
-        </option>
-      ))}
-    </select>
-  </label>
-
-  <label>
-    Governorate
-    <select
-      value={governorateFilter}
-      onChange={(event) => {
-  setHasManualGovernorateSelection(true)
-  setGovernorateFilter(event.target.value)
-}}
-      disabled={!governorates}
-    >
-      <option value="all">All Egypt</option>
-      {[...(governorates?.features ?? [])]
-        .sort((a, b) =>
-          a.properties.name.localeCompare(b.properties.name),
-        )
-        .map((feature) => (
-          <option
-            key={feature.properties.name}
-            value={feature.properties.name}
+        <label>
+          {t('status')}
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
           >
-            {feature.properties.name}
-          </option>
-        ))}
-    </select>
-  </label>
-</div>
+            <option value="all">{t('allStatuses')}</option>
+            {[...new Set(
+              reports
+                .map((report) => report.status)
+                .filter((status): status is string => Boolean(status)),
+            )]
+              .sort()
+              .map((status) => (
+                <option key={status} value={status}>
+                  {translateStatus(status, language)}
+                </option>
+              ))}
+          </select>
+        </label>
+
+        <label>
+          {t('category')}
+          <select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+          >
+            <option value="all">{t('allCategories')}</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {translateCategory(category, language)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          {t('severity')}
+          <select
+            value={severityFilter}
+            onChange={(event) => setSeverityFilter(event.target.value)}
+          >
+            <option value="all">{t('allSeverities')}</option>
+            {SEVERITY_LEVELS.map((level) => (
+              <option key={level} value={level}>
+                {translateSeverity(level, language)}
+              </option>
+            ))}
+            <option value={NONE_VALUE}>{t('notAnalyzed')}</option>
+          </select>
+        </label>
+
+        <label>
+          {t('department')}
+          <select
+            value={departmentFilter}
+            onChange={(event) => setDepartmentFilter(event.target.value)}
+          >
+            <option value="all">{t('allDepartments')}</option>
+            {departments.map((department) => (
+              <option key={department} value={department}>{translateDepartment(department, language)}</option>
+            ))}
+            <option value={NONE_VALUE}>{t('unassigned')}</option>
+          </select>
+        </label>
+
+        <label>
+          {t('governorate')}
+          <select
+            value={governorateFilter}
+            onChange={(event) => {
+              setHasManualGovernorateSelection(true)
+              setGovernorateFilter(event.target.value)
+            }}
+            disabled={!governorates}
+          >
+            <option value="all">{t('allEgypt')}</option>
+            {[...(governorates?.features ?? [])]
+              .sort((a, b) =>
+                a.properties.name.localeCompare(b.properties.name),
+              )
+              .map((feature) => (
+                <option
+                  key={feature.properties.name}
+                  value={feature.properties.name}
+                >
+                  {translateGovernorate(feature.properties.name, language)}
+                </option>
+              ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="gis-view-toggle" role="group" aria-label={t('reports')}>
+        <button
+          type="button"
+          className={view === 'map' ? 'active' : ''}
+          aria-pressed={view === 'map'}
+          onClick={() => setView('map')}
+        >
+          {t('mapView')}
+        </button>
+        <button
+          type="button"
+          className={view === 'list' ? 'active' : ''}
+          aria-pressed={view === 'list'}
+          onClick={() => setView('list')}
+        >
+          {t('listView')}
+        </button>
+      </div>
 
       {error && (
         <div className="gis-error" role="alert">
@@ -584,9 +747,11 @@ function GISMap({ language }: { language: Language }) {
         </div>
       )}
 
+      {view === 'map' && (
+      <>
       <div className="gis-map-frame">
         {loading && reports.length === 0 && !error ? (
-          <div className="gis-loading">Loading report data...</div>
+          <div className="gis-loading">{language === 'ar' ? '\u062c\u0627\u0631\u064d \u062a\u062d\u0645\u064a\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0628\u0644\u0627\u063a\u0627\u062a...' : 'Loading report data...'}</div>
         ) : (
          
 	<MapContainer
@@ -613,132 +778,324 @@ function GISMap({ language }: { language: Language }) {
 
 
 {/* Reports */}
-{mappedReports.map((report) => (
-  <CircleMarker
-    key={report.id}
-    center={[report.latitude!, report.longitude!]}
-    radius={selected?.id === report.id ? 10 : 7}
-    pathOptions={{
-      color: '#ffffff',
-      weight: 2,
-      fillColor: STATUS_COLORS[report.status ?? ''] ?? '#64748b',
-      fillOpacity: 0.9,
-    }}
-    eventHandlers={{
-      click: () => {
-        setSelected(report)
-        setImageUrl('')
-        setImageError('')
-      },
-    }}
-  >
-    <Popup>
-      <strong>{report.report_code || report.id}</strong>
-      <br />
-      {report.category || 'Uncategorized'}
-      <br />
-      Status: {report.status || 'Unknown'}
-      <br />
-      <button
-        type="button"
-        onClick={() => {
+{mappedReports.map((report) => {
+  const isSelected = selected?.id === report.id
+  const statusColor = STATUS_COLORS[report.status ?? ''] ?? '#64748b'
+  const severityColor = SEVERITY_COLORS[report.severity ?? ''] ?? NO_SEVERITY_COLOR
+
+  const pinIcon = L.divIcon({
+    className: 'civicguard-pin-wrapper',
+    html: `<div style="width:${isSelected ? 42 : 34}px;height:${isSelected ? 52 : 44}px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" width="100%" height="100%">
+        <path d="M16 1.5 C8.1 1.5 2 7.6 2 15 C2 25 16 40 16 40 S30 25 30 15 C30 7.6 23.9 1.5 16 1.5Z" fill="${severityColor}" stroke="${statusColor}" stroke-width="${isSelected ? 3.5 : 2.5}" stroke-linejoin="round"/>
+                <circle cx="16" cy="15" r="${isSelected ? 6 : 5}" fill="#ffffff" stroke="${statusColor}" stroke-width="1.5"/>
+
+      </svg>
+    </div>`,
+    iconSize: isSelected ? [42, 52] : [34, 44],
+    iconAnchor: isSelected ? [21, 50] : [17, 42],
+    popupAnchor: [0, isSelected ? -49 : -41],
+  })
+
+  return (
+    <Marker
+      key={report.id}
+      position={[report.latitude!, report.longitude!]}
+      icon={pinIcon}
+      eventHandlers={{
+        click: () => {
           setSelected(report)
           setImageUrl('')
           setImageError('')
-        }}
-      >
-        View details
-      </button>
-    </Popup>
-  </CircleMarker>
-))}
+        },
+      }}
+    >
+      <Popup>
+        <strong>{report.report_code || report.id}</strong>
+        <br />
+        {report.category ? translateCategory(report.category, language) : t('uncategorized')}
+        <br />
+        {t('status')}: {report.status ? translateStatus(report.status, language) : t('unknown')}
+        <br />
+        {t('severity')}: {report.severity ? translateSeverity(report.severity, language) : t('notAnalyzed')}
+        <br />
+        <button
+          type="button"
+          onClick={() => {
+            setSelected(report)
+            setImageUrl('')
+            setImageError('')
+          }}
+        >
+          {getTranslation(language, 'viewDetails')}
+        </button>
+      </Popup>
+    </Marker>
+  )
+})}
 </MapContainer>
 
         )}
       </div>
 
       <div className="gis-legend">
-        <strong>Report status</strong>
+        <strong>{t('severity')}</strong>
+        {SEVERITY_LEVELS.map((level) => (
+          <span key={level} className="gis-legend-item">
+            <i style={{ backgroundColor: SEVERITY_COLORS[level] }} />
+            {translateSeverity(level, language)}
+          </span>
+        ))}
+        <span className="gis-legend-item">
+          <i style={{ backgroundColor: NO_SEVERITY_COLOR }} />
+          {t('notAnalyzed')}
+        </span>
+      </div>
+
+      <div className="gis-legend">
+        <strong>{t('reportStatus')}</strong>
         {Object.entries(STATUS_COLORS).map(([status, color]) => (
           <span key={status} className="gis-legend-item">
-            <i style={{ backgroundColor: color }} />
-            {status.replaceAll('_', ' ')}
+            <i
+              style={{
+                backgroundColor: 'transparent',
+                border: `3px solid ${color}`,
+                boxSizing: 'border-box',
+              }}
+            />
+            {translateStatus(status, language)}
           </span>
         ))}
       </div>
 
       {mappedReports.length === 0 && !loading && !error && (
-        <p className="gis-notice">
-          No reports with valid coordinates match the selected filters. Reports
-          without coordinates are counted above but cannot be plotted.
-        </p>
+        <p className="gis-notice">{t('noMatchingMapReports')}</p>
+      )}
+
+      </>
+      )}
+
+      {view === 'list' && (
+        <div className="gis-table-wrap">
+          {filteredReports.length === 0 ? (
+            <p className="gis-notice">{t('noReportsMatch')}</p>
+          ) : (
+            <table className="gis-table">
+              <thead>
+                <tr>
+                  <th>{t('reportCode')}</th>
+                  <th>{t('category')}</th>
+                  <th>{t('severity')}</th>
+                  <th>{t('status')}</th>
+                  <th>{t('department')}</th>
+                  <th>{t('date')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredReports.map((report) => (
+                  <tr
+                    key={report.id}
+                    className={selected?.id === report.id ? 'selected' : ''}
+                    tabIndex={0}
+                    onClick={() => {
+                      setSelected(report)
+                      setImageUrl('')
+                      setImageError('')
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        setSelected(report)
+                        setImageUrl('')
+                        setImageError('')
+                      }
+                    }}
+                  >
+                    <td>{report.report_code || report.id}</td>
+                    <td>
+                      {report.category
+                        ? translateCategory(report.category, language)
+                        : t('uncategorized')}
+                    </td>
+                    <td>
+                      <span className="gis-sev">
+                        <i
+                          style={{
+                            backgroundColor:
+                              SEVERITY_COLORS[report.severity ?? ''] ??
+                              NO_SEVERITY_COLOR,
+                          }}
+                        />
+                        {report.severity
+                          ? translateSeverity(report.severity, language)
+                          : t('notAnalyzed')}
+                      </span>
+                    </td>
+                    <td>
+                      {report.status
+                        ? translateStatus(report.status, language)
+                        : t('unknown')}
+                    </td>
+                    <td>{report.department ? translateDepartment(report.department, language) : t('unassigned')}</td>
+                    <td>{formatDate(report.created_at, language)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       )}
 
       {selected && (
-        <div className="gis-details">
-          <div className="gis-details-header">
-            <h3>Report details</h3>
+        <div
+          className="gis-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelected(null)
+              setImageUrl('')
+              setImageError('')
+            }
+          }}
+        >
+          <section
+            className="gis-details gis-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gis-modal-title"
+            dir={language === 'ar' ? 'rtl' : 'ltr'}
+          >
+            <div className="gis-details-header">
+              <div>
+                <h3 id="gis-modal-title">
+                  {getTranslation(language, 'reportDetails')}
+                </h3>
+                <p className="gis-modal-subtitle">
+                  {getTranslation(language, 'reportDetailsSubtitle')}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="gis-close"
+                aria-label={getTranslation(language, 'closeReportDetails')}
+                onClick={() => setSelected(null)}
+              >
+                {String.fromCharCode(215)}
+              </button>
+            </div>
+
+            <div className="gis-report-code">
+              <span>{getTranslation(language, 'reportCode')}</span>
+              <strong>{selected.report_code || selected.id}</strong>
+            </div>
+
+            <div className="gis-modal-grid">
+              <div className="gis-info-card">
+                <span className="gis-info-label">
+                  {getTranslation(language, 'location')}
+                </span>
+                <strong>
+                  {validCoordinates(selected)
+                    ? governorates?.features.find((feature) =>
+                        pointInGovernorate(
+                          selected.longitude as number,
+                          selected.latitude as number,
+                          feature,
+                        ),
+                      )?.properties.name ||
+                      getTranslation(language, 'locationUnavailable')
+                    : getTranslation(language, 'locationUnavailable')}
+                </strong>
+              </div>
+
+              <div className="gis-info-card">
+                <span className="gis-info-label">
+                  {getTranslation(language, 'description')}
+                </span>
+                <p>
+                  {selected.description ||
+                    getTranslation(language, 'noDescription')}
+                </p>
+              </div>
+            </div>
+
+            <div className="gis-modal-meta">
+              <div>
+                <span>{getTranslation(language, 'category')}</span>
+                <strong>
+                  {selected.category
+                    ? translateCategory(selected.category, language)
+                    : getTranslation(language, 'notSpecified')}
+                </strong>
+              </div>
+              <div>
+                <span>{getTranslation(language, 'status')}</span>
+                <strong>
+                  {selected.status
+                    ? translateStatus(selected.status, language)
+                    : getTranslation(language, 'unknown')}
+                </strong>
+              </div>
+              <div>
+                <span>{getTranslation(language, 'severity')}</span>
+                <strong>
+                  {selected.severity
+                    ? translateSeverity(selected.severity, language)
+                    : getTranslation(language, 'notAnalyzed')}
+                </strong>
+              </div>
+              <div>
+                <span>{getTranslation(language, 'department')}</span>
+                <strong>
+                  {selected.department
+                    ? translateDepartment(selected.department, language)
+                    : getTranslation(language, 'unassigned')}
+                </strong>
+              </div>
+              <div>
+                <span>{getTranslation(language, 'created')}</span>
+                <strong>
+                  {new Date(selected.created_at).toLocaleDateString(
+                    language === 'ar' ? 'ar-EG' : 'en-GB',
+                    { timeZone: 'Africa/Cairo', year: 'numeric', month: 'long', day: 'numeric' }
+                  )}
+                </strong>
+              </div>
+              <div>
+                <span>{getTranslation(language, 'time')}</span>
+                <strong>
+                  {new Date(selected.created_at).toLocaleTimeString(
+                    language === 'ar' ? 'ar-EG' : 'en-GB',
+                    { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hour12: true }
+                  )}
+                </strong>
+              </div>
+            </div>
+
             <button
               type="button"
-              className="gis-close"
-              onClick={() => {
-                setSelected(null)
-                setImageUrl('')
-                setImageError('')
-              }}
+              className="gis-image-button"
+              onClick={() => void viewImage(selected)}
+              disabled={imageLoading}
             >
-              Close
+              {imageLoading
+                ? getTranslation(language, 'loadingImage')
+                : getTranslation(language, 'viewOriginalImage')}
             </button>
-          </div>
 
-          <dl>
-            <dt>Report code</dt>
-            <dd>{selected.report_code || selected.id}</dd>
+            {imageError && (
+              <p className="gis-error" role="alert">{imageError}</p>
+            )}
 
-            <dt>Category</dt>
-            <dd>{selected.category || 'Not specified'}</dd>
-
-            <dt>Status</dt>
-            <dd>{selected.status || 'Unknown'}</dd>
-
-            <dt>Created</dt>
-            <dd>{formatDate(selected.created_at)}</dd>
-
-            <dt>Coordinates</dt>
-            <dd>
-              {validCoordinates(selected)
-                ? `${selected.latitude}, ${selected.longitude}`
-                : 'Not available'}
-            </dd>
-
-            <dt>Description</dt>
-            <dd>{selected.description || 'No description provided.'}</dd>
-          </dl>
-
-          <button
-            type="button"
-            className="gis-image-button"
-            onClick={() => void viewImage(selected)}
-            disabled={imageLoading}
-          >
-            {imageLoading ? 'Loading image...' : 'View original image'}
-          </button>
-
-          {imageError && (
-            <p className="gis-error" role="alert">
-              {imageError}
-            </p>
-          )}
-
-          {imageUrl && (
-            <div className="gis-image-preview">
-              <img
-                src={imageUrl}
-                alt={`Original evidence for ${selected.report_code || selected.id}`}
-              />
-              <p>Temporary secure link; it expires after approximately 120 seconds.</p>
-            </div>
-          )}
+            {imageUrl && (
+              <div className="gis-image-preview">
+                <img
+                  src={imageUrl}
+                  alt={`${getTranslation(language, 'originalEvidence')} ${selected.report_code || selected.id}`}
+                />
+                <p>{getTranslation(language, 'imageExpiry')}</p>
+              </div>
+            )}
+          </section>
         </div>
       )}
     </section>
@@ -746,5 +1103,7 @@ function GISMap({ language }: { language: Language }) {
 }
 
 export default GISMap
+
+
 
 

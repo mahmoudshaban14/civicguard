@@ -3,13 +3,15 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import './App.css'
-import { LayoutDashboard, FileText, MapPinned, Sparkles } from 'lucide-react'
+import { LayoutDashboard, FileText, MapPinned, ShieldCheck } from 'lucide-react'
 import GISMap from './GISMap'
 import { getTranslation, translateStatus, translateCategory, type Language } from './i18n'
 
 type Profile = {
   id: string
   role: string
+  full_name?: string | null
+  display_name?: string | null
 }
 
 type Report = {
@@ -18,6 +20,12 @@ type Report = {
   category: string | null
   status: string
   created_at: string
+}
+
+function formatDashboardNumber(value: number, language: Language): string {
+  return value.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+    useGrouping: false,
+  })
 }
 
 function App() {
@@ -102,7 +110,7 @@ const [activePage, setActivePage] = useState<
 
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .select('id, role')
+        .select('id, role, full_name, display_name')
         .eq('id', user.id)
         .maybeSingle()
 
@@ -223,10 +231,9 @@ const [activePage, setActivePage] = useState<
       <main className="auth-page">
         <section className="auth-card">
           <div className="brand-icon">C</div>
-          <p className="eyebrow">{getTranslation(language, 'management')}</p>
-          <h1>{getTranslation(language, 'adminPortal')}</h1>
+          <h1>{getTranslation(language, 'loginWelcome')}</h1>
           <p className="auth-description">
-            {getTranslation(language, 'loginDescription')}
+            {getTranslation(language, 'loginWelcomeDescription')}
           </p>
 
           <form onSubmit={handleSignIn}>
@@ -235,7 +242,7 @@ const [activePage, setActivePage] = useState<
               id="email"
               type="email"
               autoComplete="username"
-              placeholder="admin@example.com"
+              placeholder="YourName@civicguard.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
@@ -246,7 +253,7 @@ const [activePage, setActivePage] = useState<
               id="password"
               type="password"
               autoComplete="current-password"
-              placeholder={getTranslation(language, 'password')}
+              placeholder={language === 'ar' ? '\u0623\u062f\u062e\u0644 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631' : 'Enter your password'}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
@@ -263,9 +270,7 @@ const [activePage, setActivePage] = useState<
             </button>
           </form>
 
-          <p className="auth-footer">
-            Restricted access · Authorized administrators only
-          </p>
+          <p className="auth-footer">{language === 'ar' ? '\u062f\u062e\u0648\u0644 \u0645\u0642\u064a\u062f \u0644\u0644\u0645\u0633\u0624\u0648\u0644\u064a\u0646 \u0627\u0644\u0645\u0635\u0631\u062d \u0644\u0647\u0645 \u0641\u0642\u0637' : 'Restricted access Â· Authorized administrators only'}</p>
         </section>
       </main>
     )
@@ -287,12 +292,12 @@ const resolvedRate =
     : Math.round((resolvedCount / reports.length) * 100)
 
   return (
-    <div className="dashboard">
+    <div className="dashboard" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">C</div>
           <div>
-            <h2>CivicGuard</h2>
+            <h2 className="sidebar-admin-name">{profile?.display_name || profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || getTranslation(language, 'administrator')}</h2>
             <p>{getTranslation(language, 'adminPortal')}</p>
           </div>
         </div>
@@ -334,26 +339,12 @@ const resolvedRate =
   </a>
 </nav>
 
-        <div className="sidebar-bottom">
-          <div className="connection-indicator" />
-          <div>
-            <strong>Supabase</strong>
-            <p>{getTranslation(language, 'adminSession')}</p>
-          </div>
-        </div>
+        <div className="sidebar-bottom"><button type="button" className="sidebar-signout" onClick={handleSignOut}>{getTranslation(language, 'signOut')}</button></div>
       </aside>
 
       <main className="main-content" id="overview">
         <header className="topbar">
           <div>
-            <p className="breadcrumb">
-  {getTranslation(language, 'management')} /{' '}
-  {activePage === 'overview'
-    ? getTranslation(language, 'overview')
-    : activePage === 'reports'
-      ? getTranslation(language, 'reports')
-      : getTranslation(language, 'gisMap')}
-</p>
 
 <h1>
   {activePage === 'overview'
@@ -364,13 +355,6 @@ const resolvedRate =
 </h1>
           </div>
 
-          <div className="admin-badge">
-            <span className="avatar">A</span>
-            <span>{getTranslation(language, 'administrator')}</span>
-            <button type="button" onClick={handleSignOut}>
-              Sign out
-            </button>
-          </div>
                     <button
             type="button"
             className="language-toggle"
@@ -378,7 +362,7 @@ const resolvedRate =
               setLanguage((current) => (current === 'ar' ? 'en' : 'ar'))
             }
           >
-            {language === 'ar' ? 'English' : 'العربية'}
+            {language === 'ar' ? 'English' : '\u0627\u0644\u0639\u0631\u0628\u064a\u0629'}
           </button>
         </header>
 
@@ -387,43 +371,38 @@ const resolvedRate =
 
         <section className="welcome">
           <div>
-            <p className="eyebrow">{getTranslation(language, 'management')}</p>
             <h2>{getTranslation(language, 'overview')}</h2>
             <p>
-              {getTranslation(language, 'loginDescription')}
+              {getTranslation(language, 'overviewDescription')}
             </p>
           </div>
-          <div className="welcome-icon"><Sparkles size={28} strokeWidth={1.7} aria-hidden="true" /></div>
+          <div className="welcome-icon"><ShieldCheck size={36} strokeWidth={1.8} aria-hidden="true" /></div>
         </section>
 
         <section className="stats-grid">
           <article className="stat-card">
             <p>{getTranslation(language, 'totalReports')}</p>
-            <h3>{reports.length}</h3>
-            <span>{getTranslation(language, 'totalReports')}</span>
+            <h3>{formatDashboardNumber(reports.length, language)}</h3>
           </article>
 
           <article className="stat-card">
             <p>{getTranslation(language, 'underReview')}</p>
-            <h3>{countStatus('under_review')}</h3>
-            <span>{getTranslation(language, 'underReview')}</span>
+            <h3>{formatDashboardNumber(countStatus('under_review'), language)}</h3>
           </article>
 
           <article className="stat-card">
             <p>{getTranslation(language, 'inProgress')}</p>
-            <h3>{countStatus('in_progress')}</h3>
-            <span>{getTranslation(language, 'inProgress')}</span>
+            <h3>{formatDashboardNumber(countStatus('in_progress'), language)}</h3>
           </article>
 
           <article className="stat-card">
             <p>{getTranslation(language, 'resolved')}</p>
-            <h3>{countStatus('resolved')}</h3>
-            <span>{getTranslation(language, 'resolved')}</span>
+            <h3>{formatDashboardNumber(countStatus('resolved'), language)}</h3>
           </article>
 
           <article className="stat-card resolution-rate-card">
             <p>{getTranslation(language, 'resolutionRate')}</p>
-            <h3>{resolvedRate}%</h3>
+            <h3>{formatDashboardNumber(resolvedRate, language)}<span className="resolution-rate-percent">%</span></h3>
             <div className="resolution-rate-track">
               <div
                 className="resolution-rate-fill"
@@ -431,7 +410,7 @@ const resolvedRate =
               />
             </div>
             <span>
-              {resolvedCount} / {reports.length}
+              {formatDashboardNumber(resolvedCount, language)} / {formatDashboardNumber(reports.length, language)}
             </span>
           </article>
         </section>
@@ -441,8 +420,8 @@ const resolvedRate =
   <section className="reports-section" id="reports">
           <div className="section-heading">
             <div>
-              <h2>{getTranslation(language, 'allReports')}</h2>
-              <p>{getTranslation(language, 'mapDescription')}</p>
+              
+              <p className="page-description">{getTranslation(language, 'reportsDescription')}</p>
             </div>
 
             <select
@@ -479,10 +458,10 @@ const resolvedRate =
               <table>
                 <thead>
                   <tr>
-                    <th>{getTranslation(language, 'report')}</th>
-                    <th>{getTranslation(language, 'category')}</th>
-                    <th>{getTranslation(language, 'status')}</th>
-                    <th>{getTranslation(language, 'date')}</th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'report')}</div></th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'category')}</div></th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'status')}</div></th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'date')}</div></th>
                   </tr>
                 </thead>
 
@@ -510,7 +489,9 @@ const resolvedRate =
                           </span>
                         </td>
                         <td>
-                          {new Date(report.created_at).toLocaleDateString()}
+                          {new Date(report.created_at).toLocaleDateString(
+                            language === 'ar' ? 'ar-EG' : 'en-US'
+                          )}
                         </td>
                       </tr>
                     ))
@@ -523,12 +504,18 @@ const resolvedRate =
 )}
 {activePage === 'gis' && <GISMap language={language} />}
 
-        <footer>CivicGuard Admin Portal · Development environment</footer>
+        <footer>CivicGuard Admin Portal Â· Development environment</footer>
       </main>
     </div>
   )
 }
 
 export default App
+
+
+
+
+
+
 
 
