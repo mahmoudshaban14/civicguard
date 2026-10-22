@@ -93,6 +93,45 @@ describe('GET /v1/reports', () => {
     expect(res.body.reports.length).toBe(1);
     expect(res.body.reports[0].id).toBe('rep-001');
   });
+
+  it('should return 403 when authority user has no department_id', async () => {
+    const mockUser = { id: 'usr-auth-null', email: 'authority@example.com' };
+    const mockProfile = { id: 'usr-auth-null', role: 'authority', department_id: null, full_name: 'Test Authority' };
+
+    const mockSupabase = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        }),
+      },
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          range: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+        };
+      }),
+    };
+
+    vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+    const res = await request(app)
+      .get('/v1/reports')
+      .set('Authorization', 'Bearer valid-authority-token');
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
+    expect(res.body.error.message).toContain('Authority user is not associated with any department');
+  });
 });
 
 describe('POST /v1/reports', () => {
