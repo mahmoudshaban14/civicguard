@@ -32,7 +32,7 @@ export default function HomeScreen() {
   );
 
   const totalReports = reports.length;
-  const resolvedReports = reports.filter(r => r.status === 'resolved' || r.status === 'تم الحل').length;
+  const resolvedReports = reports.filter(r => r.status === 'Resolved').length;
   const inProgressReports = totalReports - resolvedReports;
 
   const t = {
@@ -246,7 +246,7 @@ export default function HomeScreen() {
               >
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', textAlign: t.textAlign, marginBottom: 4 }}>
-                    {item.title || item.category}
+                    {item.category}
                   </Text>
                   <Text style={{ fontSize: 12, color: '#64748B', textAlign: t.textAlign }} numberOfLines={1}>
                     {item.description}

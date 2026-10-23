@@ -103,7 +103,7 @@ export default function ProfileScreen() {
 
         {/* كارت البروفايل الرئيسي (بنفس ستايل الكاردات) */}
         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2, alignItems: 'center', marginBottom: 20 }}>
-          <View style={{ backgroundColor: '#EFF6FF', size: 64, width: 64, height: 64, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#BFDBFE' }}>
+          <View style={{ backgroundColor: '#EFF6FF', width: 64, height: 64, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#BFDBFE' }}>
             <UserRound size={30} color="#1E3A8A" />
           </View>
           <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A', marginBottom: 4 }}>

@@ -9,17 +9,8 @@ import {
 } from 'react';
 
 import { analyzeCivicImage, type CivicAnalysisResult } from '@/lib/civicguard-ai';
-import {
-  CIVIC_ISSUE_CATEGORIES,
-  type CivicIssueCategory,
-  type CivicIssueId,
-} from '@/lib/civicguard-categories';
-import {
-  type CivicReport,
-  type ReportStatus,
-  type SampleImageKey,
-  type Severity,
-} from '@/lib/civicguard-data';
+import { type CivicIssueCategory, type CivicIssueId } from '@/lib/civicguard-categories';
+import { type CivicReport, type ReportStatus, type SampleImageKey } from '@/lib/civicguard-data';
 import { supabase } from '@/lib/supabase';
 
 export interface DraftReport {
@@ -144,22 +135,41 @@ function formatReportDate(dateString?: string) {
   }).format(d);
 }
 
+function mapDbStatusToReportStatus(status?: string | null): ReportStatus {
+  switch (status) {
+    case 'assigned':
+    case 'under_review': {
+      return 'Assigned';
+    }
+    case 'escalated':
+    case 'in_progress': {
+      return 'In Progress';
+    }
+    case 'resolved': {
+      return 'Resolved';
+    }
+    default: {
+      return 'Reported';
+    }
+  }
+}
+
 export function CivicGuardProvider({ children }: PropsWithChildren) {
   const [reports, setReports] = useState<CivicReport[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [draft, setDraftState] = useState(DEFAULT_DRAFT);
   const [analysisResult, setAnalysisResult] = useState<CivicAnalysisResult | null>(null);
   const [lastSubmittedReport, setLastSubmittedReport] = useState<CivicReport | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchReports = useCallback(async () => {
-    setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setLoading(true);
 
       const { data, error } = await supabase
         .from('reports')
@@ -206,9 +216,9 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
           return {
             id: item.report_code || item.id,
             category: item.category || 'Other / Unrecognized Civic Issue',
-            severity: (item.severity as Severity) || 'Medium',
+            severity: item.severity ?? 'Medium',
             confidence: item.confidence || 0,
-            status: (item.status as ReportStatus) || 'Reported',
+            status: mapDbStatusToReportStatus(item.status),
             department: item.department || 'Manual Routing',
             area: 'Current Location',
             latitude: item.latitude || 30.0074,
@@ -230,7 +240,10 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    fetchReports();
+    // Initial load synchronizes with Supabase (an external system); loading state
+    // is only touched after the first `await` inside fetchReports.
+    // oxlint-disable-next-line react/set-state-in-effect
+    void fetchReports();
   }, [fetchReports]);
 
   const updateDraft = useCallback((next: Partial<DraftReport>) => {
@@ -276,7 +289,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       const rawConfidence = analysis?.confidence ?? 0.54;
       const safeConfidence = rawConfidence > 1 ? rawConfidence / 100 : rawConfidence;
 
-      const isLowConfidence = safeConfidence < 0.70 || department === 'Manual Routing';
+      const isLowConfidence = safeConfidence < 0.7 || department === 'Manual Routing';
       const needsManualReview = isLowConfidence || category.includes('Unrecognized');
       const dbStatus = needsManualReview ? 'manual_review_required' : 'submitted';
 
@@ -365,17 +378,17 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
 
         const newReport: CivicReport = {
           id: data.report_code || data.id,
-          category: data.category,
-          severity: data.severity as Severity,
-          confidence: data.confidence,
-          status: data.status as ReportStatus,
-          department: data.department,
+          category: data.category ?? category,
+          severity: data.severity ?? safeSeverity,
+          confidence: data.confidence ?? safeConfidence,
+          status: mapDbStatusToReportStatus(data.status),
+          department: data.department ?? department,
           area: activeDraft.area,
-          latitude: activeDraft.latitude,
-          longitude: activeDraft.longitude,
+          latitude: data.latitude ?? activeDraft.latitude,
+          longitude: data.longitude ?? activeDraft.longitude,
           distance: '250m',
           date: formatReportDate(data.created_at),
-          description: data.description,
+          description: data.description ?? activeDraft.description,
           imageKey: activeDraft.imageKey,
           imageUri: previewImageUri,
         };
@@ -383,29 +396,31 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
         setReports((current) => [newReport, ...current]);
         setLastSubmittedReport(newReport);
 
-      setNotifications((current) => [
-        {
-          id: `submitted-${Date.now()}`,
-          type: 'info',
-          titleAr: 'تم تقديم البلاغ بنجاح 📝',
-          titleEn: 'Report Submitted Successfully 📝',
-          text: `تم استلام بلاغك رقم ${newReport.id} وهو قيد المراجعة الآن.`,
-          textEn: `Report ${newReport.id} was submitted successfully and is under review.`,
-          priorityAr: 'قيد المراجعة (Under Review)',
-          priorityEn: 'Under Review',
-          priorityColor: '#2563EB',
-          time: 'الآن (Just now)',
-          read: false,
-        },
-        ...current,
-      ]);
+        setNotifications((current) => [
+          {
+            id: `submitted-${Date.now()}`,
+            type: 'info',
+            titleAr: 'تم تقديم البلاغ بنجاح 📝',
+            titleEn: 'Report Submitted Successfully 📝',
+            text: `تم استلام بلاغك رقم ${newReport.id} وهو قيد المراجعة الآن.`,
+            textEn: `Report ${newReport.id} was submitted successfully and is under review.`,
+            priorityAr: 'قيد المراجعة (Under Review)',
+            priorityEn: 'Under Review',
+            priorityColor: '#2563EB',
+            time: 'الآن (Just now)',
+            read: false,
+          },
+          ...current,
+        ]);
 
-      return newReport;
-    } catch (err) {
-      console.error('Submit exception:', err);
-      return null;
-    }
-  }, [analysisResult, draft]);
+        return newReport;
+      } catch (err) {
+        console.error('Submit exception:', err);
+        return null;
+      }
+    },
+    [analysisResult, draft],
+  );
 
   const updateStatus = useCallback((id: string, status: ReportStatus) => {
     setReports((current) =>
@@ -443,7 +458,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   }, []);
 
   const resetDemo = useCallback(() => {
-    fetchReports();
+    void fetchReports();
     setDraftState(DEFAULT_DRAFT);
     setAnalysisResult(null);
     setLastSubmittedReport(null);

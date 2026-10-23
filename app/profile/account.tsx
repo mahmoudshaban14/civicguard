@@ -145,7 +145,7 @@ export default function AccountScreen() {
           <Button
             className="bg-civic-deep rounded-2xl py-3.5 flex-row justify-center items-center"
             onPress={handleUpdateProfile}
-            disabled={loading}
+            isDisabled={loading}
           >
             <Save size={20} color="#FFF" />
             <Button.Label className="text-white text-base font-bold ml-2">

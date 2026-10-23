@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type UserRole = 'citizen' | 'authority' | 'admin';
 export type ReportStatus =
@@ -50,6 +44,15 @@ export interface Database {
           display_name?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_department_id_fkey';
+            columns: ['department_id'];
+            isOneToOne: false;
+            referencedRelation: 'departments';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       departments: {
         Row: {
@@ -73,6 +76,7 @@ export interface Database {
           description?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       categories: {
         Row: {
@@ -117,6 +121,15 @@ export interface Database {
           keywords?: string[];
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'categories_department_id_fkey';
+            columns: ['department_id'];
+            isOneToOne: false;
+            referencedRelation: 'departments';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       reports: {
         Row: {
@@ -197,6 +210,29 @@ export interface Database {
           updated_at?: string;
           resolved_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'reports_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_assigned_department_id_fkey';
+            columns: ['assigned_department_id'];
+            isOneToOne: false;
+            referencedRelation: 'departments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_duplicate_of_fkey';
+            columns: ['duplicate_of'];
+            isOneToOne: false;
+            referencedRelation: 'reports';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       report_events: {
         Row: {
@@ -232,6 +268,15 @@ export interface Database {
           note?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'report_events_report_id_fkey';
+            columns: ['report_id'];
+            isOneToOne: false;
+            referencedRelation: 'reports';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       notifications: {
         Row: {
@@ -267,6 +312,15 @@ export interface Database {
           read?: boolean;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_report_id_fkey';
+            columns: ['report_id'];
+            isOneToOne: false;
+            referencedRelation: 'reports';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       ai_requests: {
         Row: {
@@ -293,6 +347,15 @@ export interface Database {
           error_message?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'ai_requests_report_id_fkey';
+            columns: ['report_id'];
+            isOneToOne: false;
+            referencedRelation: 'reports';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
