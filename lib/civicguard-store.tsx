@@ -3,7 +3,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
@@ -60,8 +59,9 @@ interface CivicGuardStore {
   updateDraft: (next: Partial<DraftReport>) => void;
   resetDraft: () => void;
   analyzeDraft: (preferredCategory?: CivicIssueCategory) => Promise<CivicAnalysisResult>;
-  submitDraft: () => Promise<CivicReport | null>;
+  submitDraft: (overrideDraft?: Partial<DraftReport>) => Promise<CivicReport | null>;
   fetchReports: () => Promise<void>;
+  refreshReports: () => Promise<void>;
   updateStatus: (id: string, status: ReportStatus) => void;
   advanceReportStatus: (id: string) => void;
   markNotificationsRead: () => void;
@@ -142,7 +142,6 @@ function formatReportDate(dateString?: string) {
     hour: 'numeric',
     minute: '2-digit',
   }).format(d);
-  }).format(d);
 }
 
 export function CivicGuardProvider({ children }: PropsWithChildren) {
@@ -171,22 +170,56 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       if (error) {
         console.error('Error fetching reports:', error);
       } else if (data) {
-        const formattedReports: CivicReport[] = data.map((item) => ({
-          id: item.report_code || item.id,
-          category: item.category || 'Other / Unrecognized Civic Issue',
-          severity: (item.severity as Severity) || 'Medium',
-          confidence: item.confidence || 0,
-          status: (item.status as ReportStatus) || 'Reported',
-          department: item.department || 'Manual Routing',
-          area: 'Current Location',
-          latitude: item.latitude || 30.0074,
-          longitude: item.longitude || 31.4913,
-          distance: '250m',
-          date: formatReportDate(item.created_at),
-          description: item.description || '',
-          imageKey: 'pothole',
-          imageUri: item.image_path || undefined,
-        }));
+        const signedUrlMap = new Map<string, string>();
+        const pathsToSign = data
+          .map((item) => item.image_path)
+          .filter((p): p is string => Boolean(p && !p.startsWith('http')));
+
+        if (pathsToSign.length > 0) {
+          try {
+            const { data: signedList, error: signError } = await supabase.storage
+              .from('report-images')
+              .createSignedUrls(pathsToSign, 86400);
+
+            if (!signError && signedList) {
+              for (const s of signedList) {
+                if (s.path && s.signedUrl) {
+                  signedUrlMap.set(s.path, s.signedUrl);
+                }
+              }
+            }
+          } catch (signErr) {
+            console.error('Error generating signed URLs:', signErr);
+          }
+        }
+
+        const formattedReports: CivicReport[] = data.map((item) => {
+          let resolvedImageUri: string | undefined = undefined;
+          if (item.image_path) {
+            if (item.image_path.startsWith('http')) {
+              resolvedImageUri = item.image_path;
+            } else {
+              resolvedImageUri = signedUrlMap.get(item.image_path);
+            }
+          }
+
+          return {
+            id: item.report_code || item.id,
+            category: item.category || 'Other / Unrecognized Civic Issue',
+            severity: (item.severity as Severity) || 'Medium',
+            confidence: item.confidence || 0,
+            status: (item.status as ReportStatus) || 'Reported',
+            department: item.department || 'Manual Routing',
+            area: 'Current Location',
+            latitude: item.latitude || 30.0074,
+            longitude: item.longitude || 31.4913,
+            distance: '250m',
+            date: formatReportDate(item.created_at),
+            description: item.description || '',
+            imageKey: 'pothole',
+            imageUri: resolvedImageUri,
+          };
+        });
         setReports(formattedReports);
       }
     } catch (err) {
@@ -231,104 +264,124 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
     [draft],
   );
 
-  const submitDraft = useCallback(async () => {
-    const analysis = analysisResult;
-    const rawSeverity = analysis?.severity ?? 'Medium';
-    const safeSeverity = rawSeverity === 'Requires Review' ? 'Medium' : rawSeverity;
-    const category = analysis?.category ?? 'Other / Unrecognized Civic Issue';
-    const department = analysis?.department ?? 'Manual Routing';
+  const submitDraft = useCallback(
+    async (overrideDraft?: Partial<DraftReport>) => {
+      const activeDraft = { ...draft, ...overrideDraft };
+      const analysis = analysisResult;
+      const rawSeverity = analysis?.severity ?? 'Medium';
+      const safeSeverity = rawSeverity === 'Requires Review' ? 'Medium' : rawSeverity;
+      const category = analysis?.category ?? 'Other / Unrecognized Civic Issue';
+      const department = analysis?.department ?? 'Manual Routing';
 
-    const rawConfidence = analysis?.confidence ?? 0.54;
-    const safeConfidence = rawConfidence > 1 ? rawConfidence / 100 : rawConfidence;
+      const rawConfidence = analysis?.confidence ?? 0.54;
+      const safeConfidence = rawConfidence > 1 ? rawConfidence / 100 : rawConfidence;
 
-    const isLowConfidence = safeConfidence < 0.70 || department === 'Manual Routing';
-    const needsManualReview = isLowConfidence || category.includes('Unrecognized');
-    const dbStatus = needsManualReview ? 'manual_review_required' : 'submitted';
+      const isLowConfidence = safeConfidence < 0.70 || department === 'Manual Routing';
+      const needsManualReview = isLowConfidence || category.includes('Unrecognized');
+      const dbStatus = needsManualReview ? 'manual_review_required' : 'submitted';
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('User not logged in');
-        return null;
-      }
-
-      let publicImageUrl: string | null = null;
-
-      if (draft.imageUri) {
-        try {
-          const fileExt = draft.imageUri.split('.').pop() || 'jpg';
-          const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-          const response = await fetch(draft.imageUri);
-          const blob = await response.blob();
-
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('reports')
-            .upload(fileName, blob, {
-              contentType: `image/${fileExt === 'png' ? 'png' : 'jpeg'}`,
-              upsert: true,
-            });
-
-          if (!uploadError && uploadData) {
-            const { data: publicUrlData } = supabase.storage
-              .from('reports')
-              .getPublicUrl(fileName);
-
-            publicImageUrl = publicUrlData.publicUrl;
-          }
-        } catch (imgErr) {
-          console.error('Image upload exception:', imgErr);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          console.error('User not logged in');
+          return null;
         }
-      }
 
-      const generatedCode = `CG-2026-${String(Math.floor(10000 + Math.random() * 90000))}`;
+        let uploadedImagePath: string | null = null;
+        let previewImageUri: string | undefined = activeDraft.imageUri;
 
-      const { data, error } = await supabase
-        .from('reports')
-        .insert([
-          {
-            user_id: user.id,
-            report_code: generatedCode,
-            category: category,
-            severity: safeSeverity,
-            confidence: safeConfidence,
-            department: department,
-            latitude: draft.latitude,
-            longitude: draft.longitude,
-            description: draft.description || analysis?.explanation || 'Submitted for manual review.',
-            image_path: publicImageUrl || draft.imageUri || null,
-            explanation: analysis?.explanation || '',
-            requires_manual_review: needsManualReview,
-            status: dbStatus,
-          },
-        ])
-        .select()
-        .single();
+        if (activeDraft.imageUri) {
+          try {
+            const rawUri = activeDraft.imageUri;
+            let fileExt = 'jpg';
+            if (rawUri.startsWith('data:image/png')) {
+              fileExt = 'png';
+            } else if (rawUri.startsWith('data:image/webp')) {
+              fileExt = 'webp';
+            } else {
+              const cleanUri = rawUri.split('?')[0].split('#')[0];
+              const ext = cleanUri.split('.').pop()?.toLowerCase();
+              if (ext === 'png' || ext === 'webp' || ext === 'jpeg' || ext === 'jpg') {
+                fileExt = ext === 'jpeg' ? 'jpg' : ext;
+              }
+            }
 
-      if (error) {
-        console.error('Supabase Insert Error:', error);
-        return null;
-      }
+            const fileName = `${user.id}/${Date.now()}-${Math.floor(Math.random() * 10000)}.${fileExt}`;
+            const contentType =
+              fileExt === 'png' ? 'image/png' : fileExt === 'webp' ? 'image/webp' : 'image/jpeg';
 
-      const newReport: CivicReport = {
-        id: data.report_code || data.id,
-        category: data.category,
-        severity: data.severity as Severity,
-        confidence: data.confidence,
-        status: data.status as ReportStatus,
-        department: data.department,
-        area: draft.area,
-        latitude: draft.latitude,
-        longitude: draft.longitude,
-        distance: '250m',
-        date: formatReportDate(data.created_at),
-        description: data.description,
-        imageKey: draft.imageKey,
-        imageUri: publicImageUrl || draft.imageUri,
-      };
+            const response = await fetch(rawUri);
+            const arrayBuffer = await response.arrayBuffer();
 
-      setReports((current) => [newReport, ...current]);
-      setLastSubmittedReport(newReport);
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('report-images')
+              .upload(fileName, arrayBuffer, {
+                contentType,
+                upsert: true,
+              });
+
+            if (uploadError) {
+              console.error('Supabase storage upload error:', uploadError);
+            } else if (uploadData) {
+              uploadedImagePath = uploadData.path || fileName;
+              console.log('Image uploaded successfully to report-images:', uploadedImagePath);
+            }
+          } catch (imgErr) {
+            console.error('Image upload exception:', imgErr);
+          }
+        }
+
+        const generatedCode = `CG-2026-${String(Math.floor(10000 + Math.random() * 90000))}`;
+
+        const { data, error } = await supabase
+          .from('reports')
+          .insert([
+            {
+              user_id: user.id,
+              report_code: generatedCode,
+              category: category,
+              severity: safeSeverity,
+              confidence: safeConfidence,
+              department: department,
+              latitude: activeDraft.latitude,
+              longitude: activeDraft.longitude,
+              description:
+                activeDraft.description || analysis?.explanation || 'Submitted for manual review.',
+              image_path: uploadedImagePath,
+              explanation: analysis?.explanation || '',
+              requires_manual_review: needsManualReview,
+              status: dbStatus,
+            },
+          ])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Supabase Insert Error:', error);
+          return null;
+        }
+
+        const newReport: CivicReport = {
+          id: data.report_code || data.id,
+          category: data.category,
+          severity: data.severity as Severity,
+          confidence: data.confidence,
+          status: data.status as ReportStatus,
+          department: data.department,
+          area: activeDraft.area,
+          latitude: activeDraft.latitude,
+          longitude: activeDraft.longitude,
+          distance: '250m',
+          date: formatReportDate(data.created_at),
+          description: data.description,
+          imageKey: activeDraft.imageKey,
+          imageUri: previewImageUri,
+        };
+
+        setReports((current) => [newReport, ...current]);
+        setLastSubmittedReport(newReport);
 
       setNotifications((current) => [
         {
@@ -396,6 +449,8 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
     setLastSubmittedReport(null);
   }, [fetchReports]);
 
+  const refreshReports = fetchReports;
+
   const value = useMemo(
     () => ({
       reports,
@@ -409,6 +464,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       analyzeDraft,
       submitDraft,
       fetchReports,
+      refreshReports,
       updateStatus,
       advanceReportStatus,
       markNotificationsRead,

@@ -39,6 +39,7 @@ export default function SignUpScreen() {
       passwordLabel: 'كلمة المرور',
       passwordPlaceholder: '••••••••',
       signUpBtn: 'إنشاء الحساب',
+      loadingBtn: 'جاري إنشاء الحساب...',
       loginLink: 'لديك حساب بالفعل؟ تسجيل الدخول',
       switchLangText: 'English 🌐',
       textAlign: 'right' as const,
@@ -68,6 +69,7 @@ export default function SignUpScreen() {
       passwordLabel: 'Password',
       passwordPlaceholder: '••••••••',
       signUpBtn: 'Create Account',
+      loadingBtn: 'Creating Account...',
       loginLink: 'Already have an account? Log In',
       switchLangText: 'عربي 🇪🇬',
       textAlign: 'left' as const,
@@ -149,50 +151,55 @@ export default function SignUpScreen() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: password,
-      options: {
-        data: {
-          full_name: fullName.trim(),
-          national_id: cleanNationalId,
-          phone: cleanPhone,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            national_id: cleanNationalId,
+            phone: cleanPhone,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      Alert.alert(lang === 'ar' ? 'خطأ في التسجيل' : 'Registration Error', error.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert(
-          [
-            {
-              id: data.user.id,
-              full_name: fullName.trim(),
-              national_id: cleanNationalId,
-              phone: cleanPhone,
-              role: 'citizen',
-            },
-          ],
-          { onConflict: 'id' }
-        );
-
-      if (profileError) {
-        console.log('Profile Sync Note:', profileError.message);
+      if (error) {
+        Alert.alert(lang === 'ar' ? 'خطأ في التسجيل' : 'Registration Error', error.message);
+        setLoading(false);
+        return;
       }
+
+      if (data?.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert(
+            [
+              {
+                id: data.user.id,
+                full_name: fullName.trim(),
+                national_id: cleanNationalId,
+                phone: cleanPhone,
+                role: 'citizen',
+              },
+            ],
+            { onConflict: 'id' }
+          );
+
+        if (profileError) {
+          console.log('Profile Sync Note:', profileError.message);
+        }
+      }
+
+      setLoading(false);
+
+      Alert.alert(t.alertSuccessTitle, t.alertSuccessMsg, [
+        { text: t.alertOk, onPress: () => router.replace('/(tabs)') },
+      ]);
+    } catch (err: any) {
+      setLoading(false);
+      Alert.alert(lang === 'ar' ? 'خطأ' : 'Error', err?.message || 'An unexpected error occurred');
     }
-
-    setLoading(false);
-
-    Alert.alert(t.alertSuccessTitle, t.alertSuccessMsg, [
-      { text: t.alertOk, onPress: () => router.replace('/(tabs)') },
-    ]);
   };
 
   return (
@@ -420,20 +427,25 @@ export default function SignUpScreen() {
             disabled={loading}
             activeOpacity={0.8}
             style={{
-              backgroundColor: '#1E3A8A',
+              backgroundColor: loading ? '#60A5FA' : '#1E3A8A',
               paddingVertical: 16,
               borderRadius: 14,
               alignItems: 'center',
               marginBottom: 16,
               shadowColor: '#1E3A8A',
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
+              shadowOpacity: loading ? 0.1 : 0.3,
               shadowRadius: 8,
-              elevation: 4,
+              elevation: loading ? 1 : 4,
             }}
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator color="#FFFFFF" size="small" style={{ marginHorizontal: 8 }} />
+                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
+                  {t.loadingBtn}
+                </Text>
+              </View>
             ) : (
               <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
                 {t.signUpBtn}

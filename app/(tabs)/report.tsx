@@ -19,7 +19,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 
 export default function ReportScreen() {
   const router = useRouter();
-  const { updateDraft, analyzeDraft, submitDraft } = useCivicGuard(); // الربط الحقيقي بـ Supabase Store
+  const { updateDraft, analyzeDraft, submitDraft, fetchReports } = useCivicGuard(); // الربط الحقيقي بـ Supabase Store
   const { lang } = useLanguage();
 
   const [title, setTitle] = useState('');
@@ -147,27 +147,39 @@ export default function ReportScreen() {
     setLoading(true);
 
     try {
-      // 1. تحديث الـ Draft في الـ Store بالبيانات اللي كتبها اليوزر
-      updateDraft({
+      const draftData = {
         description: `${title.trim()} - ${description.trim()}`,
         latitude: locationCoords.latitude,
         longitude: locationCoords.longitude,
         area: locationCoords.address,
         imageUri: imageUri,
-      });
+      };
+
+      // 1. تحديث الـ Draft في الـ Store بالبيانات اللي كتبها اليوزر
+      updateDraft(draftData);
 
       // 2. تحليل بالـ AI (اختياري لو متاح)
       await analyzeDraft();
 
       // 3. الإرسال الفعلي لـ Supabase Database و Storage
-      const result = await submitDraft();
+      const result = await submitDraft(draftData);
 
       setLoading(false);
 
       if (result) {
-        Alert.alert(lang === 'ar' ? 'تم بنجاح 🎉' : 'Success 🎉', t.successMsg, [
-          { text: 'OK', onPress: () => router.replace('/(tabs)/reports' as any) },
-        ]);
+        setTitle('');
+        setDescription('');
+        setImageUri(null);
+        setLocationCoords(null);
+        setCategory('');
+
+        try {
+          await fetchReports();
+        } catch (e) {
+          console.error('Error refreshing reports after submit:', e);
+        }
+
+        router.replace('/(tabs)/reports' as any);
       } else {
         Alert.alert(lang === 'ar' ? 'خطأ في الحفظ' : 'Save Error', lang === 'ar' ? 'فشل حفظ البلاغ في السيرفر، تأكد من تسجيل الدخول.' : 'Failed to save report to server.');
       }
