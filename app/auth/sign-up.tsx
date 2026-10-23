@@ -12,6 +12,26 @@ import {
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 
+const parseDigits = (str: string) => {
+  return str.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+};
+
+const validateFullName = (name: string) => {
+  const nameRegex = /^[a-zA-Z\u0600-\u06FF\s]+$/;
+  return nameRegex.test(name.trim());
+};
+
+const validateEgyptianPhone = (phoneStr: string) => {
+  const cleanPhone = parseDigits(phoneStr.trim());
+  const egPhoneRegex = /^01[0125]\d{8}$/;
+  return egPhoneRegex.test(cleanPhone);
+};
+
+const validateEmail = (emailStr: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(emailStr.trim());
+};
+
 export default function SignUpScreen() {
   const router = useRouter();
   const [fullName, setFullName] = useState('');
@@ -87,26 +107,6 @@ export default function SignUpScreen() {
     },
   }[lang];
 
-  const parseDigits = (str: string) => {
-    return str.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
-  };
-
-  const validateFullName = (name: string) => {
-    const nameRegex = /^[a-zA-Z\u0600-\u06FF\s]+$/;
-    return nameRegex.test(name.trim());
-  };
-
-  const validateEgyptianPhone = (phoneStr: string) => {
-    const cleanPhone = parseDigits(phoneStr.trim());
-    const egPhoneRegex = /^01[0125]\d{8}$/;
-    return egPhoneRegex.test(cleanPhone);
-  };
-
-  const validateEmail = (emailStr: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(emailStr.trim());
-  };
-
   const getPasswordStrength = (pass: string) => {
     if (!pass) return { score: 0, label: '', color: '#E2E8F0' };
     let score = 0;
@@ -152,7 +152,7 @@ export default function SignUpScreen() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password,
         options: {
@@ -170,35 +170,15 @@ export default function SignUpScreen() {
         return;
       }
 
-      if (data?.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert(
-            [
-              {
-                id: data.user.id,
-                full_name: fullName.trim(),
-                national_id: cleanNationalId,
-                phone: cleanPhone,
-                role: 'citizen',
-              },
-            ],
-            { onConflict: 'id' }
-          );
-
-        if (profileError) {
-          console.log('Profile Sync Note:', profileError.message);
-        }
-      }
-
       setLoading(false);
 
       Alert.alert(t.alertSuccessTitle, t.alertSuccessMsg, [
         { text: t.alertOk, onPress: () => router.replace('/(tabs)') },
       ]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
-      Alert.alert(lang === 'ar' ? 'خطأ' : 'Error', err?.message || 'An unexpected error occurred');
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+      Alert.alert(lang === 'ar' ? 'خطأ' : 'Error', message);
     }
   };
 
@@ -454,7 +434,7 @@ export default function SignUpScreen() {
           </TouchableOpacity>
 
           {/* رابط تسجيل الدخول */}
-          <TouchableOpacity onPress={() => router.push('/auth/login' as any)}>
+          <TouchableOpacity onPress={() => router.push('/auth/login')}>
             <Text style={{ textAlign: 'center', color: '#2563EB', fontWeight: '700', fontSize: 13.5, marginTop: 4 }}>
               {t.loginLink}
             </Text>
