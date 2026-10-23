@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,16 +11,17 @@ import {
   Image,
 } from 'react-native';
 import { Camera, MapPin, Send, Sparkles, Navigation } from 'lucide-react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { useCivicGuard } from '@/lib/civicguard-store';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function ReportScreen() {
   const router = useRouter();
-  const { reports } = useCivicGuard(); // استخدام الـ Store المحلي المضمون
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+  const { updateDraft, analyzeDraft, submitDraft } = useCivicGuard(); // الربط الحقيقي بـ Supabase Store
+  const { lang } = useLanguage();
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -28,26 +29,6 @@ export default function ReportScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      async function checkLanguage() {
-        try {
-          const savedLang = await AsyncStorage.getItem('@app_language');
-          if (isMounted && (savedLang === 'en' || savedLang === 'ar')) {
-            setLang(savedLang);
-          }
-        } catch (e) {
-          console.error('Error loading language in ReportScreen:', e);
-        }
-      }
-      checkLanguage();
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
 
   const t = {
     ar: {
@@ -64,12 +45,10 @@ export default function ReportScreen() {
       locationSet: 'تم تحديد الموقع بنجاح ✅',
       uploadPhoto: 'إرفاق صورة البلاغ (إلزامي)',
       changePhoto: 'تغيير الصورة المرفقة',
-      submitBtn: 'إرسال البلاغ الآن',
-      textAlign: 'right' as const,
-      flexDirection: 'row-reverse' as const,
-      successMsg: 'تم إرسال بلاغك بنجاح وستراه الآن في سجل بلاغاتي.',
+      submitBtn: 'إرسال البلاغ للسيرفر الآن',
+      successMsg: 'تم إرسال بلاغك وحفظه في داتابيز Supabase بنجاح وسيظهر في بلاغاتي.',
       errorTitle: 'حقول ناقصة مطلوبة!',
-      errorMsg: 'عذراً، لا يمكن الإرسال. تأكد من إدخال العنوان، التفاصيل، الحصول على موقعك الجغرافي من الموبايل، وإرفاق صورة المشكلة.',
+      errorMsg: 'عذراً، لا يمكن الإرسال. تأكد من إدخال العنوان، التفاصيل، الموقع الجغرافي، وإرفاق صورة المشكلة.',
     },
     en: {
       title: 'Submit New Report 📝',
@@ -85,16 +64,13 @@ export default function ReportScreen() {
       locationSet: 'Location acquired successfully ✅',
       uploadPhoto: 'Attach Report Photo (Mandatory)',
       changePhoto: 'Change Attached Photo',
-      submitBtn: 'Submit Report Now',
-      textAlign: 'left' as const,
-      flexDirection: 'row' as const,
-      successMsg: 'Your report has been submitted successfully and is now visible in My Reports.',
+      submitBtn: 'Submit Report to Server Now',
+      successMsg: 'Your report has been successfully submitted and saved to Supabase.',
       errorTitle: 'Missing Required Fields!',
-      errorMsg: 'Cannot submit. Please make sure title, description, GPS location, and photo are all provided.',
+      errorMsg: 'Cannot submit. Please make sure title, description, GPS location, and photo are provided.',
     },
   }[lang];
 
-  // جلب الموقع الجغرافي من الـ GPS
   const handleGetLocation = async () => {
     try {
       setLocating(true);
@@ -128,7 +104,6 @@ export default function ReportScreen() {
     }
   };
 
-  // اختيار صورة من المعرض
   const handlePickImage = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -151,7 +126,6 @@ export default function ReportScreen() {
     }
   };
 
-  // تعبئة سريعة للتجربة
   const handleDemoFill = () => {
     setTitle(lang === 'ar' ? 'تكدس مياه الأمطار الشديد' : 'Severe Rainwater Accumulation');
     setDescription(lang === 'ar' ? 'تجمع كميات كبيرة من المياه تعيق حركة المرور بالكامل.' : 'Large water accumulation blocking traffic entirely.');
@@ -171,41 +145,49 @@ export default function ReportScreen() {
     }
 
     setLoading(true);
-    
-    // محاكاة حفظ ناجحة وفورية تظهر في صفحة "بلاغاتي" وتنتقل إليها
-    setTimeout(() => {
-      const newReportItem = {
-        id: `CG-2026-${Math.floor(10000 + Math.random() * 90000)}`,
-        category: category || (lang === 'ar' ? 'بنية تحتية' : 'Infrastructure'),
-        severity: 'High' as const,
-        confidence: 0.95,
-        status: 'In Progress' as const,
-        department: 'Road Maintenance',
-        area: locationCoords.address,
+
+    try {
+      // 1. تحديث الـ Draft في الـ Store بالبيانات اللي كتبها اليوزر
+      updateDraft({
+        description: `${title.trim()} - ${description.trim()}`,
         latitude: locationCoords.latitude,
         longitude: locationCoords.longitude,
-        distance: '0m',
-        date: 'Just now',
-        description: description.trim(),
+        area: locationCoords.address,
         imageUri: imageUri,
-      };
+      });
 
-      // إضافته للـ Array الحالية في الـ Store (أو تمريره عبر الـ Router params)
-      reports.unshift(newReportItem);
+      // 2. تحليل بالـ AI (اختياري لو متاح)
+      await analyzeDraft();
+
+      // 3. الإرسال الفعلي لـ Supabase Database و Storage
+      const result = await submitDraft();
 
       setLoading(false);
-      Alert.alert(lang === 'ar' ? 'تم بنجاح 🎉' : 'Success 🎉', t.successMsg, [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/reports' as any) },
-      ]);
-    }, 600);
+
+      if (result) {
+        Alert.alert(lang === 'ar' ? 'تم بنجاح 🎉' : 'Success 🎉', t.successMsg, [
+          { text: 'OK', onPress: () => router.replace('/(tabs)/reports' as any) },
+        ]);
+      } else {
+        Alert.alert(lang === 'ar' ? 'خطأ في الحفظ' : 'Save Error', lang === 'ar' ? 'فشل حفظ البلاغ في السيرفر، تأكد من تسجيل الدخول.' : 'Failed to save report to server.');
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error('Submit execution error:', err);
+      Alert.alert('Error', 'An unexpected error occurred while submitting.');
+    }
   };
+
+  const isRTL = lang === 'ar';
+  const textAlignStyle = isRTL ? 'right' : 'left';
+  const flexDirectionStyle = isRTL ? 'row-reverse' : 'row';
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         
-        <View style={{ flexDirection: t.flexDirection, justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-          <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A', textAlign: t.textAlign, flex: 1 }}>
+        <View style={{ flexDirection: flexDirectionStyle, justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A', textAlign: textAlignStyle, flex: 1 }}>
             {t.title}
           </Text>
           <TouchableOpacity
@@ -229,14 +211,14 @@ export default function ReportScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 20, textAlign: t.textAlign }}>
+        <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 20, textAlign: textAlignStyle }}>
           {t.subtitle}
         </Text>
 
         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2 }}>
           
           <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: t.textAlign }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: textAlignStyle }}>
               {t.reportTitleLabel}
             </Text>
             <TextInput
@@ -244,12 +226,12 @@ export default function ReportScreen() {
               value={title}
               onChangeText={setTitle}
               placeholderTextColor="#94A3B8"
-              style={{ backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, padding: 12, textAlign: t.textAlign, color: '#0F172A' }}
+              style={{ backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, padding: 12, textAlign: textAlignStyle, color: '#0F172A' }}
             />
           </View>
 
           <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: t.textAlign }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: textAlignStyle }}>
               {t.descLabel}
             </Text>
             <TextInput
@@ -259,27 +241,27 @@ export default function ReportScreen() {
               multiline
               numberOfLines={4}
               placeholderTextColor="#94A3B8"
-              style={{ backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, padding: 12, textAlign: t.textAlign, height: 100, color: '#0F172A' }}
+              style={{ backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, padding: 12, textAlign: textAlignStyle, height: 100, color: '#0F172A' }}
             />
           </View>
 
           <View style={{ marginBottom: 20 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: t.textAlign }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: textAlignStyle }}>
               {t.locationLabel}
             </Text>
 
             {locationCoords ? (
-              <View style={{ backgroundColor: '#F0FDF4', borderWidth: 1.5, borderColor: '#86EFAC', borderRadius: 12, padding: 14, flexDirection: t.flexDirection, alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: t.flexDirection, alignItems: 'center', gap: 8, flex: 1 }}>
+              <View style={{ backgroundColor: '#F0FDF4', borderWidth: 1.5, borderColor: '#86EFAC', borderRadius: 12, padding: 14, flexDirection: flexDirectionStyle, alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: flexDirectionStyle, alignItems: 'center', gap: 8, flex: 1 }}>
                   <MapPin size={20} color="#16A34A" />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#166534', textAlign: t.textAlign }}>{t.locationSet}</Text>
-                    <Text style={{ fontSize: 11, color: '#4ADE80', textAlign: t.textAlign }} numberOfLines={1}>{locationCoords.address}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#166534', textAlign: textAlignStyle }}>{t.locationSet}</Text>
+                    <Text style={{ fontSize: 11, color: '#4ADE80', textAlign: textAlignStyle }} numberOfLines={1}>{locationCoords.address}</Text>
                   </View>
                 </View>
                 <TouchableOpacity onPress={handleGetLocation}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: '#1E3A8A', textDecorationLine: 'underline' }}>
-                    {lang === 'ar' ? 'تحديث' : 'Update'}
+                    {isRTL ? 'تحديث' : 'Update'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -293,7 +275,7 @@ export default function ReportScreen() {
                   borderColor: '#93C5FD',
                   borderRadius: 12,
                   padding: 14,
-                  flexDirection: t.flexDirection,
+                  flexDirection: flexDirectionStyle,
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
@@ -308,7 +290,7 @@ export default function ReportScreen() {
           </View>
 
           <View style={{ marginBottom: 20 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: t.textAlign }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6, textAlign: textAlignStyle }}>
               {t.uploadPhoto}
             </Text>
 
@@ -334,7 +316,7 @@ export default function ReportScreen() {
               <TouchableOpacity
                 onPress={handlePickImage}
                 style={{
-                  flexDirection: t.flexDirection,
+                  flexDirection: flexDirectionStyle,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: '#F1F5F9',
@@ -345,7 +327,7 @@ export default function ReportScreen() {
                   padding: 20,
                 }}
               >
-                <Camera size={24} color="#475569" style={{ [lang === 'ar' ? 'marginLeft' : 'marginRight']: 8 }} />
+                <Camera size={24} color="#475569" style={{ [isRTL ? 'marginLeft' : 'marginRight']: 8 }} />
                 <Text style={{ color: '#475569', fontWeight: '700', fontSize: 13 }}>
                   {t.uploadPhoto}
                 </Text>
@@ -356,11 +338,11 @@ export default function ReportScreen() {
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={loading}
-            style={{ backgroundColor: '#1E3A8A', borderRadius: 14, paddingVertical: 15, flexDirection: t.flexDirection, alignItems: 'center', justifyContent: 'center', elevation: 3 }}
+            style={{ backgroundColor: '#1E3A8A', borderRadius: 14, paddingVertical: 15, flexDirection: flexDirectionStyle, alignItems: 'center', justifyContent: 'center', elevation: 3 }}
           >
             {loading ? <ActivityIndicator color="#FFF" /> : (
               <>
-                <Send size={18} color="#FFF" style={{ [lang === 'ar' ? 'marginLeft' : 'marginRight']: 8 }} />
+                <Send size={18} color="#FFF" style={{ [isRTL ? 'marginLeft' : 'marginRight']: 8 }} />
                 <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>{t.submitBtn}</Text>
               </>
             )}
