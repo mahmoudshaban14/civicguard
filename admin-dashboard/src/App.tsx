@@ -2,6 +2,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { adminApiClient } from './lib/api'
 import './App.css'
 
 type Profile = {
@@ -30,6 +31,7 @@ function App() {
   const [reportsLoading, setReportsLoading] = useState(false)
   const [reportsError, setReportsError] = useState('')
   const [filter, setFilter] = useState('all')
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   // Restore the current Supabase session and listen for login/logout.
   useEffect(() => {
@@ -120,41 +122,71 @@ function App() {
     }
   }, [user])
 
-  // Load reports only after the admin role has been verified.
-  useEffect(() => {
-    let mounted = true
+  // Load reports from the Node.js API once admin role is confirmed
+  async function loadReportsFromApi() {
+    if (!user || profile?.role !== 'admin') return
 
-    async function loadReports() {
-      if (!user || profile?.role !== 'admin') return
+    setReportsLoading(true)
+    setReportsError('')
 
-      setReportsLoading(true)
-      setReportsError('')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
 
-      const { data, error: queryError } = await supabase
-        .from('reports')
-        .select('id, report_code, category, status, created_at')
-        .order('created_at', { ascending: false })
-
-      if (!mounted) return
-
-      if (queryError) {
-        setReports([])
-        setReportsError(
-          `Reports could not be loaded: ${queryError.message}`,
-        )
-      } else {
-        setReports((data ?? []) as Report[])
-      }
-
+      const res = await adminApiClient<{ reports: Report[] }>(
+        '/v1/authority/reports',
+        { token },
+      )
+      setReports(res.reports ?? [])
+    } catch (err) {
+      setReports([])
+      setReportsError(
+        `Reports could not be loaded: ${(err as Error).message}`,
+      )
+    } finally {
       setReportsLoading(false)
     }
+  }
 
-    void loadReports()
-
-    return () => {
-      mounted = false
+  useEffect(() => {
+    if (user && profile?.role === 'admin') {
+      void loadReportsFromApi()
     }
   }, [user, profile])
+
+  async function handleUpdateStatus(reportId: string, nextStatus: string) {
+    setUpdatingId(reportId)
+    setReportsError('')
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
+
+      const res = await adminApiClient<{ report: Report }>(
+        `/v1/authority/reports/${reportId}/status`,
+        {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify({
+            status: nextStatus,
+            note: `Status updated to ${nextStatus} by administrator`,
+          }),
+        },
+      )
+
+      if (res.report) {
+        setReports((prev) =>
+          prev.map((r) => (r.id === reportId ? { ...r, status: res.report.status } : r)),
+        )
+      }
+    } catch (err) {
+      setReportsError(`Failed to update report status: ${(err as Error).message}`)
+    } finally {
+      setUpdatingId(null)
+    }
+  }
 
   async function handleSignIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -392,13 +424,14 @@ function App() {
                     <th>CATEGORY</th>
                     <th>STATUS</th>
                     <th>DATE</th>
+                    <th>ACTIONS</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {filteredReports.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="empty-state">
+                      <td colSpan={5} className="empty-state">
                         <div className="empty-icon">▤</div>
                         <h3>No reports found</h3>
                         <p>
@@ -421,6 +454,34 @@ function App() {
                         </td>
                         <td>
                           {new Date(report.created_at).toLocaleDateString()}
+                        </td>
+                        <td>
+                          <select
+                            aria-label="Change report status"
+                            value={report.status}
+                            disabled={updatingId === report.id}
+                            onChange={(e) =>
+                              void handleUpdateStatus(report.id, e.target.value)
+                            }
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              border: '1px solid #dce3ed',
+                              background: '#fff',
+                            }}
+                          >
+                            <option value="submitted">Submitted</option>
+                            <option value="ai_analyzed">AI Analyzed</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="under_review">Under Review</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="manual_review_required">
+                              Manual Review Required
+                            </option>
+                          </select>
                         </td>
                       </tr>
                     ))

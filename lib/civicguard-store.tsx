@@ -3,13 +3,18 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
 } from 'react';
 
 import { analyzeCivicImage, type CivicAnalysisResult } from '@/lib/civicguard-ai';
-import type { CivicIssueCategory, CivicIssueId } from '@/lib/civicguard-categories';
+import {
+  CIVIC_ISSUE_CATEGORIES,
+  type CivicIssueCategory,
+  type CivicIssueId,
+} from '@/lib/civicguard-categories';
 import {
   type CivicReport,
   type ReportStatus,
@@ -136,6 +141,7 @@ function formatReportDate(dateString?: string) {
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+  }).format(d);
   }).format(d);
 }
 
@@ -418,6 +424,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       loading,
       markNotificationsRead,
       notifications,
+      refreshReports,
       reports,
       resetDemo,
       resetDraft,
