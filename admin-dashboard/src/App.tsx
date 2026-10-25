@@ -1,13 +1,18 @@
-
+﻿
 import { useEffect, useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { adminApiClient } from './lib/api'
 import './App.css'
+import { LayoutDashboard, FileText, MapPinned, ShieldCheck } from 'lucide-react'
+import GISMap from './GISMap'
+import { getTranslation, translateStatus, translateCategory, type Language } from './i18n'
 
 type Profile = {
   id: string
   role: string
+  full_name?: string | null
+  display_name?: string | null
 }
 
 type Report = {
@@ -18,7 +23,17 @@ type Report = {
   created_at: string
 }
 
+function formatDashboardNumber(value: number, language: Language): string {
+  return value.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+    useGrouping: false,
+  })
+}
+
 function App() {
+    const [language, setLanguage] = useState<Language>(() => {
+    const savedLanguage = localStorage.getItem('civicguard-language')
+    return savedLanguage === 'en' ? 'en' : 'ar'
+  })
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [email, setEmail] = useState('')
@@ -31,8 +46,19 @@ function App() {
   const [reportsLoading, setReportsLoading] = useState(false)
   const [reportsError, setReportsError] = useState('')
   const [filter, setFilter] = useState('all')
+  const [activePage, setActivePage] = useState<
+    'overview' | 'reports' | 'gis'
+  >('overview')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
+  useEffect(() => {
+  localStorage.setItem('civicguard-language', language)
+  document.documentElement.setAttribute('lang', language)
+  document.documentElement.setAttribute(
+    'dir',
+    language === 'ar' ? 'rtl' : 'ltr'
+  )
+}, [language])
   // Restore the current Supabase session and listen for login/logout.
   useEffect(() => {
     let mounted = true
@@ -86,7 +112,7 @@ function App() {
 
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .select('id, role')
+        .select('id, role, full_name, display_name')
         .eq('id', user.id)
         .maybeSingle()
 
@@ -226,7 +252,7 @@ function App() {
         <section className="auth-card">
           <div className="brand-icon">C</div>
           <h1>CivicGuard</h1>
-          <p>Verifying your account permissions...</p>
+          <p>{getTranslation(language, 'verifying')}</p>
         </section>
       </main>
     )
@@ -237,31 +263,29 @@ function App() {
       <main className="auth-page">
         <section className="auth-card">
           <div className="brand-icon">C</div>
-          <p className="eyebrow">CIVICGUARD MANAGEMENT</p>
-          <h1>Admin Portal</h1>
+          <h1>{getTranslation(language, 'loginWelcome')}</h1>
           <p className="auth-description">
-            Sign in with an authorized administrator account to manage
-            citizen reports.
+            {getTranslation(language, 'loginWelcomeDescription')}
           </p>
 
           <form onSubmit={handleSignIn}>
-            <label htmlFor="email">Email address</label>
+            <label htmlFor="email">{getTranslation(language, 'email')}</label>
             <input
               id="email"
               type="email"
               autoComplete="username"
-              placeholder="admin@example.com"
+              placeholder="YourName@civicguard.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
             />
 
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{getTranslation(language, 'password')}</label>
             <input
               id="password"
               type="password"
               autoComplete="current-password"
-              placeholder="Enter your password"
+              placeholder={language === 'ar' ? '\u0623\u062f\u062e\u0644 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631' : 'Enter your password'}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
@@ -274,13 +298,11 @@ function App() {
             )}
 
             <button type="submit" disabled={busy}>
-              {busy ? 'Signing in...' : 'Sign in'}
+              {busy ? getTranslation(language, 'signingIn') : getTranslation(language, 'signIn')}
             </button>
           </form>
 
-          <p className="auth-footer">
-            Restricted access · Authorized administrators only
-          </p>
+          <p className="auth-footer">{language === 'ar' ? '\u062f\u062e\u0648\u0644 \u0645\u0642\u064a\u062f \u0644\u0644\u0645\u0633\u0624\u0648\u0644\u064a\u0646 \u0627\u0644\u0645\u0635\u0631\u062d \u0644\u0647\u0645 \u0641\u0642\u0637' : 'Restricted access Ã‚Â· Authorized administrators only'}</p>
         </section>
       </main>
     )
@@ -292,121 +314,169 @@ function App() {
       : reports.filter((report) => report.status === filter)
 
   const countStatus = (status: string) =>
-    reports.filter((report) => report.status === status).length
+  reports.filter((report) => report.status === status).length
+
+const resolvedCount = countStatus('resolved')
+
+const resolvedRate =
+  reports.length === 0
+    ? 0
+    : Math.round((resolvedCount / reports.length) * 100)
 
   return (
-    <div className="dashboard">
+    <div className="dashboard" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">C</div>
           <div>
-            <h2>CivicGuard</h2>
-            <p>ADMIN PORTAL</p>
+            <h2 className="sidebar-admin-name">{profile?.display_name || profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || getTranslation(language, 'administrator')}</h2>
+            <p>{getTranslation(language, 'adminPortal')}</p>
           </div>
         </div>
 
-        <p className="menu-label">WORKSPACE</p>
+        <p className="menu-label">{getTranslation(language, 'management')}</p>
 
         <nav className="navigation">
-          <a href="#overview" className="nav-link active">
-            <span>▦</span> Overview
-          </a>
-          <a href="#reports" className="nav-link">
-            <span>▤</span> Reports
-          </a>
-        </nav>
+  <a
+    href="#overview"
+    className={`nav-link ${activePage === 'overview' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('overview')
+    }}
+  >
+    <LayoutDashboard size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'overview')}
+  </a>
 
-        <div className="sidebar-bottom">
-          <div className="connection-indicator" />
-          <div>
-            <strong>Supabase</strong>
-            <p>Administrator session</p>
-          </div>
-        </div>
+  <a
+    href="#reports"
+    className={`nav-link ${activePage === 'reports' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('reports')
+    }}
+  >
+    <FileText size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'reports')}
+  </a>
+
+  <a
+    href="#gis"
+    className={`nav-link ${activePage === 'gis' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('gis')
+    }}
+  >
+    <MapPinned size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'gisMap')}
+  </a>
+</nav>
+
+        <div className="sidebar-bottom"><button type="button" className="sidebar-signout" onClick={handleSignOut}>{getTranslation(language, 'signOut')}</button></div>
       </aside>
 
       <main className="main-content" id="overview">
         <header className="topbar">
           <div>
-            <p className="breadcrumb">Workspace / Overview</p>
-            <h1>Admin Dashboard</h1>
+
+<h1>
+  {activePage === 'overview'
+    ? getTranslation(language, 'dashboard')
+    : activePage === 'reports'
+      ? getTranslation(language, 'reports')
+      : getTranslation(language, 'gisMap')}
+</h1>
           </div>
 
-          <div className="admin-badge">
-            <span className="avatar">A</span>
-            <span>Administrator</span>
-            <button type="button" onClick={handleSignOut}>
-              Sign out
-            </button>
-          </div>
+                    <button
+            type="button"
+            className="language-toggle"
+            onClick={() =>
+              setLanguage((current) => (current === 'ar' ? 'en' : 'ar'))
+            }
+          >
+            {language === 'ar' ? 'English' : '\u0627\u0644\u0639\u0631\u0628\u064a\u0629'}
+          </button>
         </header>
+
+{activePage === 'overview' && (
+  <>
 
         <section className="welcome">
           <div>
-            <p className="eyebrow">CIVICGUARD MANAGEMENT</p>
-            <h2>Street issues overview</h2>
+            <h2>{getTranslation(language, 'overview')}</h2>
             <p>
-              Review citizen reports and monitor their progress toward
-              resolution.
+              {getTranslation(language, 'overviewDescription')}
             </p>
           </div>
-          <div className="welcome-icon">⌖</div>
+          <div className="welcome-icon"><ShieldCheck size={36} strokeWidth={1.8} aria-hidden="true" /></div>
         </section>
 
         <section className="stats-grid">
           <article className="stat-card">
-            <p>Total reports</p>
-            <h3>{reports.length}</h3>
-            <span>Reports in the database</span>
+            <p>{getTranslation(language, 'totalReports')}</p>
+            <h3>{formatDashboardNumber(reports.length, language)}</h3>
           </article>
 
           <article className="stat-card">
-            <p>Under review</p>
-            <h3>{countStatus('under_review')}</h3>
-            <span>Awaiting review</span>
+            <p>{getTranslation(language, 'underReview')}</p>
+            <h3>{formatDashboardNumber(countStatus('under_review'), language)}</h3>
           </article>
 
           <article className="stat-card">
-            <p>In progress</p>
-            <h3>{countStatus('in_progress')}</h3>
-            <span>Currently being addressed</span>
+            <p>{getTranslation(language, 'inProgress')}</p>
+            <h3>{formatDashboardNumber(countStatus('in_progress'), language)}</h3>
           </article>
 
           <article className="stat-card">
-            <p>Resolved</p>
-            <h3>{countStatus('resolved')}</h3>
-            <span>Marked as resolved</span>
+            <p>{getTranslation(language, 'resolved')}</p>
+            <h3>{formatDashboardNumber(countStatus('resolved'), language)}</h3>
+          </article>
+
+          <article className="stat-card resolution-rate-card">
+            <p>{getTranslation(language, 'resolutionRate')}</p>
+            <h3>{formatDashboardNumber(resolvedRate, language)}<span className="resolution-rate-percent">%</span></h3>
+            <div className="resolution-rate-track">
+              <div
+                className="resolution-rate-fill"
+                style={{ width: `${resolvedRate}%` }}
+              />
+            </div>
+            <span>
+              {formatDashboardNumber(resolvedCount, language)} / {formatDashboardNumber(reports.length, language)}
+            </span>
           </article>
         </section>
-
-        <section className="reports-section" id="reports">
+      </>
+)}
+        {activePage === 'reports' && (
+  <section className="reports-section" id="reports">
           <div className="section-heading">
             <div>
-              <h2>Recent reports</h2>
-              <p>Citizen-submitted street issues</p>
+              
+              <p className="page-description">{getTranslation(language, 'reportsDescription')}</p>
             </div>
 
             <select
-              aria-label="Filter reports by status"
+              aria-label={getTranslation(language, 'filterByStatus')}
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
             >
-              <option value="all">All reports</option>
-              <option value="submitted">Submitted</option>
-              <option value="ai_analyzed">AI analyzed</option>
-              <option value="assigned">Assigned</option>
-              <option value="under_review">Under review</option>
-              <option value="in_progress">In progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="rejected">Rejected</option>
+              <option value="all">{getTranslation(language, 'allStatuses')}</option>
+              <option value="submitted">{translateStatus('submitted', language)}</option>
+              <option value="ai_analyzed">{translateStatus('ai_analyzed', language)}</option>
+              <option value="assigned">{translateStatus('assigned', language)}</option>
+              <option value="under_review">{translateStatus('under_review', language)}</option>
+              <option value="in_progress">{translateStatus('in_progress', language)}</option>
+              <option value="resolved">{translateStatus('resolved', language)}</option>
+              <option value="rejected">{translateStatus('rejected', language)}</option>
               <option value="manual_review_required">
-                Manual review required
+                {translateStatus('manual_review_required', language)}
               </option>
             </select>
           </div>
 
           {reportsLoading && (
-            <p className="empty-state">Loading reports...</p>
+            <p className="empty-state">{getTranslation(language, 'loading')}</p>
           )}
 
           {reportsError && (
@@ -420,11 +490,11 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>REPORT</th>
-                    <th>CATEGORY</th>
-                    <th>STATUS</th>
-                    <th>DATE</th>
-                    <th>ACTIONS</th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'report')}</div></th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'category')}</div></th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'status')}</div></th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'date')}</div></th>
+                    <th><div className="report-heading-center">{language === 'ar' ? '\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a' : 'ACTIONS'}</div></th>
                   </tr>
                 </thead>
 
@@ -432,11 +502,12 @@ function App() {
                   {filteredReports.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="empty-state">
-                        <div className="empty-icon">▤</div>
-                        <h3>No reports found</h3>
+                        <div className="empty-icon">
+                          <FileText size={28} strokeWidth={1.8} aria-hidden="true" />
+                        </div>
+                        <h3>{getTranslation(language, 'noReports')}</h3>
                         <p>
-                          Reports will appear here when they are available
-                          in the database.
+                          {getTranslation(language, 'reportsEmptyDescription')}
                         </p>
                       </td>
                     </tr>
@@ -446,14 +517,16 @@ function App() {
                         <td>
                           <strong>{report.report_code}</strong>
                         </td>
-                        <td>{report.category || 'Uncategorized'}</td>
+                        <td>{report.category ? translateCategory(report.category, language) : getTranslation(language, 'uncategorized')}</td>
                         <td>
                           <span className="status-badge">
-                            {report.status.replaceAll('_', ' ')}
+                            {translateStatus(report.status, language)}
                           </span>
                         </td>
                         <td>
-                          {new Date(report.created_at).toLocaleDateString()}
+                          {new Date(report.created_at).toLocaleDateString(
+                            language === 'ar' ? 'ar-EG' : 'en-US'
+                          )}
                         </td>
                         <td>
                           <select
@@ -471,15 +544,15 @@ function App() {
                               background: '#fff',
                             }}
                           >
-                            <option value="submitted">Submitted</option>
-                            <option value="ai_analyzed">AI Analyzed</option>
-                            <option value="assigned">Assigned</option>
-                            <option value="under_review">Under Review</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="rejected">Rejected</option>
+                            <option value="submitted">{translateStatus('submitted', language)}</option>
+                            <option value="ai_analyzed">{translateStatus('ai_analyzed', language)}</option>
+                            <option value="assigned">{translateStatus('assigned', language)}</option>
+                            <option value="under_review">{translateStatus('under_review', language)}</option>
+                            <option value="in_progress">{translateStatus('in_progress', language)}</option>
+                            <option value="resolved">{translateStatus('resolved', language)}</option>
+                            <option value="rejected">{translateStatus('rejected', language)}</option>
                             <option value="manual_review_required">
-                              Manual Review Required
+                              {translateStatus('manual_review_required', language)}
                             </option>
                           </select>
                         </td>
@@ -491,11 +564,21 @@ function App() {
             </div>
           )}
         </section>
+)}
+{activePage === 'gis' && <GISMap language={language} />}
 
-        <footer>CivicGuard Admin Portal · Development environment</footer>
+        <footer>CivicGuard Admin Portal Ã‚Â· Development environment</footer>
       </main>
     </div>
   )
 }
 
 export default App
+
+
+
+
+
+
+
+
