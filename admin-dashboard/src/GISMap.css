@@ -1,4 +1,4 @@
-﻿
+
 .gis-section {
   margin: 32px 0;
   padding: 24px;
@@ -514,4 +514,73 @@
   line-height: 1.7;
   margin-top: 0;
   align-self: center;
+}
+
+/* Separate evidence-image popup */
+.gis-image-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(4px);
+}
+
+.gis-image-modal {
+  box-sizing: border-box;
+  width: min(900px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+}
+
+.gis-image-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.gis-image-modal-header h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.gis-image-modal > img {
+  display: block;
+  width: 100%;
+  max-height: 68vh;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+.gis-image-modal > p {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .gis-image-modal-backdrop {
+    padding: 12px;
+  }
+
+  .gis-image-modal {
+    padding: 14px;
+    max-height: 94vh;
+  }
+
+  .gis-image-modal > img {
+    max-height: 72vh;
+  }
 }

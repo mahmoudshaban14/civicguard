@@ -89,7 +89,7 @@ export const translations = {
     notAvailable: 'Not available',
     description: 'Description',
     noDescription: 'No description provided.',
-    viewOriginalImage: 'View original image',
+    viewOriginalImage: 'View Report Image',
     loadingImage: 'Loading image...',
     noStoredImage: 'This report has no stored image path.',
     sessionExpired: 'Your session has expired. Please sign in again.',
@@ -193,7 +193,7 @@ export const translations = {
     notAvailable: 'غير متاح',
     description: 'الوصف',
     noDescription: 'لم تتم إضافة وصف.',
-    viewOriginalImage: 'عرض الصورة الأصلية',
+    viewOriginalImage: 'عرض صورة البلاغ',
     loadingImage: 'جارٍ تحميل الصورة...',
     noStoredImage: 'لا يوجد مسار صورة محفوظ لهذا البلاغ.',
     sessionExpired: 'انتهت صلاحية الجلسة. سجّل الدخول مرة أخرى.',
@@ -265,6 +265,8 @@ export function translateCategory(
     pothole: 'Potholes',
     potholes: 'Potholes',
     'road damage': 'Road Damage',
+
+    'pothole / road damage': 'Pothole / Road Damage',
     'road maintenance': 'Road Maintenance',
     lighting: 'Lighting',
     'street lighting': 'Street Lighting',
@@ -359,7 +361,8 @@ export function translateCategory(
     'open manhole': 'بالوعة مفتوحة',
     'traffic sign': 'علامة مرورية',
     'other / unrecognized civic issue': 'مشكلة مدنية أخرى / غير محددة',
-  };
+
+    'pothole / road damage': '\u062d\u0641\u0631 \u0648\u062a\u0644\u0641 \u0627\u0644\u0637\u0631\u0642',  };
 
   const categories = language === 'en' ? englishCategories : arabicCategories;
   return categories[normalized] ?? category.trim().replace(/[_-]+/g, ' ');

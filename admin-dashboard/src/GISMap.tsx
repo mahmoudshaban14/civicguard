@@ -347,6 +347,10 @@ function translateDepartment(value: string, language: Language): string {
     'traffic management': '\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0631\u0648\u0631',
     'waste management': '\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u062e\u0644\u0641\u0627\u062a',
     'water & utilities': '\u0627\u0644\u0645\u064a\u0627\u0647 \u0648\u0627\u0644\u0645\u0631\u0627\u0641\u0642',
+    'gas utilities': '\u0645\u0631\u0627\u0641\u0642 \u0627\u0644\u063a\u0627\u0632',
+    'emergency / public safety': '\u0627\u0644\u0637\u0648\u0627\u0631\u0626 / \u0627\u0644\u0633\u0644\u0627\u0645\u0629 \u0627\u0644\u0639\u0627\u0645\u0629',
+    'stormwater drainage': '\u062a\u0635\u0631\u064a\u0641 \u0645\u064a\u0627\u0647 \u0627\u0644\u0623\u0645\u0637\u0627\u0631',
+    'building inspection': '\u0627\u0644\u062a\u0641\u062a\u064a\u0634 \u0639\u0644\u0649 \u0627\u0644\u0645\u0628\u0627\u0646\u064a',
   }
 
   return translations[department] ?? value
@@ -413,6 +417,22 @@ function GISMap({ language }: { language: Language }) {
   const [imageUrl, setImageUrl] = useState('')
   const [imageLoading, setImageLoading] = useState(false)
   const [imageError, setImageError] = useState('')
+  const [editStatus, setEditStatus] = useState('submitted')
+  const [editDepartment, setEditDepartment] = useState('')
+  const [savingChanges, setSavingChanges] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
+  useEffect(() => {
+    if (!selected) return
+    setEditStatus(selected.status || 'submitted')
+    setEditDepartment(selected.department || '')
+  }, [selected?.id])
+
+  useEffect(() => {
+    setSaveError('')
+    setSaveSuccess(false)
+  }, [selected?.id])
 
   async function loadReports() {
     setLoading(true)
@@ -465,23 +485,135 @@ function GISMap({ language }: { language: Language }) {
   return () => window.clearTimeout(timer)
 }, [])
 
+  function uniqueCaseInsensitive(values: (string | null | undefined)[]): string[] {
+    const unique = new Map<string, string>()
+
+    values.forEach((value) => {
+      const trimmed = value?.trim()
+      if (!trimmed) return
+
+      const key = trimmed.toLocaleLowerCase()
+      if (!unique.has(key)) unique.set(key, trimmed)
+    })
+
+    return Array.from(unique.values()).sort((a, b) =>
+      a.localeCompare(b),
+    )
+  }
+  function canonicalizeCategory(value: string | null | undefined): string | null {
+    const category = value?.trim()
+    if (!category) return 'Uncategorized'
+
+    const key = category.toLocaleLowerCase()
+
+    const aliases: Record<string, string> = {
+      'roads': 'Roads',
+      'road': 'Roads',
+      'pothole': 'Potholes',
+      'potholes': 'Potholes',
+      'road damage': 'Roads',
+      'road maintenance': 'Roads',
+      'pothole / road damage': 'Roads',
+
+      'lighting': 'Street Lighting',
+      'street lighting': 'Street Lighting',
+      'streetlight': 'Street Lighting',
+      'streetlights': 'Street Lighting',
+      'broken streetlight': 'Street Lighting',
+
+      'garbage': 'Garbage',
+      'waste': 'Garbage',
+      'trash': 'Garbage',
+      'cleanliness': 'Garbage',
+
+      'water': 'Water',
+      'water leak': 'Water',
+      'sanitation': 'Sanitation',
+      'sewage': 'Sanitation',
+
+      'parking': 'Parking',
+      'illegal parking': 'Parking',
+
+      'building': 'Buildings',
+      'buildings': 'Buildings',
+
+      'tree': 'Trees',
+      'trees': 'Trees',
+      'fallen tree': 'Trees',
+
+      'encroachment': 'Encroachment',
+      'illegal encroachment': 'Encroachment',
+
+      'sidewalk': 'Sidewalks',
+      'sidewalks': 'Sidewalks',
+      'other': 'Other',
+      'other / unrecognized civic issue': 'Other',
+      'uncategorized': 'Uncategorized',
+      'unknown': 'Uncategorized',
+    }
+
+    return aliases[key] ?? category
+  }
+  const KNOWN_CATEGORIES = [
+    'Roads',
+    'Potholes',
+    'Street Lighting',
+    'Garbage',
+    'Sanitation',
+    'Water',
+    'Electricity',
+    'Traffic',
+    'Parking',
+    'Obstruction',
+    'Sidewalks',
+    'Public Safety',
+    'Safety',
+    'Buildings',
+    'Trees',
+    'Encroachment',
+    'Noise',
+    'Animals',
+    'Parks',
+    'Public Spaces',
+    'Construction Debris',
+    'Flooding',
+    'Graffiti',
+    'Open Manhole',
+    'Traffic Sign',
+    'Other',
+    'Uncategorized',
+  ]
+
+  const KNOWN_DEPARTMENTS = [
+    'Electricity / Public Lighting',
+    'Municipal Enforcement',
+    'Parks / Municipal Services',
+    'Roads & Infrastructure',
+    'Sanitation / Utilities',
+    'Traffic Management',
+    'Waste Management',
+    'Water & Utilities',
+    'Gas Utilities',
+    'Emergency / Public Safety',
+    'Stormwater Drainage',
+    'Building Inspection',
+  ]
+
   const categories = useMemo(
     () =>
-      [...new Set(
-        reports
-          .map((report) => report.category)
-          .filter((category): category is string => Boolean(category)),
-      )].sort(),
+      uniqueCaseInsensitive([
+        ...KNOWN_CATEGORIES,
+        ...reports.map((report) => canonicalizeCategory(report.category)),
+      ]),
     [reports],
   )
 
   const departments = useMemo(
     () =>
-      [...new Set(
-        reports
-          .map((report) => report.department)
-          .filter((department): department is string => Boolean(department)),
-      )].sort(),
+      uniqueCaseInsensitive([
+        ...KNOWN_DEPARTMENTS,
+        ...reports.map((report) => report.department),
+      ]),
     [reports],
   )
 
@@ -496,7 +628,7 @@ function GISMap({ language }: { language: Language }) {
         return false
       }
 
-      if (categoryFilter !== 'all' && report.category !== categoryFilter) {
+      if (categoryFilter !== 'all' && canonicalizeCategory(report.category) !== categoryFilter) {
         return false
       }
 
@@ -597,6 +729,50 @@ function GISMap({ language }: { language: Language }) {
     }
   }
 
+  async function saveReportChanges() {
+    if (!selected || savingChanges) return
+
+    setSavingChanges(true)
+    setSaveError('')
+    setSaveSuccess(false)
+
+    try {
+      const { data, error: updateError } = await supabase
+        .from('reports')
+        .update({
+          status: editStatus,
+          department: editDepartment || null,
+        })
+        .eq('id', selected.id)
+        .select(
+          'id, report_code, category, status, severity, department, created_at, latitude, longitude, image_path, description',
+        )
+        .single()
+
+      if (updateError) throw updateError
+
+      const updatedReport = data as Report
+
+      setReports((current) =>
+        current.map((report) =>
+          report.id === updatedReport.id ? updatedReport : report,
+        ),
+      )
+      setSelected(updatedReport)
+      setSaveSuccess(true)
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : language === 'ar'
+            ? '\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a.'
+            : 'Unable to save changes.',
+      )
+    } finally {
+      setSavingChanges(false)
+    }
+  }
+
   return (
     <section className="gis-section">
       <div className="gis-header">
@@ -634,13 +810,10 @@ function GISMap({ language }: { language: Language }) {
             onChange={(event) => setStatusFilter(event.target.value)}
           >
             <option value="all">{t('allStatuses')}</option>
-            {[...new Set(
-              reports
-                .map((report) => report.status)
-                .filter((status): status is string => Boolean(status)),
-            )]
-              .sort()
-              .map((status) => (
+            {uniqueCaseInsensitive([
+              ...Object.keys(STATUS_COLORS),
+              ...reports.map((report) => report.status),
+            ]).map((status) => (
                 <option key={status} value={status}>
                   {translateStatus(status, language)}
                 </option>
@@ -889,6 +1062,8 @@ function GISMap({ language }: { language: Language }) {
                   <th>{t('status')}</th>
                   <th>{t('department')}</th>
                   <th>{t('date')}</th>
+                  {/* ACTIONS_COLUMN_ADDED */}
+                  <th>{language === 'ar' ? '\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -938,6 +1113,19 @@ function GISMap({ language }: { language: Language }) {
                     </td>
                     <td>{report.department ? translateDepartment(report.department, language) : t('unassigned')}</td>
                     <td>{formatDate(report.created_at, language)}</td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setSelected(report)
+                          setImageUrl('')
+                          setImageError('')
+                        }}
+                      >
+                        {getTranslation(language, 'viewDetails')}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1071,30 +1259,182 @@ function GISMap({ language }: { language: Language }) {
               </div>
             </div>
 
+            <div
+              className="gis-edit-controls"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '14px',
+                marginTop: '20px',
+                padding: '16px',
+                border: '1px solid var(--border-color, #dbe2ea)',
+                borderRadius: '12px',
+              }}
+            >
+              <label style={{ display: 'grid', gap: '7px', fontWeight: 600 }}>
+                {language === 'ar'
+                  ? '\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u062d\u0627\u0644\u0629'
+                  : 'Change status'}
+                <select
+                  value={editStatus}
+                  onChange={(event) => {
+                    setEditStatus(event.target.value)
+                    setSaveError('')
+                    setSaveSuccess(false)
+                  }}
+                  disabled={savingChanges}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px' }}
+                >
+                  {[
+                    'submitted',
+                    'ai_analyzed',
+                    'assigned',
+                    'under_review',
+                    'in_progress',
+                    'resolved',
+                    'rejected',
+                    'duplicate',
+                    'invalid',
+                    'escalated',
+                    'manual_review_required',
+                  ].map((status) => (
+                    <option key={status} value={status}>
+                      {translateStatus(status, language)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={{ display: 'grid', gap: '7px', fontWeight: 600 }}>
+                {getTranslation(language, 'department')}
+                <select
+                  value={editDepartment}
+                  onChange={(event) => {
+                    setEditDepartment(event.target.value)
+                    setSaveError('')
+                    setSaveSuccess(false)
+                  }}
+                  disabled={savingChanges}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px' }}
+                >
+                  <option value="">
+                    {getTranslation(language, 'unassigned')}
+                  </option>
+                  {[
+                    ...KNOWN_DEPARTMENTS,
+                    ...(selected.department &&
+                    !KNOWN_DEPARTMENTS.includes(selected.department)
+                      ? [selected.department]
+                      : []),
+                  ].map((department) => (
+                    <option key={department} value={department}>
+                      {translateDepartment(department, language)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             <button
               type="button"
-              className="gis-image-button"
               onClick={() => void viewImage(selected)}
               disabled={imageLoading}
+              style={{
+                padding: '7px 12px',
+                borderRadius: '8px',
+                cursor: imageLoading ? 'wait' : 'pointer',
+                minHeight: '34px',
+                marginTop: '12px',
+                marginBottom: '0px',
+              }}
             >
               {imageLoading
                 ? getTranslation(language, 'loadingImage')
                 : getTranslation(language, 'viewOriginalImage')}
             </button>
 
+
+
+              <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', flexWrap: 'nowrap', alignItems: 'stretch', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  className="gis-image-button"
+                  onClick={() => void saveReportChanges()}
+                  disabled={savingChanges}
+                  style={{
+                    padding: '11px 20px',
+                    borderRadius: '8px',
+                    cursor: savingChanges ? 'wait' : 'pointer',
+                    minHeight: '42px',
+                    marginBottom: '6px',
+                  }}
+                >
+                  {savingChanges
+                    ? language === 'ar'
+                      ? '\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638...'
+                      : 'Saving...'
+                    : language === 'ar'
+                      ? '\u062d\u0641\u0638 \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a'
+                      : 'Save changes'}
+                </button>
+
+                {saveError && (
+                  <p role="alert" style={{ color: '#dc2626', marginTop: '10px' }}>
+                    {language === 'ar'
+                      ? '\u0641\u0634\u0644 \u0627\u0644\u062d\u0641\u0638: '
+                      : 'Save failed: '}
+                    {saveError}
+                  </p>
+                )}
+
+                {saveSuccess && (
+                  <p role="status" style={{ color: '#16a34a', marginTop: '10px' }}>
+                    {language === 'ar'
+                      ? '\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a \u0628\u0646\u062c\u0627\u062d.'
+                      : 'Changes saved successfully.'}
+                  </p>
+                )}
+              </div>
+
             {imageError && (
               <p className="gis-error" role="alert">{imageError}</p>
             )}
 
-            {imageUrl && (
-              <div className="gis-image-preview">
-                <img
-                  src={imageUrl}
-                  alt={`${getTranslation(language, 'originalEvidence')} ${selected.report_code || selected.id}`}
-                />
-                <p>{getTranslation(language, 'imageExpiry')}</p>
-              </div>
-            )}
+          </section>
+        </div>
+      )}
+
+      {imageUrl && selected && (
+        <div
+          className="gis-image-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label={getTranslation(language, 'originalEvidence')}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setImageUrl('')
+            }
+          }}
+        >
+          <section className="gis-image-modal">
+            <div className="gis-image-modal-header">
+              <h3>
+                {getTranslation(language, 'originalEvidence')}
+              </h3>
+              <button
+                type="button"
+                className="gis-close"
+                aria-label={getTranslation(language, 'closeReportDetails')}
+                onClick={() => setImageUrl('')}
+              >
+                {String.fromCharCode(215)}
+              </button>
+            </div>
+            <img
+              src={imageUrl}
+              alt={`${getTranslation(language, 'originalEvidence')} ${selected.report_code || selected.id}`}
+            />
+            <p>{getTranslation(language, 'imageExpiry')}</p>
           </section>
         </div>
       )}
@@ -1103,7 +1443,3 @@ function GISMap({ language }: { language: Language }) {
 }
 
 export default GISMap
-
-
-
-
