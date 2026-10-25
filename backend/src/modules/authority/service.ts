@@ -1,3 +1,4 @@
+
 import { getSupabaseAdmin } from '../../db/client.js';
 import type { AuthUser } from '../../middleware/auth.js';
 import { AppError } from '../../middleware/error-handler.js';
@@ -16,14 +17,21 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   under_review: ['in_progress', 'assigned', 'resolved', 'escalated', 'rejected', 'duplicate'],
   in_progress: ['resolved', 'under_review', 'escalated', 'rejected'],
   escalated: ['in_progress', 'resolved', 'rejected'],
-  resolved: [], // Terminal
-  rejected: [], // Terminal
-  duplicate: [], // Terminal
-  invalid: [], // Terminal
+  resolved: [],
+  rejected: [],
+  duplicate: [],
+  invalid: [],
 };
 
-export async function listAuthorityReports(user: AuthUser, query: AuthorityReportsQuery) {
+export async function listAuthorityReports(
+  user: AuthUser,
+  query: AuthorityReportsQuery,
+) {
   const supabase = getSupabaseAdmin();
+
+  // Safe defaults when pagination parameters are missing
+  const limit = query.limit ?? 50;
+  const offset = query.offset ?? 0;
 
   let dbQuery = supabase
     .from('reports')
@@ -46,13 +54,18 @@ export async function listAuthorityReports(user: AuthUser, query: AuthorityRepor
       updated_at
     `)
     .order('created_at', { ascending: false })
-    .range(query.offset, query.offset + query.limit - 1);
+    .range(offset, offset + limit - 1);
 
   // Department scoping: authority users are scoped to their department
   if (user.role === 'authority') {
     if (!user.department_id) {
-      throw new AppError(403, 'FORBIDDEN', 'Authority user is not associated with any department');
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Authority user is not associated with any department',
+      );
     }
+
     dbQuery = dbQuery.eq('assigned_department_id', user.department_id);
   } else if (user.role === 'admin' && query.department_id) {
     dbQuery = dbQuery.eq('assigned_department_id', query.department_id);
@@ -98,14 +111,22 @@ export async function updateReportStatus(
   }
 
   // 2. Department authority scoping
-  if (user.role === 'authority' && report.assigned_department_id !== user.department_id) {
-    throw new AppError(403, 'FORBIDDEN', 'Authority users can only update reports in their assigned department');
+  if (
+    user.role === 'authority' &&
+    report.assigned_department_id !== user.department_id
+  ) {
+    throw new AppError(
+      403,
+      'FORBIDDEN',
+      'Authority users can only update reports in their assigned department',
+    );
   }
 
   // 3. Status transition check
   if (report.status !== input.status) {
     const allowed = VALID_TRANSITIONS[report.status] || [];
-    // Admins can override, but authorities must follow state transitions
+
+    // Admins can override; authorities must follow state transitions
     if (user.role !== 'admin' && !allowed.includes(input.status)) {
       throw new AppError(
         400,
@@ -135,9 +156,7 @@ export async function updateReportStatus(
     throw new Error(`Failed to update report status: ${updateError.message}`);
   }
 
-  // Note: handle_report_status_change() trigger in Postgres automatically writes
-  // the audit event to public.report_events and inserts the notification into public.notifications.
-
+  // The database trigger handles report events and notifications.
   return updatedReport;
 }
 
@@ -160,7 +179,11 @@ export async function assignReportDepartment(
   }
 
   if (!dept) {
-    throw new AppError(404, 'NOT_FOUND', `Department with id '${input.department_id}' not found`);
+    throw new AppError(
+      404,
+      'NOT_FOUND',
+      `Department with id '${input.department_id}' not found`,
+    );
   }
 
   // 2. Fetch report
@@ -181,8 +204,13 @@ export async function assignReportDepartment(
   // 3. Department scoping check for authority users
   if (user.role === 'authority') {
     if (!user.department_id) {
-      throw new AppError(403, 'FORBIDDEN', 'Authority user is not associated with any department');
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Authority user is not associated with any department',
+      );
     }
+
     if (report.assigned_department_id !== user.department_id) {
       throw new AppError(
         403,
@@ -198,7 +226,10 @@ export async function assignReportDepartment(
     .update({
       assigned_department_id: dept.id,
       department: dept.name,
-      status: report.status === 'manual_review_required' ? 'assigned' : report.status,
+      status:
+        report.status === 'manual_review_required'
+          ? 'assigned'
+          : report.status,
       status_changed_by: user.id,
       updated_by: user.id,
       status_note: input.note ?? null,
