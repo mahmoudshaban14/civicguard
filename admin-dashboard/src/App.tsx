@@ -2,6 +2,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { adminApiClient } from './lib/api'
 import './App.css'
 import { LayoutDashboard, FileText, MapPinned, ShieldCheck } from 'lucide-react'
 import GISMap from './GISMap'
@@ -45,9 +46,10 @@ function App() {
   const [reportsLoading, setReportsLoading] = useState(false)
   const [reportsError, setReportsError] = useState('')
   const [filter, setFilter] = useState('all')
-const [activePage, setActivePage] = useState<
-  'overview' | 'reports' | 'gis'
->('overview')
+  const [activePage, setActivePage] = useState<
+    'overview' | 'reports' | 'gis'
+  >('overview')
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   useEffect(() => {
   localStorage.setItem('civicguard-language', language)
@@ -146,41 +148,71 @@ const [activePage, setActivePage] = useState<
     }
   }, [user])
 
-  // Load reports only after the admin role has been verified.
-  useEffect(() => {
-    let mounted = true
+  // Load reports from the Node.js API once admin role is confirmed
+  async function loadReportsFromApi() {
+    if (!user || profile?.role !== 'admin') return
 
-    async function loadReports() {
-      if (!user || profile?.role !== 'admin') return
+    setReportsLoading(true)
+    setReportsError('')
 
-      setReportsLoading(true)
-      setReportsError('')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
 
-      const { data, error: queryError } = await supabase
-        .from('reports')
-        .select('id, report_code, category, status, created_at')
-        .order('created_at', { ascending: false })
-
-      if (!mounted) return
-
-      if (queryError) {
-        setReports([])
-        setReportsError(
-          `Reports could not be loaded: ${queryError.message}`,
-        )
-      } else {
-        setReports((data ?? []) as Report[])
-      }
-
+      const res = await adminApiClient<{ reports: Report[] }>(
+        '/v1/authority/reports',
+        { token },
+      )
+      setReports(res.reports ?? [])
+    } catch (err) {
+      setReports([])
+      setReportsError(
+        `Reports could not be loaded: ${(err as Error).message}`,
+      )
+    } finally {
       setReportsLoading(false)
     }
+  }
 
-    void loadReports()
-
-    return () => {
-      mounted = false
+  useEffect(() => {
+    if (user && profile?.role === 'admin') {
+      void loadReportsFromApi()
     }
   }, [user, profile])
+
+  async function handleUpdateStatus(reportId: string, nextStatus: string) {
+    setUpdatingId(reportId)
+    setReportsError('')
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
+
+      const res = await adminApiClient<{ report: Report }>(
+        `/v1/authority/reports/${reportId}/status`,
+        {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify({
+            status: nextStatus,
+            note: `Status updated to ${nextStatus} by administrator`,
+          }),
+        },
+      )
+
+      if (res.report) {
+        setReports((prev) =>
+          prev.map((r) => (r.id === reportId ? { ...r, status: res.report.status } : r)),
+        )
+      }
+    } catch (err) {
+      setReportsError(`Failed to update report status: ${(err as Error).message}`)
+    } finally {
+      setUpdatingId(null)
+    }
+  }
 
   async function handleSignIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -462,14 +494,17 @@ const resolvedRate =
                     <th><div className="report-heading-center">{getTranslation(language, 'category')}</div></th>
                     <th><div className="report-heading-center">{getTranslation(language, 'status')}</div></th>
                     <th><div className="report-heading-center">{getTranslation(language, 'date')}</div></th>
+                    <th><div className="report-heading-center">{language === 'ar' ? 'الإجراءات' : 'ACTIONS'}</div></th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {filteredReports.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="empty-state">
-                        <div className="empty-icon"><FileText size={28} strokeWidth={1.8} aria-hidden="true" /></div>
+                      <td colSpan={5} className="empty-state">
+                        <div className="empty-icon">
+                          <FileText size={28} strokeWidth={1.8} aria-hidden="true" />
+                        </div>
                         <h3>{getTranslation(language, 'noReports')}</h3>
                         <p>
                           {getTranslation(language, 'reportsEmptyDescription')}
@@ -492,6 +527,34 @@ const resolvedRate =
                           {new Date(report.created_at).toLocaleDateString(
                             language === 'ar' ? 'ar-EG' : 'en-US'
                           )}
+                        </td>
+                        <td>
+                          <select
+                            aria-label="Change report status"
+                            value={report.status}
+                            disabled={updatingId === report.id}
+                            onChange={(e) =>
+                              void handleUpdateStatus(report.id, e.target.value)
+                            }
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              border: '1px solid #dce3ed',
+                              background: '#fff',
+                            }}
+                          >
+                            <option value="submitted">Submitted</option>
+                            <option value="ai_analyzed">AI Analyzed</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="under_review">Under Review</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="manual_review_required">
+                              Manual Review Required
+                            </option>
+                          </select>
                         </td>
                       </tr>
                     ))

@@ -16,8 +16,10 @@ export default function ReportSuccessScreen() {
 
   useEffect(() => {
     if (!submitted.current) {
-      setSubmittedReport(submitDraft());
       submitted.current = true;
+      void submitDraft().then((rep) => {
+        setSubmittedReport(rep);
+      });
     }
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 6 }).start();
   }, [scale, submitDraft]);

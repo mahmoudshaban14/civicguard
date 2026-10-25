@@ -1,86 +1,200 @@
+import React, { useState, useCallback } from 'react';
 import {
-  ChevronRight,
-  Bell,
-  LockKeyhole,
-  ShieldCheck,
-  Building2,
-  RotateCcw,
-  LogOut,
-  UserRound,
-  UserPlus,
-} from 'lucide-react-native';
-import { Pressable, View, Alert } from 'react-native';
-import { Button, Typography } from 'heroui-native';
-import { router } from 'expo-router';
-import { AppHeader } from '@/components/civic/AppHeader';
-import { Screen } from '@/components/civic/Screen';
-import { useCivicGuard } from '@/lib/civicguard-store';
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+  Alert,
+} from 'react-native';
+import { UserRound, Globe, Bell, LockKeyhole, LogOut, ChevronRight } from 'lucide-react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 
-const items = [
-  { label: 'Login / Sign Up', icon: UserPlus, route: '/auth/login' },
-  { label: 'Profile', icon: UserRound, route: '/profile/account' },
-  { label: 'My Reports', icon: UserRound, route: '/(tabs)/reports' },
-  { label: 'Notifications', icon: Bell, route: '/notifications' },
-  { label: 'Privacy', icon: LockKeyhole, route: '/profile/privacy' },
-  { label: 'Security Center', icon: ShieldCheck, route: '/security' },
-  { label: 'Authority View', icon: Building2, route: '/authority' },
-] as const;
-
 export default function ProfileScreen() {
-  const { resetDemo } = useCivicGuard();
+  const router = useRouter();
+  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+  const [userName, setUserName] = useState<string>('مواطن');
 
-  async function handleLogout() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      Alert.alert('خطأ', error.message);
-    } else {
-      Alert.alert('تم', 'تم تسجيل الخروج بنجاح!');
-      router.replace('/auth/login');
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function loadUserData() {
+        try {
+          const savedLang = await AsyncStorage.getItem('@app_language');
+          if (isMounted && (savedLang === 'en' || savedLang === 'ar')) {
+            setLang(savedLang);
+          }
+        } catch (e) {
+          console.error('Error loading language in ProfileScreen:', e);
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (isMounted && user) {
+          const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'مواطن';
+          setUserName(name);
+        }
+      }
+      loadUserData();
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const toggleLanguage = async () => {
+    const newLang = lang === 'ar' ? 'en' : 'ar';
+    setLang(newLang);
+    try {
+      await AsyncStorage.setItem('@app_language', newLang);
+    } catch (e) {
+      console.error('Error saving language', e);
     }
-  }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.replace('/auth/login' as any);
+  };
+
+  const t = {
+    ar: {
+      title: 'الملف الشخصي 👤',
+      subtitle: 'إدارة حسابك وإعدادات التطبيق الشخصية',
+      accountSettings: 'إعدادات الحساب',
+      language: 'لغة التطبيق',
+      currentLang: 'العربية (Arabic) 🇪🇬',
+      notifications: 'الإشعارات والتنبيهات',
+      privacy: 'سياسة الخصوصية والأمان',
+      logout: 'تسجيل الخروج من الحساب',
+      accountType: 'حساب مواطن موثق · Civic Account',
+      version: 'CivicGuard App v1.0.4 (Production)',
+      textAlign: 'right' as const,
+      flexDirection: 'row-reverse' as const,
+    },
+    en: {
+      title: 'Profile 👤',
+      subtitle: 'Manage your account and personal app settings',
+      accountSettings: 'Account Settings',
+      language: 'App Language',
+      currentLang: 'English 🌐',
+      notifications: 'Notifications & Alerts',
+      privacy: 'Privacy & Security Policy',
+      logout: 'Log Out of Account',
+      accountType: 'Verified Citizen · Civic Account',
+      version: 'CivicGuard App v1.0.4 (Production)',
+      textAlign: 'left' as const,
+      flexDirection: 'row' as const,
+    },
+  }[lang];
 
   return (
-    <Screen>
-      <AppHeader title="Profile" />
-      <View className="bg-civic-deep mb-6 items-center rounded-[28px] p-6">
-        <View className="mb-3 size-20 items-center justify-center rounded-full bg-white/15">
-          <Typography.Heading type="h2" className="text-white">
-            DC
-          </Typography.Heading>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+        
+        {/* عنوان الصفحة */}
+        <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A', textAlign: t.textAlign, marginBottom: 4 }}>
+          {t.title}
+        </Text>
+        <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 20, textAlign: t.textAlign }}>
+          {t.subtitle}
+        </Text>
+
+        {/* كارت البروفايل الرئيسي (بنفس ستايل الكاردات) */}
+        <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2, alignItems: 'center', marginBottom: 20 }}>
+          <View style={{ backgroundColor: '#EFF6FF', width: 64, height: 64, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#BFDBFE' }}>
+            <UserRound size={30} color="#1E3A8A" />
+          </View>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A', marginBottom: 4 }}>
+            {userName}
+          </Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#2563EB' }}>
+            {t.accountType}
+          </Text>
         </View>
-        <Typography.Heading type="h4" className="text-white">
-          Demo Citizen
-        </Typography.Heading>
-        <Typography.Paragraph className="mt-1 text-sm text-white/70">
-          Citizen account · Demo Mode
-        </Typography.Paragraph>
-      </View>
-      <View className="border-border bg-surface overflow-hidden rounded-3xl border">
-        {items.map(({ label, icon: Icon, route }, index) => (
-          <Pressable
-            key={label}
-            onPress={() => router.push(route as any)}
-            className={`active:bg-default flex-row items-center px-4 py-4 ${
-              index < items.length - 1 ? 'border-border border-b' : ''
-            }`}
+
+        {/* خيارات القائمة */}
+        <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#E2E8F0', overflow: 'hidden', marginBottom: 20, elevation: 2 }}>
+          
+          {/* إعدادات الحساب */}
+          <TouchableOpacity
+            onPress={() => router.push('/profile/account' as any)}
+            style={{ flexDirection: t.flexDirection, alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}
           >
-            <View className="bg-civic-mint mr-3 size-10 items-center justify-center rounded-xl">
-              <Icon size={19} color="#167A62" />
+            <View style={{ backgroundColor: '#EFF6FF', padding: 8, borderRadius: 10, [lang === 'ar' ? 'marginLeft' : 'marginRight']: 12 }}>
+              <UserRound size={18} color="#1E3A8A" />
             </View>
-            <Typography.Paragraph className="flex-1 font-medium">{label}</Typography.Paragraph>
-            <ChevronRight size={18} color="#8A9894" />
-          </Pressable>
-        ))}
-      </View>
-      <Button variant="secondary" className="mt-5" onPress={resetDemo}>
-        <RotateCcw size={18} color="#167A62" />
-        <Button.Label>Reset Demo Data</Button.Label>
-      </Button>
-      <Button variant="ghost" className="mt-2" onPress={handleLogout}>
-        <LogOut size={18} color="#C73545" />
-        <Button.Label className="text-danger">Logout</Button.Label>
-      </Button>
-    </Screen>
+            <Text style={{ flex: 1, fontSize: 14, fontWeight: '700', color: '#334155', textAlign: t.textAlign }}>
+              {t.accountSettings}
+            </Text>
+            <ChevronRight size={18} color="#94A3B8" style={{ transform: [{ scaleX: lang === 'ar' ? -1 : 1 }] }} />
+          </TouchableOpacity>
+
+          {/* تبديل اللغة */}
+          <TouchableOpacity
+            onPress={toggleLanguage}
+            style={{ flexDirection: t.flexDirection, alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}
+          >
+            <View style={{ backgroundColor: '#EFF6FF', padding: 8, borderRadius: 10, [lang === 'ar' ? 'marginLeft' : 'marginRight']: 12 }}>
+              <Globe size={18} color="#1E3A8A" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#334155', textAlign: t.textAlign }}>
+                {t.language}
+              </Text>
+              <Text style={{ fontSize: 11, color: '#64748B', textAlign: t.textAlign, marginTop: 2 }}>
+                {t.currentLang}
+              </Text>
+            </View>
+            <ChevronRight size={18} color="#94A3B8" style={{ transform: [{ scaleX: lang === 'ar' ? -1 : 1 }] }} />
+          </TouchableOpacity>
+
+          {/* الإشعارات */}
+          <TouchableOpacity
+            onPress={() => router.push('/notifications' as any)}
+            style={{ flexDirection: t.flexDirection, alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}
+          >
+            <View style={{ backgroundColor: '#EFF6FF', padding: 8, borderRadius: 10, [lang === 'ar' ? 'marginLeft' : 'marginRight']: 12 }}>
+              <Bell size={18} color="#1E3A8A" />
+            </View>
+            <Text style={{ flex: 1, fontSize: 14, fontWeight: '700', color: '#334155', textAlign: t.textAlign }}>
+              {t.notifications}
+            </Text>
+            <ChevronRight size={18} color="#94A3B8" style={{ transform: [{ scaleX: lang === 'ar' ? -1 : 1 }] }} />
+          </TouchableOpacity>
+
+          {/* سياسة الخصوصية */}
+          <TouchableOpacity
+            onPress={() => router.push('/profile/privacy' as any)}
+            style={{ flexDirection: t.flexDirection, alignItems: 'center', padding: 16 }}
+          >
+            <View style={{ backgroundColor: '#EFF6FF', padding: 8, borderRadius: 10, [lang === 'ar' ? 'marginLeft' : 'marginRight']: 12 }}>
+              <LockKeyhole size={18} color="#1E3A8A" />
+            </View>
+            <Text style={{ flex: 1, fontSize: 14, fontWeight: '700', color: '#334155', textAlign: t.textAlign }}>
+              {t.privacy}
+            </Text>
+            <ChevronRight size={18} color="#94A3B8" style={{ transform: [{ scaleX: lang === 'ar' ? -1 : 1 }] }} />
+          </TouchableOpacity>
+
+        </View>
+
+        {/* زر تسجيل الخروج */}
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{ backgroundColor: '#FEF2F2', borderWidth: 1.5, borderColor: '#FCA5A5', borderRadius: 14, paddingVertical: 14, flexDirection: t.flexDirection, alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 20 }}
+        >
+          <LogOut size={18} color="#DC2626" />
+          <Text style={{ color: '#DC2626', fontWeight: '700', fontSize: 14 }}>{t.logout}</Text>
+        </TouchableOpacity>
+
+        {/* رقم الإصدار */}
+        <Text style={{ fontSize: 11, color: '#94A3B8', textAlign: 'center', fontWeight: '600' }}>
+          {t.version}
+        </Text>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }

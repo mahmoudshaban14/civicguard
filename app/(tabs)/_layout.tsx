@@ -1,8 +1,10 @@
+import React, { useEffect, useState } from 'react';
 import { FilePlus2, Home, Map, UserRound, ClipboardList } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useThemeColor } from 'heroui-native';
 import type { ColorValue } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const statusBarStyle = 'dark' as const;
 const icon =
@@ -12,12 +14,62 @@ const icon =
   );
 
 export default function TabLayout() {
+  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+
   const [background, border, accent, muted] = useThemeColor([
     'background',
     'border',
     'accent',
     'muted',
   ]);
+
+  useEffect(() => {
+    // قراءة اللغة وفحصها باستمرار عند العودة للشاشة
+    const loadAppLanguage = async () => {
+      try {
+        const savedLang = await AsyncStorage.getItem('@app_language');
+        if (savedLang === 'en' || savedLang === 'ar') {
+          setLang(savedLang);
+        }
+      } catch (e) {
+        console.error('Error loading tab layout language', e);
+      }
+    };
+
+    loadAppLanguage();
+
+    // فحص دوري خفيف كل ثانية لضمان الاستجابة اللحظية عند تغيير اللغة في البروفايل
+    const interval = setInterval(loadAppLanguage, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const isRTL = lang === 'ar';
+
+  const t = {
+    ar: {
+      home: 'الرئيسية',
+      report: 'إبلاغ',
+      reports: 'بلاغاتي',
+      map: 'الخريطة',
+      profile: 'الملف الشخصي',
+    },
+    en: {
+      home: 'Home',
+      report: 'Report',
+      reports: 'My Reports',
+      map: 'Map',
+      profile: 'Profile',
+    },
+  }[lang];
+
+  // تعريف كروت الـ Tabs
+  const screens = [
+    <Tabs.Screen key="index" name="index" options={{ title: t.home, tabBarIcon: icon(Home) }} />,
+    <Tabs.Screen key="report" name="report" options={{ title: t.report, tabBarIcon: icon(FilePlus2) }} />,
+    <Tabs.Screen key="reports" name="reports" options={{ title: t.reports, tabBarIcon: icon(ClipboardList) }} />,
+    <Tabs.Screen key="map" name="map" options={{ title: t.map, tabBarIcon: icon(Map) }} />,
+    <Tabs.Screen key="profile" name="profile" options={{ title: t.profile, tabBarIcon: icon(UserRound) }} />,
+  ];
 
   return (
     <>
@@ -38,14 +90,8 @@ export default function TabLayout() {
           tabBarInactiveTintColor: muted,
         }}
       >
-        <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: icon(Home) }} />
-        <Tabs.Screen name="report" options={{ title: 'Report', tabBarIcon: icon(FilePlus2) }} />
-        <Tabs.Screen
-          name="reports"
-          options={{ title: 'My Reports', tabBarIcon: icon(ClipboardList) }}
-        />
-        <Tabs.Screen name="map" options={{ title: 'Map', tabBarIcon: icon(Map) }} />
-        <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: icon(UserRound) }} />
+        {/* في حالة العربي يتم تعكيس ترتيب العناصر مصفوفياً ليصبح Home أقصى اليمين فورا */}
+        {isRTL ? screens.reverse() : screens}
       </Tabs>
     </>
   );
