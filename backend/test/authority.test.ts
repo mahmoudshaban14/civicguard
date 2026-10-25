@@ -6,6 +6,7 @@ import * as clientModule from '../src/db/client.js';
 describe('Authority Routes (/v1/authority)', () => {
   const validReportId = '11111111-2222-3333-4444-555555555555';
   const validDeptId = '22222222-3333-4444-5555-666666666666';
+  const otherDeptId = '99999999-8888-7777-6666-555555555555';
 
   describe('GET /v1/authority/reports', () => {
     it('should return 401 without auth token', async () => {
@@ -465,4 +466,208 @@ describe('Authority Routes (/v1/authority)', () => {
       expect(res.body.error.code).toBe('FORBIDDEN');
     });
   });
+
+  describe('PATCH /v1/authority/reports/:id/action-status', () => {
+    it('should reject invalid action_status enum', async () => {
+      const mockUser = { id: 'usr-admin', email: 'admin@example.com' };
+      const mockProfile = { id: 'usr-admin', role: 'admin' };
+
+      const mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: vi.fn().mockImplementation((table: string) => {
+          if (table === 'profiles') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            };
+          }
+          return {};
+        }),
+      };
+
+      vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+      const res = await request(app)
+        .patch(`/v1/authority/reports/${validReportId}/action-status`)
+        .set('Authorization', 'Bearer admin-token')
+        .send({ action_status: 'invalid_status' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should reject authority user if report is not in their department', async () => {
+      const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
+      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const currentReport = {
+        id: validReportId,
+        assigned_department_id: otherDeptId,
+      };
+
+      const mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: vi.fn().mockImplementation((table: string) => {
+          if (table === 'profiles') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            };
+          }
+          if (table === 'reports') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: currentReport, error: null }),
+            };
+          }
+          return {};
+        }),
+      };
+
+      vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+      const res = await request(app)
+        .patch(`/v1/authority/reports/${validReportId}/action-status`)
+        .set('Authorization', 'Bearer auth-token')
+        .send({ action_status: 'action_in_progress' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('FORBIDDEN');
+    });
+
+    it('should allow authority user to update action_status on department report', async () => {
+      const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
+      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const currentReport = {
+        id: validReportId,
+        assigned_department_id: validDeptId,
+      };
+      const updatedReport = {
+        id: validReportId,
+        assigned_department_id: validDeptId,
+        action_status: 'action_completed',
+        updated_by: 'usr-auth',
+      };
+
+      const mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: vi.fn().mockImplementation((table: string) => {
+          if (table === 'profiles') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            };
+          }
+          if (table === 'reports') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: currentReport, error: null }),
+              update: vi.fn().mockImplementation((payload) => {
+                expect(payload.action_status).toBe('action_completed');
+                expect(payload.updated_by).toBe('usr-auth');
+                return {
+                  eq: vi.fn().mockReturnThis(),
+                  select: vi.fn().mockReturnThis(),
+                  single: vi.fn().mockResolvedValue({ data: updatedReport, error: null }),
+                };
+              }),
+            };
+          }
+          return {};
+        }),
+      };
+
+      vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+      const res = await request(app)
+        .patch(`/v1/authority/reports/${validReportId}/action-status`)
+        .set('Authorization', 'Bearer auth-token')
+        .send({ action_status: 'action_completed' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.report.action_status).toBe('action_completed');
+      expect(res.body.report.updated_by).toBe('usr-auth');
+    });
+
+    it('should allow admin to update action_status regardless of department', async () => {
+      const mockUser = { id: 'usr-admin', email: 'admin@example.com' };
+      const mockProfile = { id: 'usr-admin', role: 'admin' };
+      const currentReport = {
+        id: validReportId,
+        assigned_department_id: otherDeptId,
+      };
+      const updatedReport = {
+        id: validReportId,
+        assigned_department_id: otherDeptId,
+        action_status: 'action_in_progress',
+        updated_by: 'usr-admin',
+      };
+
+      const mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: vi.fn().mockImplementation((table: string) => {
+          if (table === 'profiles') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            };
+          }
+          if (table === 'reports') {
+            return {
+              select: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
+              maybeSingle: vi.fn().mockResolvedValue({ data: currentReport, error: null }),
+              update: vi.fn().mockImplementation((payload) => {
+                expect(payload.action_status).toBe('action_in_progress');
+                expect(payload.updated_by).toBe('usr-admin');
+                return {
+                  eq: vi.fn().mockReturnThis(),
+                  select: vi.fn().mockReturnThis(),
+                  single: vi.fn().mockResolvedValue({ data: updatedReport, error: null }),
+                };
+              }),
+            };
+          }
+          return {};
+        }),
+      };
+
+      vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(mockSupabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+
+      const res = await request(app)
+        .patch(`/v1/authority/reports/${validReportId}/action-status`)
+        .set('Authorization', 'Bearer admin-token')
+        .send({ action_status: 'action_in_progress' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.report.action_status).toBe('action_in_progress');
+      expect(res.body.report.updated_by).toBe('usr-admin');
+    });
+  });
 });
+
