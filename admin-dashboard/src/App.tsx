@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
@@ -302,7 +302,7 @@ function App() {
             </button>
           </form>
 
-          <p className="auth-footer">{language === 'ar' ? '\u062f\u062e\u0648\u0644 \u0645\u0642\u064a\u062f \u0644\u0644\u0645\u0633\u0624\u0648\u0644\u064a\u0646 \u0627\u0644\u0645\u0635\u0631\u062d \u0644\u0647\u0645 \u0641\u0642\u0637' : 'Restricted access Â· Authorized administrators only'}</p>
+          <p className="auth-footer">{language === 'ar' ? '\u062f\u062e\u0648\u0644 \u0645\u0642\u064a\u062f \u0644\u0644\u0645\u0633\u0624\u0648\u0644\u064a\u0646 \u0627\u0644\u0645\u0635\u0631\u062d \u0644\u0647\u0645 \u0641\u0642\u0637' : 'Restricted access Ã‚Â· Authorized administrators only'}</p>
         </section>
       </main>
     )
@@ -494,7 +494,7 @@ const resolvedRate =
                     <th><div className="report-heading-center">{getTranslation(language, 'category')}</div></th>
                     <th><div className="report-heading-center">{getTranslation(language, 'status')}</div></th>
                     <th><div className="report-heading-center">{getTranslation(language, 'date')}</div></th>
-                    <th><div className="report-heading-center">{language === 'ar' ? 'الإجراءات' : 'ACTIONS'}</div></th>
+                    <th><div className="report-heading-center">{language === 'ar' ? '\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a' : 'ACTIONS'}</div></th>
                   </tr>
                 </thead>
 
@@ -544,15 +544,15 @@ const resolvedRate =
                               background: '#fff',
                             }}
                           >
-                            <option value="submitted">Submitted</option>
-                            <option value="ai_analyzed">AI Analyzed</option>
-                            <option value="assigned">Assigned</option>
-                            <option value="under_review">Under Review</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="rejected">Rejected</option>
+                            <option value="submitted">{translateStatus('submitted', language)}</option>
+                            <option value="ai_analyzed">{translateStatus('ai_analyzed', language)}</option>
+                            <option value="assigned">{translateStatus('assigned', language)}</option>
+                            <option value="under_review">{translateStatus('under_review', language)}</option>
+                            <option value="in_progress">{translateStatus('in_progress', language)}</option>
+                            <option value="resolved">{translateStatus('resolved', language)}</option>
+                            <option value="rejected">{translateStatus('rejected', language)}</option>
                             <option value="manual_review_required">
-                              Manual Review Required
+                              {translateStatus('manual_review_required', language)}
                             </option>
                           </select>
                         </td>
@@ -567,7 +567,7 @@ const resolvedRate =
 )}
 {activePage === 'gis' && <GISMap language={language} />}
 
-        <footer>CivicGuard Admin Portal Â· Development environment</footer>
+        <footer>CivicGuard Admin Portal Ã‚Â· Development environment</footer>
       </main>
     </div>
   )
