@@ -10,6 +10,12 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1, 'SUPABASE_ANON_KEY is required'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   CORS_ORIGIN: z.string().default('*'),
+  // Gemini image analysis. If GEMINI_API_KEY is empty the analyze endpoint
+  // still works but returns a "manual review" fallback instead of calling AI.
+  GEMINI_API_KEY: z.string().optional().default(''),
+  GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
+  AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).default(15000),
+  AI_ANALYSES_PER_HOUR: z.coerce.number().int().min(1).max(1000).default(10),
 });
 
 function loadConfig() {
@@ -31,6 +37,10 @@ function loadConfig() {
       SUPABASE_ANON_KEY: 'test-anon-key',
       SUPABASE_SERVICE_ROLE_KEY: 'test-service-key',
       CORS_ORIGIN: '*',
+      GEMINI_API_KEY: '',
+      GEMINI_MODEL: 'gemini-3.8-flash',
+      AI_TIMEOUT_MS: 15000,
+      AI_ANALYSES_PER_HOUR: 10,
     };
   }
 

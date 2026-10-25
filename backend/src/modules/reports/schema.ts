@@ -34,6 +34,9 @@ export const createReportSchema = z.object({
   longitude: z.number().min(-180).max(180, 'Longitude must be between -180 and 180'),
   area_name: z.string().max(255).optional(),
   image_path: z.string().optional(),
+  // Result of POST /v1/reports/analyze. The server reads severity, explanation
+  // and confidence from its own stored copy, never from the client.
+  analysis_id: z.string().uuid().optional(),
 });
 
 export type CreateReportInput = z.infer<typeof createReportSchema>;

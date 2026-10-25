@@ -9,6 +9,8 @@ import {
 } from 'react';
 
 import { analyzeCivicImage, type CivicAnalysisResult } from '@/lib/civicguard-ai';
+import { analyzeWithGemini, getAccessToken, uploadReportImage } from '@/lib/civicguard-ai-remote';
+import { apiClient } from '@/lib/api-client';
 import { type CivicIssueCategory, type CivicIssueId } from '@/lib/civicguard-categories';
 import { type CivicReport, type ReportStatus, type SampleImageKey } from '@/lib/civicguard-data';
 import { supabase } from '@/lib/supabase';
@@ -260,21 +262,42 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
 
   const analyzeDraft = useCallback(
     async (preferredCategory?: CivicIssueCategory) => {
-      const result = await analyzeCivicImage(
-        {
-          imageKey: draft.imageKey,
-          scenarioKey: draft.scenarioKey,
-          uri: draft.imageUri,
-          fileName: draft.imageFileName,
-        },
-        draft.description,
-        { latitude: draft.latitude, longitude: draft.longitude, area: draft.area },
-        preferredCategory,
-      );
+      const location = { latitude: draft.latitude, longitude: draft.longitude, area: draft.area };
+      const localInput = {
+        imageKey: draft.imageKey,
+        scenarioKey: draft.scenarioKey,
+        uri: draft.imageUri,
+        fileName: draft.imageFileName,
+      };
+
+      // Citizen overrode the category: no new Gemini call, but keep the uploaded photo.
+      if (preferredCategory && analysisResult?.imagePath) {
+        const local = await analyzeCivicImage(localInput, draft.description, location, preferredCategory);
+        const overridden = { ...local, imagePath: analysisResult.imagePath };
+        setAnalysisResult(overridden);
+        return overridden;
+      }
+
+      // Real photo -> Gemini through the backend. Any failure -> offline prototype.
+      if (draft.imageUri && !preferredCategory) {
+        try {
+          const remote = await analyzeWithGemini({
+            imageUri: draft.imageUri,
+            description: draft.description,
+            ...location,
+          });
+          setAnalysisResult(remote);
+          return remote;
+        } catch (err) {
+          console.warn('Gemini analysis unavailable, using local classifier:', err);
+        }
+      }
+
+      const result = await analyzeCivicImage(localInput, draft.description, location, preferredCategory);
       setAnalysisResult(result);
       return result;
     },
-    [draft],
+    [draft, analysisResult],
   );
 
   const submitDraft = useCallback(
@@ -289,92 +312,39 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       const rawConfidence = analysis?.confidence ?? 0.54;
       const safeConfidence = rawConfidence > 1 ? rawConfidence / 100 : rawConfidence;
 
-      const isLowConfidence = safeConfidence < 0.7 || department === 'Manual Routing';
-      const needsManualReview = isLowConfidence || category.includes('Unrecognized');
-      const dbStatus = needsManualReview ? 'manual_review_required' : 'submitted';
-
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          console.error('User not logged in');
+        const token = await getAccessToken();
+        if (!token) {
+          console.error('No session token');
           return null;
         }
 
-        let uploadedImagePath: string | null = null;
-        let previewImageUri: string | undefined = activeDraft.imageUri;
-
-        if (activeDraft.imageUri) {
+        // Reuse the photo uploaded during analysis; otherwise upload it now.
+        let uploadedImagePath: string | null = analysis?.imagePath ?? null;
+        const previewImageUri: string | undefined = activeDraft.imageUri;
+        if (!uploadedImagePath && activeDraft.imageUri) {
           try {
-            const rawUri = activeDraft.imageUri;
-            let fileExt = 'jpg';
-            if (rawUri.startsWith('data:image/png')) {
-              fileExt = 'png';
-            } else if (rawUri.startsWith('data:image/webp')) {
-              fileExt = 'webp';
-            } else {
-              const cleanUri = rawUri.split('?')[0].split('#')[0];
-              const ext = cleanUri.split('.').pop()?.toLowerCase();
-              if (ext === 'png' || ext === 'webp' || ext === 'jpeg' || ext === 'jpg') {
-                fileExt = ext === 'jpeg' ? 'jpg' : ext;
-              }
-            }
-
-            const fileName = `${user.id}/${Date.now()}-${Math.floor(Math.random() * 10000)}.${fileExt}`;
-            const contentType =
-              fileExt === 'png' ? 'image/png' : fileExt === 'webp' ? 'image/webp' : 'image/jpeg';
-
-            const response = await fetch(rawUri);
-            const arrayBuffer = await response.arrayBuffer();
-
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('report-images')
-              .upload(fileName, arrayBuffer, {
-                contentType,
-                upsert: true,
-              });
-
-            if (uploadError) {
-              console.error('Supabase storage upload error:', uploadError);
-            } else if (uploadData) {
-              uploadedImagePath = uploadData.path || fileName;
-              console.log('Image uploaded successfully to report-images:', uploadedImagePath);
-            }
+            uploadedImagePath = await uploadReportImage(activeDraft.imageUri, token);
           } catch (imgErr) {
             console.error('Image upload exception:', imgErr);
           }
         }
 
-        const generatedCode = `CG-2026-${String(Math.floor(10000 + Math.random() * 90000))}`;
-
-        const { data, error } = await supabase
-          .from('reports')
-          .insert([
-            {
-              user_id: user.id,
-              report_code: generatedCode,
-              category: category,
-              severity: safeSeverity,
-              confidence: safeConfidence,
-              department: department,
-              latitude: activeDraft.latitude,
-              longitude: activeDraft.longitude,
-              description:
-                activeDraft.description || analysis?.explanation || 'Submitted for manual review.',
-              image_path: uploadedImagePath,
-              explanation: analysis?.explanation || '',
-              requires_manual_review: needsManualReview,
-              status: dbStatus,
-            },
-          ])
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Supabase Insert Error:', error);
-          return null;
-        }
+        // The backend recomputes department/status; with analysisId it also
+        // stores Gemini's severity, confidence and explanation.
+        const { report: data } = await apiClient<{ report: Record<string, any> }>('/v1/reports', {
+          method: 'POST',
+          token,
+          body: JSON.stringify({
+            category_id: analysis?.categoryId ?? 'other',
+            description: activeDraft.description || undefined,
+            latitude: activeDraft.latitude,
+            longitude: activeDraft.longitude,
+            area_name: activeDraft.area || undefined,
+            image_path: uploadedImagePath ?? undefined,
+            analysis_id: analysis?.analysisId,
+          }),
+        });
 
         const newReport: CivicReport = {
           id: data.report_code || data.id,

@@ -6,6 +6,7 @@ import { config } from './config.js';
 import { requestIdMiddleware, errorHandler } from './middleware/error-handler.js';
 import { basicRateLimiter } from './middleware/rate-limit.js';
 import { reportsRouter } from './modules/reports/routes.js';
+import { analysisRouter } from './modules/analysis/routes.js';
 import { uploadsRouter } from './modules/uploads/routes.js';
 import { notificationsRouter } from './modules/notifications/routes.js';
 import { authorityRouter } from './modules/authority/routes.js';
@@ -52,6 +53,8 @@ app.get('/health', (_req, res) => {
 });
 
 // V1 Routes
+// Must be mounted before reportsRouter so /analyze is never read as a report id
+app.use('/v1/reports/analyze', analysisRouter);
 app.use('/v1/reports', reportsRouter);
 app.use('/v1/uploads', uploadsRouter);
 app.use('/v1/notifications', notificationsRouter);
