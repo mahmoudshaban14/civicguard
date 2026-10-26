@@ -1,10 +1,10 @@
-﻿
+
 import { useEffect, useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { adminApiClient } from './lib/api'
 import './App.css'
-import { LayoutDashboard, FileText, MapPinned, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, FileText, MapPinned, ShieldCheck, Bell, Check } from 'lucide-react'
 import GISMap from './GISMap'
 import { getTranslation, translateStatus, translateCategory, type Language } from './i18n'
 
@@ -19,7 +19,17 @@ type Report = {
   id: string
   report_code: string
   category: string | null
+  image_description: string | null
   status: string
+  created_at: string
+}
+type NotificationItem = {
+  id: string
+  report_id: string | null
+  type: string
+  title: string
+  body: string | null
+  read: boolean
   created_at: string
 }
 
@@ -46,10 +56,16 @@ function App() {
   const [reportsLoading, setReportsLoading] = useState(false)
   const [reportsError, setReportsError] = useState('')
   const [filter, setFilter] = useState('all')
-  const [activePage, setActivePage] = useState<
-    'overview' | 'reports' | 'gis'
-  >('overview')
+  const [activePage, setActivePage] = useState<'overview' | 'reports' | 'gis' | 'notifications'>('overview')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [notificationsLoading, setNotificationsLoading] = useState(false)
+  const [notificationsError, setNotificationsError] = useState('')
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false)
+  // Close notification dropdown when navigating between pages
+  useEffect(() => {
+    setNotificationDropdownOpen(false)
+  }, [activePage])
 
   useEffect(() => {
   localStorage.setItem('civicguard-language', language)
@@ -181,6 +197,68 @@ function App() {
     }
   }, [user, profile])
 
+  async function loadNotifications() {
+    if (!user || profile?.role !== 'admin') return
+    setNotificationsLoading(true)
+    setNotificationsError('')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
+
+      const result = await adminApiClient<{ notifications: NotificationItem[] }>(
+        '/v1/notifications?limit=50&offset=0',
+        { token },
+      )
+      setNotifications(result.notifications ?? [])
+    } catch (err) {
+      setNotificationsError((err as Error).message)
+    } finally {
+      setNotificationsLoading(false)
+    }
+  }
+
+  async function markNotificationRead(id: string) {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
+
+      await adminApiClient('/v1/notifications/read', {
+        token,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [id] }),
+      })
+      setNotifications((items) =>
+        items.map((item) => item.id === id ? { ...item, read: true } : item),
+      )
+    } catch (err) {
+      setNotificationsError((err as Error).message)
+    }
+  }
+
+  async function markAllNotificationsRead() {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
+
+      await adminApiClient('/v1/notifications/read', {
+        token,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      setNotifications((items) => items.map((item) => ({ ...item, read: true })))
+    } catch (err) {
+      setNotificationsError((err as Error).message)
+    }
+  }
+
+  useEffect(() => {
+    if (user && profile?.role === 'admin') void loadNotifications()
+  }, [user, profile])
   async function handleUpdateStatus(reportId: string, nextStatus: string) {
     setUpdatingId(reportId)
     setReportsError('')
@@ -302,12 +380,107 @@ function App() {
             </button>
           </form>
 
-          <p className="auth-footer">{language === 'ar' ? '\u062f\u062e\u0648\u0644 \u0645\u0642\u064a\u062f \u0644\u0644\u0645\u0633\u0624\u0648\u0644\u064a\u0646 \u0627\u0644\u0645\u0635\u0631\u062d \u0644\u0647\u0645 \u0641\u0642\u0637' : 'Restricted access Ã‚Â· Authorized administrators only'}</p>
+          <p className="auth-footer">{language === 'ar' ? '\u062f\u062e\u0648\u0644 \u0645\u0642\u064a\u062f \u0644\u0644\u0645\u0633\u0624\u0648\u0644\u064a\u0646 \u0627\u0644\u0645\u0635\u0631\u062d \u0644\u0647\u0645 \u0641\u0642\u0637' : 'Restricted access ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Authorized administrators only'}</p>
         </section>
       </main>
     )
   }
 
+  const escapeCsv = (value: string) =>
+    `"${value.replace(/"/g, '""')}"`
+
+  function exportReportsCsv() {
+    const headers = language === 'ar'
+      ? ['Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ˜Â¨Ã™â€žÃ˜Â§Ã˜Âº', 'Ã˜Â§Ã™â€žÃ™ÂÃ˜Â¦Ã˜Â©', 'Ã™Ë†Ã˜ÂµÃ™Â Ã˜Â§Ã™â€žÃ˜ÂµÃ™Ë†Ã˜Â±Ã˜Â© Ã˜Â¨Ã˜Â§Ã™â€žÃ˜Â°Ã™Æ’Ã˜Â§Ã˜Â¡ Ã˜Â§Ã™â€žÃ˜Â§Ã˜ÂµÃ˜Â·Ã™â€ Ã˜Â§Ã˜Â¹Ã™Å ', 'Ã˜Â§Ã™â€žÃ˜Â­Ã˜Â§Ã™â€žÃ˜Â©', 'Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â§Ã˜Â±Ã™Å Ã˜Â®']
+      : ['Report ID', 'Category', 'AI Image Description', 'Status', 'Date']
+
+    const rows = filteredReports.map((report) => [
+      report.report_code,
+      report.category
+        ? translateCategory(report.category, language)
+        : getTranslation(language, 'uncategorized'),
+      report.image_description?.trim() || '',
+      translateStatus(report.status, language),
+      new Date(report.created_at).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB'),
+    ])
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((value) => escapeCsv(String(value ?? ''))).join(','))
+      .join('\r\n')
+
+    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `civicguard-reports-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  function printReports() {
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      alert(language === 'ar'
+        ? 'Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€žÃ˜Â³Ã™â€¦Ã˜Â§Ã˜Â­ Ã˜Â¨Ã˜Â§Ã™â€žÃ™â€ Ã™Ë†Ã˜Â§Ã™ÂÃ˜Â° Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â¨Ã˜Â«Ã™â€šÃ˜Â© Ã™â€žÃ™â€žÃ˜Â·Ã˜Â¨Ã˜Â§Ã˜Â¹Ã˜Â©.'
+        : 'Please allow pop-ups to print reports.')
+      return
+    }
+
+    const headers = language === 'ar'
+      ? ['Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ˜Â¨Ã™â€žÃ˜Â§Ã˜Âº', 'Ã˜Â§Ã™â€žÃ™ÂÃ˜Â¦Ã˜Â©', 'Ã™Ë†Ã˜ÂµÃ™Â Ã˜Â§Ã™â€žÃ˜ÂµÃ™Ë†Ã˜Â±Ã˜Â©', 'Ã˜Â§Ã™â€žÃ˜Â­Ã˜Â§Ã™â€žÃ˜Â©', 'Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â§Ã˜Â±Ã™Å Ã˜Â®']
+      : ['Report ID', 'Category', 'Image Description', 'Status', 'Date']
+
+    const escapeHtml = (value: string) =>
+      value.replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      })[char]!)
+
+    const rows = filteredReports.map((report) => [
+      report.report_code,
+      report.category
+        ? translateCategory(report.category, language)
+        : getTranslation(language, 'uncategorized'),
+      report.image_description?.trim() || 'Ã¢â‚¬â€',
+      translateStatus(report.status, language),
+      new Date(report.created_at).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB'),
+    ])
+
+    const tableRows = [headers, ...rows].map((row, index) =>
+      `<tr>${row.map((cell) => index === 0
+        ? `<th>${escapeHtml(String(cell ?? ''))}</th>`
+        : `<td>${escapeHtml(String(cell ?? ''))}</td>`
+      ).join('')}</tr>`
+    ).join('')
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html lang="${language}" dir="${language === 'ar' ? 'rtl' : 'ltr'}">
+      <head>
+        <meta charset="utf-8">
+        <title>${language === 'ar' ? 'Ã˜ÂªÃ™â€šÃ˜Â±Ã™Å Ã˜Â± Ã˜Â§Ã™â€žÃ˜Â¨Ã™â€žÃ˜Â§Ã˜ÂºÃ˜Â§Ã˜Âª' : 'CivicGuard Reports'}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; }
+          h2 { margin-bottom: 18px; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: start; }
+          th { background: #eef2f7; }
+          tr { break-inside: avoid; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <h2>${language === 'ar' ? 'Ã˜ÂªÃ™â€šÃ˜Â±Ã™Å Ã˜Â± Ã˜Â§Ã™â€žÃ˜Â¨Ã™â€žÃ˜Â§Ã˜ÂºÃ˜Â§Ã˜Âª' : 'CivicGuard Reports'}</h2>
+        <p>${language === 'ar' ? 'Ã˜Â¹Ã˜Â¯Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¨Ã™â€žÃ˜Â§Ã˜ÂºÃ˜Â§Ã˜Âª:' : 'Total reports:'} ${filteredReports.length}</p>
+        <table><thead>${tableRows.split('</tr>')[0]}</tr></thead>
+        <tbody>${tableRows.split('</tr>').slice(1).join('</tr>')}</tbody></table>
+        <script>window.onload = () => window.print();</script>
+      </body>
+      </html>
+    `)
+    printWindow.document.close()
+  }
   const filteredReports =
     filter === 'all'
       ? reports
@@ -376,15 +549,85 @@ const resolvedRate =
 
       <main className="main-content" id="overview">
         <header className="topbar">
-          <div>
+          <div></div>
+          <div className="notification-menu-wrapper">
+            <button
+              type="button"
+              className="notification-bell"
+              aria-label={getTranslation(language, 'notifications')}
+              aria-expanded={notificationDropdownOpen}
+              onClick={() => {
+                setNotificationDropdownOpen((open) => !open)
+                if (!notificationDropdownOpen) void loadNotifications()
+              }}
+            >
+              <Bell size={20} />
+              {notifications.filter((item) => !item.read).length > 0 && (
+                <span className="notification-badge">
+                  {notifications.filter((item) => !item.read).length}
+                </span>
+              )}
+            </button>
 
-<h1>
-  {activePage === 'overview'
-    ? getTranslation(language, 'dashboard')
-    : activePage === 'reports'
-      ? getTranslation(language, 'reports')
-      : getTranslation(language, 'gisMap')}
-</h1>
+            {notificationDropdownOpen && (
+              <div className="notification-dropdown">
+                <div className="notification-dropdown-header">
+                  <strong>{getTranslation(language, 'notificationCenter')}</strong>
+                  <button
+                    type="button"
+                    className="notifications-mark-all"
+                    onClick={() => void markAllNotificationsRead()}
+                  >
+                    {getTranslation(language, 'markAllAsRead')}
+                  </button>
+                </div>
+
+                {notificationsError && (
+                  <p className="notification-error">{notificationsError}</p>
+                )}
+
+                {notificationsLoading ? (
+                  <p className="notification-empty">{getTranslation(language, 'loading')}</p>
+                ) : notifications.length === 0 ? (
+                  <p className="notification-empty">{getTranslation(language, 'noNotifications')}</p>
+                ) : (
+                  <div className="notification-dropdown-list">
+                    {notifications.slice(0, 6).map((item) => (
+                      <div key={item.id} className={`notification-item ${item.read ? '' : 'unread'}`}>
+                        <div>
+                          <strong>{item.title}</strong>
+                          {item.body && <p>{item.body}</p>}
+                          <small>
+                            {new Date(item.created_at).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')}
+                          </small>
+                        </div>
+                        {!item.read && (
+                          <button
+                            type="button"
+                            className="notification-mark-read"
+                            aria-label={getTranslation(language, 'markAsRead')}
+                            onClick={() => void markNotificationRead(item.id)}
+                          >
+                            <Check size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="view-all-notifications"
+                  onClick={() => {
+                    setNotificationDropdownOpen(false)
+                    setActivePage('notifications')
+                  }}
+                >
+                  {getTranslation(language, 'viewAllNotifications')}
+                </button>
+              </div>
+            )}
           </div>
 
                     <button
@@ -451,12 +694,32 @@ const resolvedRate =
         {activePage === 'reports' && (
   <section className="reports-section" id="reports">
           <div className="section-heading">
-            <div>
-              
-              <p className="page-description">{getTranslation(language, 'reportsDescription')}</p>
-            </div>
+            <div className="reports-heading-copy">
+  <h2>{language === 'ar' ? '\u0627\u0644\u0628\u0644\u0627\u063A\u0627\u062A' : 'Reports'}</h2>
+  <p className="page-description">{getTranslation(language, 'reportsDescription')}</p>
+</div>
 
-            <select
+            <div className="reports-toolbar">
+  <div className="reports-actions">
+<button
+              type="button"
+              onClick={exportReportsCsv}
+              disabled={filteredReports.length === 0}
+              className="export-button"
+            >
+              {language === 'ar' ? '\u062A\u0635\u062F\u064A\u0631 CSV' : 'Export CSV'}
+            </button>
+            <button
+              type="button"
+              onClick={printReports}
+              disabled={filteredReports.length === 0}
+              className="export-button"
+            >
+              {language === 'ar' ? '\u0637\u0628\u0627\u0639\u0629' : 'Print'}
+            </button>
+  </div>
+  <div className="reports-filter">
+<select
               aria-label={getTranslation(language, 'filterByStatus')}
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
@@ -473,6 +736,8 @@ const resolvedRate =
                 {translateStatus('manual_review_required', language)}
               </option>
             </select>
+  </div>
+</div>
           </div>
 
           {reportsLoading && (
@@ -492,6 +757,7 @@ const resolvedRate =
                   <tr>
                     <th><div className="report-heading-center">{getTranslation(language, 'report')}</div></th>
                     <th><div className="report-heading-center">{getTranslation(language, 'category')}</div></th>
+                    <th><div className="report-heading-center">{getTranslation(language, 'aiImageDescription')}</div></th>
                     <th><div className="report-heading-center">{getTranslation(language, 'status')}</div></th>
                     <th><div className="report-heading-center">{getTranslation(language, 'date')}</div></th>
                     <th><div className="report-heading-center">{language === 'ar' ? '\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a' : 'ACTIONS'}</div></th>
@@ -501,7 +767,7 @@ const resolvedRate =
                 <tbody>
                   {filteredReports.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="empty-state">
+                      <td colSpan={6} className="empty-state">
                         <div className="empty-icon">
                           <FileText size={28} strokeWidth={1.8} aria-hidden="true" />
                         </div>
@@ -518,6 +784,7 @@ const resolvedRate =
                           <strong>{report.report_code}</strong>
                         </td>
                         <td>{report.category ? translateCategory(report.category, language) : getTranslation(language, 'uncategorized')}</td>
+                        <td><div className="ai-image-description-cell">{report.image_description?.trim() || getTranslation(language, 'noAiImageDescription')}</div></td>
                         <td>
                           <span className="status-badge">
                             {translateStatus(report.status, language)}
@@ -567,13 +834,90 @@ const resolvedRate =
 )}
 {activePage === 'gis' && <GISMap language={language} />}
 
-        <footer>CivicGuard Admin Portal Ã‚Â· Development environment</footer>
+{activePage === 'notifications' && (
+  <section className="notifications-page">
+    <div className="notifications-page-heading">
+      <div>
+        <h2>{getTranslation(language, 'notificationCenter')}</h2>
+        <p>{getTranslation(language, 'notificationsDescription')}</p>
+      </div>
+
+      <button
+        type="button"
+        className="notifications-mark-all"
+        onClick={() => void markAllNotificationsRead()}
+        disabled={notificationsLoading || !notifications.some((item) => !item.read)}
+      >
+        {getTranslation(language, 'markAllAsRead')}
+      </button>
+    </div>
+
+    {notificationsError && (
+      <div className="notification-error" role="alert">
+        {getTranslation(language, 'notificationLoadError')}
+      </div>
+    )}
+
+    {notificationsLoading ? (
+      <div className="notification-empty">
+        {getTranslation(language, 'loading')}
+      </div>
+    ) : notifications.length === 0 ? (
+      <div className="notification-empty">
+        {getTranslation(language, 'noNotifications')}
+      </div>
+    ) : (
+      <div className="notification-page-list">
+        {notifications.map((item) => (
+          <article
+            key={item.id}
+            className={`notification-card ${item.read ? 'is-read' : 'is-unread'}`}
+          >
+            <div className="notification-item">
+              <div className="notification-content">
+                <h3>{item.title}</h3>
+                {item.body && <p>{item.body}</p>}
+                <small>
+                  {new Date(item.created_at).toLocaleString(
+                    language === 'ar' ? 'ar-EG' : 'en-GB'
+                  )}
+                </small>
+              </div>
+
+              {!item.read && (
+                <button
+                  type="button"
+                  className="notification-mark-read"
+                  aria-label={getTranslation(language, 'markAsRead')}
+                  onClick={() => void markNotificationRead(item.id)}
+                >
+                  <Check size={16} aria-hidden="true" />
+                  {getTranslation(language, 'markAsRead')}
+                </button>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </section>
+)}
+        <footer>{language === 'ar' ? 'CivicGuard \u00B7 \u0628\u0648\u0627\u0628\u0629 \u0627\u0644\u0625\u062f\u0627\u0631\u0629' : 'CivicGuard \u00B7 Admin Portal'}</footer>
       </main>
     </div>
   )
 }
 
 export default App
+
+
+
+
+
+
+
+
+
 
 
 

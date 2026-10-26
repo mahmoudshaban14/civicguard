@@ -45,6 +45,7 @@ export async function listAuthorityReports(
       severity,
       confidence,
       description,
+      image_description,
       latitude,
       longitude,
       image_path,
