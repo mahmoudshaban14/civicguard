@@ -49,6 +49,7 @@ interface CivicGuardStore {
   analysisResult: CivicAnalysisResult | null;
   lastSubmittedReport: CivicReport | null;
   loading: boolean;
+  fetchError: string | null;
   updateDraft: (next: Partial<DraftReport>) => void;
   resetDraft: () => void;
   analyzeDraft: (
@@ -169,15 +170,23 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   const [analysisResult, setAnalysisResult] = useState<CivicAnalysisResult | null>(null);
   const [lastSubmittedReport, setLastSubmittedReport] = useState<CivicReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchReports = useCallback(async () => {
     try {
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Error getting user:', userError);
+        setFetchError(userError.message);
+        return;
+      }
       if (!user) return;
 
       setLoading(true);
+      setFetchError(null);
 
       const { data, error } = await supabase
         .from('reports')
@@ -187,6 +196,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
 
       if (error) {
         console.error('Error fetching reports:', error);
+         setFetchError(error.message);
       } else if (data) {
         const signedUrlMap = new Map<string, string>();
         const pathsToSign = data
@@ -241,7 +251,8 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
         setReports(formattedReports);
       }
     } catch (err) {
-      console.error('Fetch exception:', err);
+        console.error('Fetch exception:', err);
+         setFetchError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -459,6 +470,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       analysisResult,
       lastSubmittedReport,
       loading,
+      fetchError,
       updateDraft,
       resetDraft,
       analyzeDraft,
@@ -478,6 +490,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       fetchReports,
       lastSubmittedReport,
       loading,
+      fetchError,
       markNotificationsRead,
       notifications,
       refreshReports,
