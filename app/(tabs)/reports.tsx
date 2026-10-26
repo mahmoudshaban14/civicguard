@@ -9,9 +9,9 @@ import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function ReportsScreen() {
-  const { reports } = useCivicGuard();
-  const [refreshing, setRefreshing] = useState(false);
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+   const { reports, refreshReports } = useCivicGuard();
+   const [refreshing, setRefreshing] = useState(false);
+   const [lang, setLang] = useState<'ar' | 'en'>('ar');
 
   useFocusEffect(
     useCallback(() => {
@@ -89,9 +89,13 @@ export default function ReportsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
+            onRefresh={async () => {
               setRefreshing(true);
-              setTimeout(() => setRefreshing(false), 600);
+              try {
+                await refreshReports();
+              } finally {
+                setRefreshing(false);
+              }
             }}
             tintColor="#1E3A8A"
           />

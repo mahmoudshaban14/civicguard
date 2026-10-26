@@ -1,7 +1,7 @@
 import { Image, View } from 'react-native';
 import { Button, Typography } from 'heroui-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { Camera, Map, RotateCw } from 'lucide-react-native';
+import { Camera, Map } from 'lucide-react-native';
 import { AppHeader } from '@/components/civic/AppHeader';
 import { Screen } from '@/components/civic/Screen';
 import { StatusBadge } from '@/components/civic/StatusBadge';
@@ -11,7 +11,7 @@ import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function ReportDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { reports, advanceReportStatus } = useCivicGuard();
+  const { reports } = useCivicGuard();
   const report = reports.find((item) => item.id === id);
   if (!report)
     return (
@@ -63,12 +63,6 @@ export default function ReportDetailsScreen() {
           Your report is currently being handled by the {report.department}.
         </Typography.Paragraph>
       </View>
-      {report.status !== 'Resolved' ? (
-        <Button className="mb-3" onPress={() => advanceReportStatus(report.id)}>
-          <RotateCw size={18} color="white" />
-          <Button.Label>Advance Status</Button.Label>
-        </Button>
-      ) : null}
       <View className="flex-row gap-3">
         <Button variant="secondary" className="flex-1" onPress={() => router.push('/(tabs)/map')}>
           <Map size={18} color="#167A62" />
