@@ -6,6 +6,7 @@ import { config } from './config.js';
 import { requestIdMiddleware, errorHandler } from './middleware/error-handler.js';
 import { basicRateLimiter } from './middleware/rate-limit.js';
 import { reportsRouter } from './modules/reports/routes.js';
+import { analysisRouter } from './modules/analysis/routes.js';
 import { uploadsRouter } from './modules/uploads/routes.js';
 import { notificationsRouter } from './modules/notifications/routes.js';
 import { authorityRouter } from './modules/authority/routes.js';
@@ -16,13 +17,37 @@ export const app = express();
 app.use(helmet());
 
 // CORS configuration
-const allowedOrigins = config.CORS_ORIGIN === '*'
+const configuredOrigins = config.CORS_ORIGIN === '*'
   ? '*'
   : config.CORS_ORIGIN.split(',').map((o) => o.trim());
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow non-browser requests (mobile native apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (configuredOrigins === '*' || (Array.isArray(configuredOrigins) && configuredOrigins.includes(origin))) {
+        return callback(null, true);
+      }
+      // In development, automatically allow localhost, 127.0.0.1, and local private network IPs
+      if (config.NODE_ENV === 'development') {
+        try {
+          const parsed = new URL(origin);
+          if (
+            parsed.hostname === 'localhost' ||
+            parsed.hostname === '127.0.0.1' ||
+            parsed.hostname.startsWith('192.168.') ||
+            parsed.hostname.startsWith('10.') ||
+            parsed.hostname.startsWith('172.')
+          ) {
+            return callback(null, true);
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+      return callback(null, false);
+    },
     credentials: true,
   }),
 );
@@ -52,6 +77,8 @@ app.get('/health', (_req, res) => {
 });
 
 // V1 Routes
+// Must be mounted before reportsRouter so /analyze is never read as a report id
+app.use('/v1/reports/analyze', analysisRouter);
 app.use('/v1/reports', reportsRouter);
 app.use('/v1/uploads', uploadsRouter);
 app.use('/v1/notifications', notificationsRouter);

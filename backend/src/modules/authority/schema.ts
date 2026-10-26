@@ -55,3 +55,10 @@ export const assignReportDepartmentSchema = z.object({
 });
 
 export type AssignReportDepartmentInput = z.infer<typeof assignReportDepartmentSchema>;
+
+export const updateReportActionStatusSchema = z.object({
+  action_status: z.enum(['pending_action', 'action_in_progress', 'action_completed']),
+});
+
+export type UpdateReportActionStatusInput = z.infer<typeof updateReportActionStatusSchema>;
+

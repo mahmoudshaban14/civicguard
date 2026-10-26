@@ -4,7 +4,7 @@ type ExpoPlugins = NonNullable<ExpoConfig['plugins']>;
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const nativePlugins: ExpoPlugins =
-    process.env.EXPO_PLATFORM === 'native'
+    process.env.EXPO_PLATFORM === 'native' && process.env.EXPO_USE_DEV_CLIENT === 'true'
       ? [['expo-dev-client', { launchMode: 'most-recent' }]]
       : [];
 

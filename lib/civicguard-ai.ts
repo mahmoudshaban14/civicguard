@@ -32,7 +32,15 @@ export interface CivicAnalysisResult {
   requiresManualReview: boolean;
   possibleDuplicate: string;
   recommendedAction: string;
-  source: 'prototype';
+  /** 'gemini' = real vision analysis, 'fallback' = AI unavailable, 'prototype' = local keyword classifier */
+  source: 'prototype' | 'gemini' | 'fallback';
+  /** Gemini's plain-language description of the photo. */
+  imageDescription?: string;
+  immediateDanger?: boolean;
+  /** Server-side analysis id, sent back when the report is submitted. */
+  analysisId?: string;
+  /** Storage path of the already-uploaded photo. */
+  imagePath?: string;
 }
 
 const SCENARIO_CONFIDENCE: Partial<Record<CivicIssueId, number>> = {

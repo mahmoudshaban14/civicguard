@@ -1,3 +1,30 @@
+// Polyfill/shim for uniwind compatibility with Metro in Expo SDK 58
+// metro-cache package.json exports no longer expose 'metro-cache/private/stores/FileStore' directly.
+const Module = require('module');
+const path = require('path');
+const fs = require('fs');
+
+const origResolve = Module._resolveFilename;
+Module._resolveFilename = function (request, parent, isMain, options) {
+  if (request === 'metro-cache/private/stores/FileStore') {
+    try {
+      const metroPath = origResolve.call(this, 'metro', parent, isMain, options);
+      const candidates = [
+        path.resolve(path.dirname(metroPath), '../node_modules/metro-cache/src/stores/FileStore.js'),
+        path.resolve(path.dirname(metroPath), '../../metro-cache/src/stores/FileStore.js'),
+        path.resolve(__dirname, 'node_modules/metro/node_modules/metro-cache/src/stores/FileStore.js'),
+        path.resolve(__dirname, 'node_modules/expo/node_modules/metro-cache/src/stores/FileStore.js'),
+      ];
+      for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) return candidate;
+      }
+    } catch {
+      // Ignore resolution failure and fallback
+    }
+  }
+  return origResolve.call(this, request, parent, isMain, options);
+};
+
 /** @type {import('expo/metro-config').MetroConfig} */
 const { getDefaultConfig } = require('expo/metro-config');
 const { withUniwindConfig } = require('uniwind/metro');

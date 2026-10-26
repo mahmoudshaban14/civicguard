@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from '../../db/client.js';
 import type { AuthUser } from '../../middleware/auth.js';
 import { AppError } from '../../middleware/error-handler.js';
 import type { ListReportsQuery } from './schema.js';
+import { getUsableAnalysis, markAnalysisUsed } from '../analysis/service.js';
 
 export async function listReports(user: AuthUser, query: ListReportsQuery) {
   const supabase = getSupabaseAdmin();
@@ -92,15 +93,30 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
     }
   }
 
-  // 2. Insert report with database-authoritative department, severity, user_id, and status 'submitted'
+  // 1b. If the citizen came through AI analysis, use the server-stored result.
+  // If they changed the category afterwards, the AI details no longer apply.
+  const analysis = input.analysis_id ? await getUsableAnalysis(user.id, input.analysis_id) : null;
+  if (analysis && input.image_path && analysis.image_path && analysis.image_path !== input.image_path) {
+    throw new AppError(400, 'INVALID_ANALYSIS', 'analysis_id does not belong to this image');
+  }
+  const aiApplies = analysis !== null && analysis.result.category_id === categoryData.id;
+  const ai = aiApplies ? analysis.result : null;
+
+  // 2. Insert report with database-authoritative department, severity, user_id, and status
   const insertPayload = {
     user_id: user.id,
     category_id: categoryData.id,
     category: categoryData.label,
     department: categoryData.department,
     assigned_department_id: categoryData.department_id,
-    severity: categoryData.default_severity,
-    status: 'submitted',
+    severity: ai ? ai.severity : categoryData.default_severity,
+    status: ai ? (ai.requires_manual_review ? 'manual_review_required' : 'ai_analyzed') : 'submitted',
+    ...(ai && {
+      confidence: ai.confidence,
+      explanation: ai.explanation,
+      secondary_issues: ai.secondary_issues,
+      requires_manual_review: ai.requires_manual_review,
+    }),
     description: input.description ?? null,
     latitude: input.latitude,
     longitude: input.longitude,
@@ -136,6 +152,10 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
 
   if (insertError) {
     throw new Error(`Failed to create report: ${insertError.message}`);
+  }
+
+  if (analysis) {
+    await markAnalysisUsed(analysis.id, user.id, report.id);
   }
 
   return report;

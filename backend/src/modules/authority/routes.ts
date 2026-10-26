@@ -7,11 +7,13 @@ import {
   reportIdParamsSchema,
   updateReportStatusSchema,
   assignReportDepartmentSchema,
+  updateReportActionStatusSchema,
 } from './schema.js';
 import {
   listAuthorityReports,
   updateReportStatus,
   assignReportDepartment,
+  updateReportActionStatus,
 } from './service.js';
 
 export const authorityRouter = Router();
@@ -54,6 +56,24 @@ authorityRouter.patch(
   },
 );
 
+// PATCH /v1/authority/reports/:id/action-status
+authorityRouter.patch(
+  '/reports/:id/action-status',
+  validate({ params: reportIdParamsSchema, body: updateReportActionStatusSchema }),
+  async (req, res, next) => {
+    try {
+      const updated = await updateReportActionStatus(
+        req.user!,
+        req.params.id as string,
+        req.body,
+      );
+      res.json({ report: updated });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // POST /v1/authority/reports/:id/assign
 authorityRouter.post(
   '/reports/:id/assign',
@@ -71,3 +91,4 @@ authorityRouter.post(
     }
   },
 );
+

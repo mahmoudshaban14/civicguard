@@ -6,6 +6,7 @@ import type {
   AuthorityReportsQuery,
   UpdateReportStatusInput,
   AssignReportDepartmentInput,
+  UpdateReportActionStatusInput,
 } from './schema.js';
 
 // Allowed workflow transitions per docs/backend-design.md
@@ -245,3 +246,50 @@ export async function assignReportDepartment(
 
   return updatedReport;
 }
+
+export async function updateReportActionStatus(
+  user: AuthUser,
+  reportId: string,
+  input: UpdateReportActionStatusInput,
+) {
+  const supabase = getSupabaseAdmin();
+
+  // 1. Fetch current report
+  const { data: report, error: fetchError } = await supabase
+    .from('reports')
+    .select('id, assigned_department_id')
+    .eq('id', reportId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error(`Failed to fetch report: ${fetchError.message}`);
+  }
+
+  if (!report) {
+    throw new AppError(404, 'NOT_FOUND', 'Report not found');
+  }
+
+  // 2. Department authority scoping
+  if (user.role === 'authority' && report.assigned_department_id !== user.department_id) {
+    throw new AppError(403, 'FORBIDDEN', 'Authority users can only update reports in their assigned department');
+  }
+
+  // 3. Update action_status with getSupabaseAdmin() and set updated_by = user.id
+  const { data: updatedReport, error: updateError } = await supabase
+    .from('reports')
+    .update({
+      action_status: input.action_status,
+      updated_by: user.id,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', reportId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error(`Failed to update report action status: ${updateError.message}`);
+  }
+
+  return updatedReport;
+}
+
