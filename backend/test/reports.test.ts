@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
+// The background duplicate check is covered in duplicates.test.ts
+vi.mock('../src/modules/duplicates/service.js', () => ({
+  runDuplicateCheck: async () => 0,
+  listReportDuplicates: async () => [],
+}));
 import { app } from '../src/app.js';
 import * as clientModule from '../src/db/client.js';
 

@@ -45,6 +45,8 @@ export const updateReportStatusSchema = z.object({
     'manual_review_required',
   ]),
   note: z.string().max(1000).optional(),
+  // Only meaningful when status = 'duplicate': the report this one duplicates.
+  duplicate_of: z.string().uuid().optional(),
 });
 
 export type UpdateReportStatusInput = z.infer<typeof updateReportStatusSchema>;
