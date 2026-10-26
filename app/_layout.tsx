@@ -12,7 +12,6 @@ import {
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform, View, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
-import * as DevClient from 'expo-dev-client';
 import { HeroUINativeProvider } from 'heroui-native';
 import { Uniwind } from 'uniwind';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -150,11 +149,17 @@ export default function RootLayout() {
   useEffect(() => {
     const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
     if (__DEV__ && Platform.OS !== 'web' && !isExpoGo) {
-      const timer = setTimeout(() => {
-        DevClient.closeMenu();
-        DevClient.hideMenu();
-      }, 1000);
-      return () => clearTimeout(timer);
+      try {
+        // oxlint-disable-next-line @typescript-eslint/no-require-imports
+        const DevClient = require('expo-dev-client');
+        const timer = setTimeout(() => {
+          DevClient?.closeMenu?.();
+          DevClient?.hideMenu?.();
+        }, 1000);
+        return () => clearTimeout(timer);
+      } catch {
+        // Ignored if expo-dev-client is not present
+      }
     }
     return undefined;
   }, []);

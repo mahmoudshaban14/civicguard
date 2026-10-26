@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -99,53 +100,63 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
-      <View style={{ flex: 1, padding: 24, justifyContent: 'center' }}>
-        
-        {/* زر تحويل اللغة */}
-        <View style={{ position: 'absolute', top: 40, right: 24, left: 24, flexDirection: 'row', justifyContent: 'flex-end', zIndex: 10 }}>
-          <TouchableOpacity
-            onPress={() => {
-              setLang(lang === 'ar' ? 'en' : 'ar');
-              setIdentifierError('');
-              setPasswordError('');
-              setGeneralError('');
-            }}
-            activeOpacity={0.8}
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 24,
+          paddingTop: 40,
+          paddingBottom: 40,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={{ width: '100%', maxWidth: 440, alignSelf: 'center' }}>
+          {/* زر تحويل اللغة */}
+          <View style={{ marginBottom: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <TouchableOpacity
+              onPress={() => {
+                setLang(lang === 'ar' ? 'en' : 'ar');
+                setIdentifierError('');
+                setPasswordError('');
+                setGeneralError('');
+              }}
+              activeOpacity={0.8}
+              style={{
+                backgroundColor: '#FFFFFF',
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                borderRadius: 24,
+                borderWidth: 1.5,
+                borderColor: '#1E293B',
+                shadowColor: '#1E293B',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 3,
+              }}
+            >
+              <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 13 }}>
+                {t.switchLangText}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* كارت تسجيل الدخول */}
+          <View
             style={{
               backgroundColor: '#FFFFFF',
-              paddingVertical: 8,
-              paddingHorizontal: 16,
               borderRadius: 24,
-              borderWidth: 1.5,
-              borderColor: '#1E293B',
-              shadowColor: '#1E293B',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 3,
+              padding: 28,
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.08,
+              shadowRadius: 20,
+              elevation: 5,
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
             }}
           >
-            <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 13 }}>
-              {t.switchLangText}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* كارت تسجيل الدخول */}
-        <View
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: 24,
-            padding: 24,
-            shadowColor: '#0F172A',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.08,
-            shadowRadius: 20,
-            elevation: 5,
-            borderWidth: 1,
-            borderColor: '#E2E8F0',
-          }}
-        >
           {/* تم سنترة العنوان والوصف في المنتصف */}
           <Text style={{ fontSize: 26, fontWeight: '800', color: '#0F172A', marginBottom: 6, textAlign: t.textAlign }}>
             {t.title}
@@ -286,8 +297,8 @@ export default function LoginScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
       </View>
-    </SafeAreaView>
-  );
+    </ScrollView>
+  </SafeAreaView>
+);
 }

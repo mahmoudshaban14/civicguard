@@ -10,5 +10,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "uniwind-types.d.ts"],
-  "exclude": ["context", "admin-dashboard", "supabase"]
+  "exclude": ["context", "admin-dashboard", "supabase", "backend"]
 }

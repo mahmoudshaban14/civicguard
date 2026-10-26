@@ -184,10 +184,20 @@ export default function SignUpScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
-      <ScrollView contentContainerStyle={{ padding: 24, justifyContent: 'center', minHeight: '100%' }}>
-        
-        {/* زر تحويل اللغة */}
-        <View style={{ marginBottom: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
+      <ScrollView
+        contentContainerStyle={{
+          padding: 24,
+          paddingTop: 36,
+          paddingBottom: 40,
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100%',
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={{ width: '100%', maxWidth: 480, alignSelf: 'center' }}>
+          {/* زر تحويل اللغة */}
+          <View style={{ marginBottom: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
           <TouchableOpacity
             onPress={() => {
               setLang(lang === 'ar' ? 'en' : 'ar');
@@ -440,6 +450,7 @@ export default function SignUpScreen() {
             </Text>
           </TouchableOpacity>
 
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
