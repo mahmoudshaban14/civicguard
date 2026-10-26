@@ -154,7 +154,17 @@ export async function getUsableAnalysis(userId: string, analysisId: string) {
   return { id: data.id as string, image_path: data.image_path as string | null, result: data.result as AnalysisResult };
 }
 
-export async function markAnalysisUsed(analysisId: string, reportId: string) {
+export async function markAnalysisUsed(analysisId: string, userId: string, reportId: string) {
   const supabase = getSupabaseAdmin();
-  await supabase.from('ai_requests').update({ report_id: reportId }).eq('id', analysisId).is('report_id', null);
+  const { data, error } = await supabase
+    .from('ai_requests')
+    .update({ report_id: reportId })
+    .eq('id', analysisId)
+    .eq('user_id', userId)
+    .is('report_id', null)
+    .select('id');
+  if (error) throw new Error(`Failed to update analysis: ${error.message}`);
+  if (!data || data.length === 0) {
+    throw new AppError(409, 'ANALYSIS_ALREADY_USED', 'This analysis was already used for another report');
+  }
 }

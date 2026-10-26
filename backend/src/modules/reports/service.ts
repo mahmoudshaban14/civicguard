@@ -155,7 +155,7 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
   }
 
   if (analysis) {
-    await markAnalysisUsed(analysis.id, report.id);
+    await markAnalysisUsed(analysis.id, user.id, report.id);
   }
 
   return report;

@@ -27,7 +27,18 @@ function setup(analysisRow: Record<string, unknown> | null) {
         return {
           select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
           maybeSingle: vi.fn().mockResolvedValue({ data: analysisRow, error: null }),
-          update: vi.fn((v: unknown) => { state.linked = v; return { eq: vi.fn().mockReturnValue({ is: vi.fn().mockResolvedValue({ error: null }) }) }; }),
+          update: vi.fn((v: unknown) => {
+            state.linked = v;
+            return {
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  is: vi.fn().mockReturnValue({
+                    select: vi.fn().mockResolvedValue({ data: [{ id: analysisRow?.id }], error: null }),
+                  }),
+                }),
+              }),
+            };
+          }),
         };
       }
       // reports
