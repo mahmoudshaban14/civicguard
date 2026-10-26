@@ -9,6 +9,7 @@ import {
   useMap,
 } from 'react-leaflet'
 import { supabase } from './lib/supabase'
+import DuplicatesPanel from './DuplicatesPanel'
 import 'leaflet/dist/leaflet.css'
 import './GISMap.css'
 import {
@@ -825,6 +826,28 @@ function GISMap({ language }: { language: Language }) {
     }
   }
 
+  // Used by the staff-only "possible duplicates" panel in the details modal.
+  function openReportById(reportId: string): boolean {
+    const target = reports.find((report) => report.id === reportId)
+    if (!target) return false
+    setSelected(target)
+    setImageUrl('')
+    setImageError('')
+    return true
+  }
+
+  function handleMarkedDuplicate(reportId: string, status: string) {
+    setReports((current) =>
+      current.map((report) =>
+        report.id === reportId ? { ...report, status } : report,
+      ),
+    )
+    setSelected((current) =>
+      current && current.id === reportId ? { ...current, status } : current,
+    )
+    setEditStatus(status)
+  }
+
   async function saveReportChanges() {
     if (!selected || savingChanges) return
 
@@ -1354,6 +1377,15 @@ function GISMap({ language }: { language: Language }) {
                 </strong>
               </div>
             </div>
+
+            <DuplicatesPanel
+              key={selected.id}
+              reportId={selected.id}
+              reportStatus={selected.status}
+              language={language}
+              onOpenReport={openReportById}
+              onMarkedDuplicate={handleMarkedDuplicate}
+            />
 
             <div
               className="gis-edit-controls"
