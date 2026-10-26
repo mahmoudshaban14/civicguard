@@ -49,10 +49,17 @@ interface CivicGuardStore {
   analysisResult: CivicAnalysisResult | null;
   lastSubmittedReport: CivicReport | null;
   loading: boolean;
+  fetchError: string | null;
   updateDraft: (next: Partial<DraftReport>) => void;
   resetDraft: () => void;
-  analyzeDraft: (preferredCategory?: CivicIssueCategory) => Promise<CivicAnalysisResult>;
-  submitDraft: (overrideDraft?: Partial<DraftReport>) => Promise<CivicReport | null>;
+  analyzeDraft: (
+    preferredCategory?: CivicIssueCategory,
+    overrideDraft?: Partial<DraftReport>,
+  ) => Promise<CivicAnalysisResult>;
+  submitDraft: (
+    overrideDraft?: Partial<DraftReport>,
+    analysisOverride?: CivicAnalysisResult | null,
+  ) => Promise<CivicReport | null>;
   fetchReports: () => Promise<void>;
   refreshReports: () => Promise<void>;
   updateStatus: (id: string, status: ReportStatus) => void;
@@ -74,8 +81,8 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: '1',
     type: 'in_progress',
-    titleAr: 'جاري العمل على البلاغ 🛠️',
-    titleEn: 'Report In Progress 🛠️',
+    titleAr: 'جاري العمل على البلاغ',
+    titleEn: 'Report In Progress',
     text: 'تم استلام بلاغك رقم #CG-2026-1042 وتحويله لطاقم صيانة الطرق.',
     textEn: 'Your report #CG-2026-1042 has been assigned to the Road Maintenance Team.',
     priorityAr: 'أولوية عالية (High Priority)',
@@ -89,8 +96,8 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: '2',
     type: 'reward',
-    titleAr: 'تهانينا! كسبت +50 نقطة 🏆',
-    titleEn: 'Congrats! +50 Civic Points 🏆',
+    titleAr: 'تهانينا! كسبت +50 نقطة',
+    titleEn: 'Congrats! +50 Civic Points',
     text: 'تم إغلاق البلاغ رقم #CG-2026-0980 بنجاح. شكراً لمساهمتك الإيجابية!',
     textEn: 'Report #CG-2026-0980 resolved successfully. Thank you for your contribution!',
     time: 'أمس',
@@ -99,8 +106,8 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: '3',
     type: 'ai_block',
-    titleAr: 'تنبيه ذكاء اصطناعي 🤖',
-    titleEn: 'AI Safety Alert 🤖',
+    titleAr: 'تنبيه ذكاء اصطناعي',
+    titleEn: 'AI Safety Alert',
     text: 'تم رفض الصورة المرفقة بواسطة الـ AI نظراً لعدم وضوح المعالم أو مخالفة الشروط.',
     textEn: 'Image rejected by AI safety filter due to low quality or non-compliance.',
     priorityAr: 'مرفوض آلياً (AI Rejected)',
@@ -112,8 +119,8 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: '4',
     type: 'resolved',
-    titleAr: 'تم حل المشكلة بالكامل ✅',
-    titleEn: 'Issue Resolved ✅',
+    titleAr: 'تم حل المشكلة بالكامل',
+    titleEn: 'Issue Resolved',
     text: 'إنهاء أعمال صيانة أعمدة الإنارة المقطوعة في شارع النصر.',
     textEn: 'Emergency team completed streetlight repairs at Al-Nasr St.',
     priorityAr: 'أولوية متوسطة (Medium Priority)',
@@ -163,15 +170,23 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   const [analysisResult, setAnalysisResult] = useState<CivicAnalysisResult | null>(null);
   const [lastSubmittedReport, setLastSubmittedReport] = useState<CivicReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchReports = useCallback(async () => {
     try {
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Error getting user:', userError);
+        setFetchError(userError.message);
+        return;
+      }
       if (!user) return;
 
       setLoading(true);
+      setFetchError(null);
 
       const { data, error } = await supabase
         .from('reports')
@@ -181,6 +196,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
 
       if (error) {
         console.error('Error fetching reports:', error);
+         setFetchError(error.message);
       } else if (data) {
         const signedUrlMap = new Map<string, string>();
         const pathsToSign = data
@@ -219,7 +235,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
             id: item.report_code || item.id,
             category: item.category || 'Other / Unrecognized Civic Issue',
             severity: item.severity ?? 'Medium',
-            confidence: item.confidence || 0,
+            confidence: Math.round((Number(item.confidence) || 0) * 100),
             status: mapDbStatusToReportStatus(item.status),
             department: item.department || 'Manual Routing',
             area: 'Current Location',
@@ -235,7 +251,8 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
         setReports(formattedReports);
       }
     } catch (err) {
-      console.error('Fetch exception:', err);
+        console.error('Fetch exception:', err);
+         setFetchError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -261,29 +278,36 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   }, []);
 
   const analyzeDraft = useCallback(
-    async (preferredCategory?: CivicIssueCategory) => {
-      const location = { latitude: draft.latitude, longitude: draft.longitude, area: draft.area };
+    async (preferredCategory?: CivicIssueCategory, overrideDraft?: Partial<DraftReport>) => {
+      // overrideDraft lets a screen that just called updateDraft() analyze the new
+      // values immediately instead of the stale `draft` captured by this callback.
+      const activeDraft = { ...draft, ...overrideDraft };
+      const location = {
+        latitude: activeDraft.latitude,
+        longitude: activeDraft.longitude,
+        area: activeDraft.area,
+      };
       const localInput = {
-        imageKey: draft.imageKey,
-        scenarioKey: draft.scenarioKey,
-        uri: draft.imageUri,
-        fileName: draft.imageFileName,
+        imageKey: activeDraft.imageKey,
+        scenarioKey: activeDraft.scenarioKey,
+        uri: activeDraft.imageUri,
+        fileName: activeDraft.imageFileName,
       };
 
       // Citizen overrode the category: no new Gemini call, but keep the uploaded photo.
       if (preferredCategory && analysisResult?.imagePath) {
-        const local = await analyzeCivicImage(localInput, draft.description, location, preferredCategory);
+        const local = await analyzeCivicImage(localInput, activeDraft.description, location, preferredCategory);
         const overridden = { ...local, imagePath: analysisResult.imagePath };
         setAnalysisResult(overridden);
         return overridden;
       }
 
       // Real photo -> Gemini through the backend. Any failure -> offline prototype.
-      if (draft.imageUri && !preferredCategory) {
+      if (activeDraft.imageUri && !preferredCategory) {
         try {
           const remote = await analyzeWithGemini({
-            imageUri: draft.imageUri,
-            description: draft.description,
+            imageUri: activeDraft.imageUri,
+            description: activeDraft.description,
             ...location,
           });
           setAnalysisResult(remote);
@@ -293,7 +317,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
         }
       }
 
-      const result = await analyzeCivicImage(localInput, draft.description, location, preferredCategory);
+      const result = await analyzeCivicImage(localInput, activeDraft.description, location, preferredCategory);
       setAnalysisResult(result);
       return result;
     },
@@ -301,9 +325,11 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   );
 
   const submitDraft = useCallback(
-    async (overrideDraft?: Partial<DraftReport>) => {
+    async (overrideDraft?: Partial<DraftReport>, analysisOverride?: CivicAnalysisResult | null) => {
       const activeDraft = { ...draft, ...overrideDraft };
-      const analysis = analysisResult;
+      // analysisOverride: result just returned by analyzeDraft() in the same handler
+      // (React state is not updated yet inside that handler).
+      const analysis = analysisOverride ?? analysisResult;
       const rawSeverity = analysis?.severity ?? 'Medium';
       const safeSeverity = rawSeverity === 'Requires Review' ? 'Medium' : rawSeverity;
       const category = analysis?.category ?? 'Other / Unrecognized Civic Issue';
@@ -370,8 +396,8 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
           {
             id: `submitted-${Date.now()}`,
             type: 'info',
-            titleAr: 'تم تقديم البلاغ بنجاح 📝',
-            titleEn: 'Report Submitted Successfully 📝',
+            titleAr: 'تم تقديم البلاغ بنجاح',
+            titleEn: 'Report Submitted Successfully',
             text: `تم استلام بلاغك رقم ${newReport.id} وهو قيد المراجعة الآن.`,
             textEn: `Report ${newReport.id} was submitted successfully and is under review.`,
             priorityAr: 'قيد المراجعة (Under Review)',
@@ -444,6 +470,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       analysisResult,
       lastSubmittedReport,
       loading,
+      fetchError,
       updateDraft,
       resetDraft,
       analyzeDraft,
@@ -463,6 +490,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
       fetchReports,
       lastSubmittedReport,
       loading,
+      fetchError,
       markNotificationsRead,
       notifications,
       refreshReports,

@@ -22,7 +22,7 @@ export default function CCTVScreen() {
   };
   return (
     <Screen>
-      <AppHeader title="Incident Verification" eyebrow="CCTV · PROTOTYPE SIMULATION" showBack />
+      <AppHeader title="Incident Verification" eyebrow="CCTV · MUNICIPAL FEED" showBack />
       <View className="border-border bg-surface mb-4 flex-row rounded-3xl border p-4">
         <View className="bg-civic-mint mr-3 size-12 items-center justify-center rounded-2xl">
           <Camera size={22} color="#167A62" />

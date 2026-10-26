@@ -9,9 +9,9 @@ import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function ReportsScreen() {
-  const { reports } = useCivicGuard();
-  const [refreshing, setRefreshing] = useState(false);
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+   const { reports, refreshReports, fetchError } = useCivicGuard();
+   const [refreshing, setRefreshing] = useState(false);
+   const [lang, setLang] = useState<'ar' | 'en'>('ar');
 
   useFocusEffect(
     useCallback(() => {
@@ -26,7 +26,7 @@ export default function ReportsScreen() {
           console.error('Error loading language in ReportsScreen:', e);
         }
       }
-      checkLanguage();
+      void checkLanguage();
       return () => {
         isMounted = false;
       };
@@ -36,14 +36,16 @@ export default function ReportsScreen() {
   const t = {
     ar: {
       title: 'بلاغاتي',
-      subtitle: `${reports.length} بلاغات في وضع العرض التجريبي`,
+      subtitle: `${reports.length} بلاغات مسجلة`,
       noReports: 'لا توجد بلاغات حتى الآن',
+      loadError: 'تعذّر تحميل البلاغات. اسحب للأسفل لإعادة المحاولة.',
       textAlign: 'right' as const,
     },
     en: {
       title: 'My Reports',
-      subtitle: `${reports.length} reports in Demo Mode`,
+      subtitle: `${reports.length} reports registered`,
       noReports: 'No reports yet',
+      loadError: 'Could not load reports. Pull down to retry.',
       textAlign: 'left' as const,
     },
   }[lang];
@@ -89,9 +91,13 @@ export default function ReportsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
+            onRefresh={async () => {
               setRefreshing(true);
-              setTimeout(() => setRefreshing(false), 600);
+              try {
+                await refreshReports();
+              } finally {
+                setRefreshing(false);
+              }
             }}
             tintColor="#1E3A8A"
           />
@@ -119,7 +125,7 @@ export default function ReportsScreen() {
                 textAlign: 'center',
               }}
             >
-              {t.noReports}
+              {fetchError ? t.loadError : t.noReports}
             </Text>
           </View>
         }

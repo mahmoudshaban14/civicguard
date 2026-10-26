@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Language = 'ar' | 'en';
@@ -27,10 +27,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         console.error('Error loading language', e);
       }
     }
-    loadLang();
+    void loadLang();
   }, []);
 
-  const toggleLanguage = async () => {
+  const toggleLanguage = useCallback(async () => {
     const nextLang = lang === 'ar' ? 'en' : 'ar';
     setLang(nextLang);
     try {
@@ -38,10 +38,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (e) {
       console.error('Error saving language', e);
     }
-  };
+  }, [lang]);
+
+  const value = useMemo(() => ({ lang, toggleLanguage }), [lang, toggleLanguage]);
 
   return (
-    <LanguageContext.Provider value={{ lang, toggleLanguage }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

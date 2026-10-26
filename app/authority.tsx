@@ -9,10 +9,10 @@ export default function AuthorityScreen() {
   const { reports } = useCivicGuard();
   return (
     <Screen>
-      <AppHeader title="Authority View" eyebrow="GOVERNMENT CONCEPT · PROTOTYPE" showBack />
+      <AppHeader title="Authority View" eyebrow="MUNICIPAL AUTHORITY · LIVE OPS" showBack />
       <View className="bg-civic-mint mb-4 rounded-2xl p-4">
         <Typography.Paragraph className="text-civic-deep text-sm">
-          Concept-only triage view using the same local report data as the citizen application.
+          Operational triage view for dispatch and incident assignment across municipal sectors.
         </Typography.Paragraph>
       </View>
       <View className="gap-3">

@@ -35,7 +35,7 @@ export default function AccountScreen() {
         setPhone(user.user_metadata?.phone || '');
       }
     }
-    getUserData();
+    void getUserData();
   }, []);
 
   const handleUpdateProfile = async () => {

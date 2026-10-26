@@ -46,7 +46,7 @@ export default function SignUpScreen() {
 
   const t = {
     ar: {
-      title: 'إنشاء حساب مواطن 🇪🇬',
+      title: 'إنشاء حساب مواطن',
       subtitle: 'قم بالتسجيل في المنظومة الوطنية لتوثيق البلاغات',
       fullNameLabel: 'الاسم بالكامل',
       fullNamePlaceholder: 'مثال: يوسف تامر',
@@ -61,14 +61,14 @@ export default function SignUpScreen() {
       signUpBtn: 'إنشاء الحساب',
       loadingBtn: 'جاري إنشاء الحساب...',
       loginLink: 'لديك حساب بالفعل؟ تسجيل الدخول',
-      switchLangText: 'English 🌐',
+      switchLangText: 'English',
       textAlign: 'right' as const,
       errFullName: 'الاسم يفضل أن يحتوي على حروف فقط وبدون أرقام أو رموز',
       errNationalId: 'الرقم القومي يجب أن يتكون من 14 رقم فقط',
       errPhone: 'يرجى إدخال رقم موبايل مصري صحيح مكون من 11 رقم يبدأ بـ (010, 011, 012, 015)',
       errEmail: 'يرجى إدخال بريد إلكتروني صحيح (مثال: example@gmail.com)',
       errPassword: 'كلمة المرور ضعيفة جدًا، يفضل إضافة أرقام ورموز وحروف',
-      alertSuccessTitle: 'تم بنجاح 🎉',
+      alertSuccessTitle: 'تم بنجاح',
       alertSuccessMsg: 'تم إنشاء حسابك القومي بنجاح!',
       alertOk: 'الانتقال للتطبيق',
       weak: 'ضعيفة',
@@ -76,7 +76,7 @@ export default function SignUpScreen() {
       strong: 'قوية جداً',
     },
     en: {
-      title: 'Create Account 🇪🇬',
+      title: 'Create Account',
       subtitle: 'Register in the national platform for civic reporting',
       fullNameLabel: 'Full Name',
       fullNamePlaceholder: 'e.g., Youssef Tamer',
@@ -91,14 +91,14 @@ export default function SignUpScreen() {
       signUpBtn: 'Create Account',
       loadingBtn: 'Creating Account...',
       loginLink: 'Already have an account? Log In',
-      switchLangText: 'عربي 🇪🇬',
+      switchLangText: 'عربي',
       textAlign: 'left' as const,
       errFullName: 'Full name must contain letters and spaces only',
       errNationalId: 'National ID must be exactly 14 digits',
       errPhone: 'Please enter a valid 11-digit Egyptian phone number starting with (010, 011, 012, 015)',
       errEmail: 'Please enter a valid email address (e.g., example@gmail.com)',
       errPassword: 'Password is too weak. Add numbers, symbols, and letters',
-      alertSuccessTitle: 'Success 🎉',
+      alertSuccessTitle: 'Success',
       alertSuccessMsg: 'Your national account has been created successfully!',
       alertOk: 'Proceed to App',
       weak: 'Weak',
@@ -273,7 +273,7 @@ export default function SignUpScreen() {
                 color: '#0F172A',
               }}
             />
-            {errors.fullName ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>⚠️ {errors.fullName}</Text> : null}
+            {errors.fullName ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.fullName}</Text> : null}
           </View>
 
           {/* الرقم القومي */}
@@ -304,7 +304,7 @@ export default function SignUpScreen() {
                 color: '#0F172A',
               }}
             />
-            {errors.nationalId ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>⚠️ {errors.nationalId}</Text> : null}
+            {errors.nationalId ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.nationalId}</Text> : null}
           </View>
 
           {/* رقم الموبايل */}
@@ -335,7 +335,7 @@ export default function SignUpScreen() {
                 color: '#0F172A',
               }}
             />
-            {errors.phone ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>⚠️ {errors.phone}</Text> : null}
+            {errors.phone ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.phone}</Text> : null}
           </View>
 
           {/* البريد الإلكتروني */}
@@ -365,7 +365,7 @@ export default function SignUpScreen() {
                 color: '#0F172A',
               }}
             />
-            {errors.email ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>⚠️ {errors.email}</Text> : null}
+            {errors.email ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.email}</Text> : null}
           </View>
 
           {/* كلمة المرور */}
@@ -408,7 +408,7 @@ export default function SignUpScreen() {
               </View>
             ) : null}
 
-            {errors.password ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>⚠️ {errors.password}</Text> : null}
+            {errors.password ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.password}</Text> : null}
           </View>
 
           {/* زر إنشاء الحساب */}

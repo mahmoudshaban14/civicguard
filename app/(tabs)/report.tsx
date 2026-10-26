@@ -24,7 +24,7 @@ export default function ReportScreen() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const [_category, setCategory] = useState('');
   const [locationCoords, setLocationCoords] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,9 +32,9 @@ export default function ReportScreen() {
 
   const t = {
     ar: {
-      title: 'تقديم بلاغ جديد 📝',
+      title: 'تقديم بلاغ جديد',
       subtitle: 'قم بتوثيق المشكلة لمساعدة الجهات المختصة في حلها بسرعة',
-      demoFillBtn: 'تعبئة تجريبية سريعة',
+      quickFillBtn: 'تعبئة سريعة للنموذج',
       reportTitleLabel: 'عنوان البلاغ',
       reportTitlePlaceholder: 'مثال: حفرة رئيسية في شارع النصر',
       descLabel: 'تفاصيل وماذا يحدث؟',
@@ -42,7 +42,7 @@ export default function ReportScreen() {
       locationLabel: 'الموقع الجغرافي (من التليفون)',
       getLocationBtn: 'الحصول على موقعي الحالي عبر الـ GPS',
       locatingText: 'جاري تحديد موقعك الجغرافي...',
-      locationSet: 'تم تحديد الموقع بنجاح ✅',
+      locationSet: 'تم تحديد الموقع بنجاح',
       uploadPhoto: 'إرفاق صورة البلاغ (إلزامي)',
       changePhoto: 'تغيير الصورة المرفقة',
       submitBtn: 'إرسال البلاغ للسيرفر الآن',
@@ -51,9 +51,9 @@ export default function ReportScreen() {
       errorMsg: 'عذراً، لا يمكن الإرسال. تأكد من إدخال العنوان، التفاصيل، الموقع الجغرافي، وإرفاق صورة المشكلة.',
     },
     en: {
-      title: 'Submit New Report 📝',
+      title: 'Submit New Report',
       subtitle: 'Document the issue to help authorities resolve it quickly',
-      demoFillBtn: 'Quick Demo Auto-Fill',
+      quickFillBtn: 'Quick Form Auto-Fill',
       reportTitleLabel: 'Report Title',
       reportTitlePlaceholder: 'e.g., Pothole on Al-Nasr street',
       descLabel: 'What is happening?',
@@ -61,7 +61,7 @@ export default function ReportScreen() {
       locationLabel: 'Geographic Location (From Device)',
       getLocationBtn: 'Get My Current GPS Location',
       locatingText: 'Fetching your location...',
-      locationSet: 'Location acquired successfully ✅',
+      locationSet: 'Location acquired successfully',
       uploadPhoto: 'Attach Report Photo (Mandatory)',
       changePhoto: 'Change Attached Photo',
       submitBtn: 'Submit Report to Server Now',
@@ -126,7 +126,7 @@ export default function ReportScreen() {
     }
   };
 
-  const handleDemoFill = () => {
+  const handleQuickFill = () => {
     setTitle(lang === 'ar' ? 'تكدس مياه الأمطار الشديد' : 'Severe Rainwater Accumulation');
     setDescription(lang === 'ar' ? 'تجمع كميات كبيرة من المياه تعيق حركة المرور بالكامل.' : 'Large water accumulation blocking traffic entirely.');
     setLocationCoords({
@@ -159,10 +159,12 @@ export default function ReportScreen() {
       updateDraft(draftData);
 
       // 2. تحليل بالـ AI (اختياري لو متاح)
-      await analyzeDraft();
+      // Pass draftData + use the returned result: state set by updateDraft/analyzeDraft
+      // is not visible yet inside this handler.
+      const analysis = await analyzeDraft(undefined, draftData);
 
       // 3. الإرسال الفعلي لـ Supabase Database و Storage
-      const result = await submitDraft(draftData);
+      const result = await submitDraft(draftData, analysis);
 
       setLoading(false);
 
@@ -179,7 +181,7 @@ export default function ReportScreen() {
           console.error('Error refreshing reports after submit:', e);
         }
 
-        router.replace('/(tabs)/reports' as any);
+        router.replace('/(tabs)/reports');
       } else {
         Alert.alert(lang === 'ar' ? 'خطأ في الحفظ' : 'Save Error', lang === 'ar' ? 'فشل حفظ البلاغ في السيرفر، تأكد من تسجيل الدخول.' : 'Failed to save report to server.');
       }
@@ -203,7 +205,7 @@ export default function ReportScreen() {
             {t.title}
           </Text>
           <TouchableOpacity
-            onPress={handleDemoFill}
+            onPress={handleQuickFill}
             style={{
               backgroundColor: '#EFF6FF',
               paddingHorizontal: 10,
@@ -218,7 +220,7 @@ export default function ReportScreen() {
           >
             <Sparkles size={14} color="#1E3A8A" />
             <Text style={{ fontSize: 11, fontWeight: '700', color: '#1E3A8A' }}>
-              {t.demoFillBtn}
+              {t.quickFillBtn}
             </Text>
           </TouchableOpacity>
         </View>
@@ -308,7 +310,7 @@ export default function ReportScreen() {
 
             {imageUri ? (
               <View style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', borderWidth: 1.5, borderColor: '#CBD5E1' }}>
-                <Image source={{ uri: imageUri }} style={{ width: '100%', height: 160 }} />
+                <Image source={{ uri: imageUri }} style={{ width: '100%', height: 160 }} resizeMode="cover" />
                 <TouchableOpacity
                   onPress={handlePickImage}
                   style={{

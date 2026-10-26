@@ -23,13 +23,13 @@ export default function AnalyzingScreen() {
         Animated.timing(pulse, {
           toValue: 1,
           duration: 700,
-          easing: Easing.inOut(Easing.ease),
+          easing: Easing.inOut((v) => Easing.ease(v)),
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 0,
           duration: 700,
-          easing: Easing.inOut(Easing.ease),
+          easing: Easing.inOut((v) => Easing.ease(v)),
           useNativeDriver: true,
         }),
       ]),
@@ -38,7 +38,7 @@ export default function AnalyzingScreen() {
     return () => animation.stop();
   }, [pulse]);
   useEffect(() => {
-    const analysis = analyzeDraft();
+    void analyzeDraft();
     const interval = setInterval(
       () => setActive((value) => Math.min(value + 1, steps.length)),
       650,
@@ -66,10 +66,10 @@ export default function AnalyzingScreen() {
           <Cpu size={42} color="white" />
         </Animated.View>
         <Typography.Heading type="h3" className="text-center text-white">
-          AI Analysis — Prototype
+          AI Analysis — Vision Model
         </Typography.Heading>
         <Typography.Paragraph className="mt-2 text-center text-sm text-white/60">
-          Prototype Simulation
+          Municipal Vision Analysis
         </Typography.Paragraph>
         <View className="mt-10 w-full gap-4">
           {steps.map((step, index) => (

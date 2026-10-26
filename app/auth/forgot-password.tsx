@@ -25,11 +25,11 @@ export default function ForgotPasswordScreen() {
 
   const t = {
     ar: {
-      titleRequest: 'استعادة كلمة المرور 🔐',
+      titleRequest: 'استعادة كلمة المرور',
       subtitleRequest: 'أدخل البريد الإلكتروني، الرقم القومي، أو رقم الموبايل المرتبط بحسابك لاستعادة الحساب.',
-      titleOtp: 'أدخل كود التحقق (OTP) 📱',
+      titleOtp: 'أدخل كود التحقق (OTP)',
       subtitleOtp: 'تم إرسال كود مكون من 6 أرقام لرقم هاتف الحساب المسجل.',
-      titleNewPass: 'تعيين كلمة مرور جديدة 🔑',
+      titleNewPass: 'تعيين كلمة مرور جديدة',
       subtitleNewPass: 'أدخل كلمة المرور الجديدة المكونة من 6 أحرف أو أكثر لتأمين حسابك.',
       
       labelIdentifier: 'البريد / الرقم القومي / الموبايل',
@@ -46,7 +46,7 @@ export default function ForgotPasswordScreen() {
       savePassBtn: 'حفظ وتغيير كلمة المرور',
 
       backToLogin: 'العودة لتسجيل الدخول',
-      switchLangText: 'English 🌐',
+      switchLangText: 'English',
       textAlign: 'right' as const,
       
       errRequired: 'يرجى إدخال البريد الإلكتروني، الرقم القومي، أو رقم الهاتف',
@@ -63,11 +63,11 @@ export default function ForgotPasswordScreen() {
       strong: 'قوية جداً',
     },
     en: {
-      titleRequest: 'Reset Password 🔐',
+      titleRequest: 'Reset Password',
       subtitleRequest: 'Enter your registered Email, National ID, or Mobile number to recover your account.',
-      titleOtp: 'Enter Verification Code (OTP) 📱',
+      titleOtp: 'Enter Verification Code (OTP)',
       subtitleOtp: 'A 6-digit code was sent to your registered mobile phone.',
-      titleNewPass: 'Set New Password 🔑',
+      titleNewPass: 'Set New Password',
       subtitleNewPass: 'Enter a new password with at least 6 characters to secure your account.',
       
       labelIdentifier: 'Email / National ID / Mobile',
@@ -84,7 +84,7 @@ export default function ForgotPasswordScreen() {
       savePassBtn: 'Save & Update Password',
 
       backToLogin: 'Back to Login',
-      switchLangText: 'عربي 🇪🇬',
+      switchLangText: 'عربي',
       textAlign: 'left' as const,
       
       errRequired: 'Please enter Email, National ID, or Mobile number',
@@ -252,7 +252,7 @@ export default function ForgotPasswordScreen() {
           {errorMsg ? (
             <View style={{ backgroundColor: '#FEF2F2', padding: 12, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: '#FCA5A5' }}>
               <Text style={{ color: '#DC2626', fontSize: 12.5, fontWeight: '600', textAlign: t.textAlign }}>
-                ⚠️ {errorMsg}
+                {errorMsg}
               </Text>
             </View>
           ) : null}
@@ -261,7 +261,7 @@ export default function ForgotPasswordScreen() {
           {successMsg ? (
             <View style={{ backgroundColor: '#ECFDF5', padding: 14, borderRadius: 12, marginBottom: 20, borderWidth: 1, borderColor: '#A7F3D0' }}>
               <Text style={{ color: '#065F46', fontSize: 13, fontWeight: '700', textAlign: t.textAlign, lineHeight: 20 }}>
-                ✅ {successMsg}
+                {successMsg}
               </Text>
             </View>
           ) : null}

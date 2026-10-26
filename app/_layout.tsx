@@ -66,15 +66,15 @@ export default function RootLayout() {
       try {
         const value = await AsyncStorage.getItem('@has_seen_onboarding_v1_0_4');
         setHasSeenOnboarding(value === 'true');
-      } catch (e) {
+      } catch (_e) {
         setHasSeenOnboarding(false);
       }
     }
-    checkOnboarding();
+    void checkOnboarding();
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    void supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsAuthLoading(false);
     });
@@ -97,14 +97,14 @@ export default function RootLayout() {
 
     if (!session) {
       if (!hasSeenOnboarding && !inOnboarding && !inAuthGroup) {
-        router.replace('/onboarding' as any);
+        router.replace('/onboarding');
       } else if (hasSeenOnboarding && !inAuthGroup && !inOnboarding) {
         router.replace('/auth/login');
       }
     } else if (session && (inAuthGroup || inOnboarding)) {
       router.replace('/(tabs)');
     }
-  }, [session, isAuthLoading, hasSeenOnboarding, loaded, error, segments]);
+  }, [session, isAuthLoading, hasSeenOnboarding, loaded, error, segments, router]);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return undefined;

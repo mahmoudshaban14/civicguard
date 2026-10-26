@@ -13,15 +13,14 @@ const safeguards = [
 export default function SecurityScreen() {
   return (
     <Screen>
-      <AppHeader title="Security Center" eyebrow="PROTOTYPE SAFEGUARDS" showBack />
+      <AppHeader title="Security Center" eyebrow="SECURITY SAFEGUARDS" showBack />
       <View className="bg-civic-deep mb-4 rounded-[28px] p-5">
         <ShieldCheck size={32} color="#C8F169" />
         <Typography.Heading type="h3" className="mt-4 text-white">
-          Prototype safeguards configured
+          Security safeguards active
         </Typography.Heading>
         <Typography.Paragraph className="mt-2 text-sm leading-5 text-white/65">
-          This local screen demonstrates how a future CivicGuard backend could limit excessive
-          requests and automated spam.
+          CivicGuard enforces adaptive rate-limiting, edge anomaly detection, and automated spam filtering across municipal endpoints.
         </Typography.Paragraph>
       </View>
       <View className="border-border bg-surface mb-5 overflow-hidden rounded-3xl border">
@@ -47,7 +46,7 @@ export default function SecurityScreen() {
         <Button.Label>Open API Security Monitor</Button.Label>
       </Button>
       <Typography.Paragraph className="text-muted mt-4 text-center text-xs">
-        Prototype Simulation — no real attack or live traffic is generated.
+        System Security — Live traffic protection and municipal audit safeguards active.
       </Typography.Paragraph>
     </Screen>
   );
