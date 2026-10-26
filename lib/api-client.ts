@@ -1,5 +1,22 @@
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+function getApiBaseUrl(): string {
+  const configured =
+    process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    try {
+      const url = new URL(configured);
+      if (
+        (url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
+        window.location.hostname
+      ) {
+        url.hostname = window.location.hostname;
+        return url.origin;
+      }
+    } catch {
+      // fallback to configured
+    }
+  }
+  return configured;
+}
 
 export interface ApiResponse<T> {
   data?: T;
@@ -15,6 +32,7 @@ export async function apiClient<T>(
   options: RequestInit & { token?: string | null } = {},
 ): Promise<T> {
   const { token, headers = {}, ...rest } = options;
+  const baseUrl = getApiBaseUrl();
 
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -25,7 +43,7 @@ export async function apiClient<T>(
     requestHeaders.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${baseUrl}${endpoint}`, {
     ...rest,
     headers: requestHeaders,
   });

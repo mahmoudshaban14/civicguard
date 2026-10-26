@@ -43,13 +43,27 @@ function detectImageType(uri: string): { ext: 'jpg' | 'png' | 'webp'; contentTyp
 
 /** Uploads a local image through a backend-signed URL and returns its storage path. */
 export async function uploadReportImage(imageUri: string, token: string): Promise<string> {
-  const { contentType } = detectImageType(imageUri);
+  const res = await fetch(imageUri);
+  const blob = await res.blob();
+  const bytes = await blob.arrayBuffer();
+
+  let contentType: 'image/jpeg' | 'image/png' | 'image/webp' = 'image/jpeg';
+  if (blob.type === 'image/png') {
+    contentType = 'image/png';
+  } else if (blob.type === 'image/webp') {
+    contentType = 'image/webp';
+  } else if (blob.type === 'image/jpeg') {
+    contentType = 'image/jpeg';
+  } else {
+    contentType = detectImageType(imageUri).contentType as 'image/jpeg' | 'image/png' | 'image/webp';
+  }
+
   const signed = await apiClient<{ path: string; token: string }>('/v1/uploads/sign', {
     method: 'POST',
     token,
     body: JSON.stringify({ contentType }),
   });
-  const bytes = await (await fetch(imageUri)).arrayBuffer();
+
   const { error } = await supabase.storage
     .from(BUCKET)
     .uploadToSignedUrl(signed.path, signed.token, bytes, { contentType });

@@ -17,13 +17,37 @@ export const app = express();
 app.use(helmet());
 
 // CORS configuration
-const allowedOrigins = config.CORS_ORIGIN === '*'
+const configuredOrigins = config.CORS_ORIGIN === '*'
   ? '*'
   : config.CORS_ORIGIN.split(',').map((o) => o.trim());
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow non-browser requests (mobile native apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (configuredOrigins === '*' || (Array.isArray(configuredOrigins) && configuredOrigins.includes(origin))) {
+        return callback(null, true);
+      }
+      // In development, automatically allow localhost, 127.0.0.1, and local private network IPs
+      if (config.NODE_ENV === 'development') {
+        try {
+          const parsed = new URL(origin);
+          if (
+            parsed.hostname === 'localhost' ||
+            parsed.hostname === '127.0.0.1' ||
+            parsed.hostname.startsWith('192.168.') ||
+            parsed.hostname.startsWith('10.') ||
+            parsed.hostname.startsWith('172.')
+          ) {
+            return callback(null, true);
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+      return callback(null, false);
+    },
     credentials: true,
   }),
 );
