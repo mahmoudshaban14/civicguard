@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import { UserRound, Globe, Bell, LockKeyhole, LogOut, ChevronRight } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';

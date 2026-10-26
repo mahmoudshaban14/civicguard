@@ -26,7 +26,7 @@ export default function ReportsScreen() {
           console.error('Error loading language in ReportsScreen:', e);
         }
       }
-      checkLanguage();
+      void checkLanguage();
       return () => {
         isMounted = false;
       };

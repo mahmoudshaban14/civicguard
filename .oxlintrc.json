@@ -64,6 +64,7 @@
     "node_modules",
     "admin-dashboard",
     "supabase",
+    "backend",
     "android/app/build",
     "uniwind-types.d.ts"
   ],

@@ -24,7 +24,7 @@ export default function ReportScreen() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const [_category, setCategory] = useState('');
   const [locationCoords, setLocationCoords] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -181,7 +181,7 @@ export default function ReportScreen() {
           console.error('Error refreshing reports after submit:', e);
         }
 
-        router.replace('/(tabs)/reports' as any);
+        router.replace('/(tabs)/reports');
       } else {
         Alert.alert(lang === 'ar' ? 'خطأ في الحفظ' : 'Save Error', lang === 'ar' ? 'فشل حفظ البلاغ في السيرفر، تأكد من تسجيل الدخول.' : 'Failed to save report to server.');
       }
@@ -310,7 +310,7 @@ export default function ReportScreen() {
 
             {imageUri ? (
               <View style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', borderWidth: 1.5, borderColor: '#CBD5E1' }}>
-                <Image source={{ uri: imageUri }} style={{ width: '100%', height: 160 }} />
+                <Image source={{ uri: imageUri }} style={{ width: '100%', height: 160 }} resizeMode="cover" />
                 <TouchableOpacity
                   onPress={handlePickImage}
                   style={{

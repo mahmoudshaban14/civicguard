@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PlusCircle, FileText, MapPin, ShieldCheck, CheckCircle2, Clock, ArrowRight, ArrowLeft, Camera, Sparkles } from 'lucide-react-native';
+import { FileText, MapPin, ShieldCheck, ArrowRight, ArrowLeft, Camera } from 'lucide-react-native';
 
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { useCivicGuard } from '@/lib/civicguard-store';
@@ -24,7 +24,7 @@ export default function HomeScreen() {
           console.error('Error loading language in HomeScreen:', e);
         }
       }
-      checkLanguage();
+      void checkLanguage();
       return () => {
         isMounted = false;
       };
@@ -121,7 +121,7 @@ export default function HomeScreen() {
           <View style={{ flexDirection: 'column', gap: 10 }}>
             <View style={{ flexDirection: t.flexDirection, gap: 10 }}>
               <TouchableOpacity
-                onPress={() => router.push('/(tabs)/report' as any)}
+                onPress={() => router.push('/(tabs)/report')}
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: 14,
@@ -140,7 +140,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => router.push('/(tabs)/reports' as any)}
+                onPress={() => router.push('/(tabs)/reports')}
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.15)',
                   borderRadius: 14,
