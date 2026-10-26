@@ -159,10 +159,12 @@ export default function ReportScreen() {
       updateDraft(draftData);
 
       // 2. تحليل بالـ AI (اختياري لو متاح)
-      await analyzeDraft();
+      // Pass draftData + use the returned result: state set by updateDraft/analyzeDraft
+      // is not visible yet inside this handler.
+      const analysis = await analyzeDraft(undefined, draftData);
 
       // 3. الإرسال الفعلي لـ Supabase Database و Storage
-      const result = await submitDraft(draftData);
+      const result = await submitDraft(draftData, analysis);
 
       setLoading(false);
 
