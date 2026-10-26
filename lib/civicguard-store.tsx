@@ -225,7 +225,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
             id: item.report_code || item.id,
             category: item.category || 'Other / Unrecognized Civic Issue',
             severity: item.severity ?? 'Medium',
-            confidence: item.confidence || 0,
+            confidence: Math.round((Number(item.confidence) || 0) * 100),
             status: mapDbStatusToReportStatus(item.status),
             department: item.department || 'Manual Routing',
             area: 'Current Location',
