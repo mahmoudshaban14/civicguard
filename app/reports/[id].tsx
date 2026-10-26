@@ -6,7 +6,6 @@ import { AppHeader } from '@/components/civic/AppHeader';
 import { Screen } from '@/components/civic/Screen';
 import { StatusBadge } from '@/components/civic/StatusBadge';
 import { Timeline } from '@/components/civic/Timeline';
-import { SAMPLE_IMAGES } from '@/lib/civicguard-data';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function ReportDetailsScreen() {
@@ -28,11 +27,20 @@ export default function ReportDetailsScreen() {
         showBack
         right={<StatusBadge value={report.status} />}
       />
-      <Image
-        source={report.imageUri ? { uri: report.imageUri } : SAMPLE_IMAGES[report.imageKey]}
-        style={{ width: '100%', height: 220, borderRadius: 28 }}
-        resizeMode="cover"
-      />
+      {report.imageUri ? (
+        <Image
+          source={{ uri: report.imageUri }}
+          style={{ width: '100%', height: 220, borderRadius: 28 }}
+          resizeMode="cover"
+        />
+      ) : (
+        <View
+          style={{ width: '100%', height: 220, borderRadius: 28 }}
+          className="bg-surface border-border items-center justify-center border"
+        >
+          <Typography.Paragraph className="text-muted text-sm">No photo</Typography.Paragraph>
+        </View>
+      )}
       <View className="border-border bg-surface my-4 rounded-3xl border p-5">
         <View className="mb-4 flex-row items-center justify-between">
           <View>
