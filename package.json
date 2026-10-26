@@ -27,11 +27,7 @@
     "babel-preset-expo": "~58.0.0",
     "class-variance-authority": "~0.7.1",
     "clsx": "~2.1.1",
-<<<<<<< HEAD
     "expo": "~58.0.19",
-=======
-    "expo": "~58.0.0",
->>>>>>> 9da3bcc (fix(auth, metro, db): enhance auth UI responsiveness, add metro uniwind shim, and fix report permissions)
     "expo-blur": "~58.0.5",
     "expo-constants": "~58.0.13",
     "expo-dev-client": "~58.0.15",
