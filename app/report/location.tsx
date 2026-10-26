@@ -27,8 +27,8 @@ export default function ReportLocationScreen() {
       });
     } else
       Alert.alert(
-        'Using demo location',
-        'Location access was not granted. New Cairo coordinates will be used for this prototype.',
+        'Using default location',
+        'Location access was not granted. Default New Cairo coordinates will be used.',
       );
     setLocating(false);
   };

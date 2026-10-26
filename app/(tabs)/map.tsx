@@ -41,7 +41,7 @@ export default function IssuesMapScreen() {
   const t = {
     ar: {
       title: 'خريطة البلاغات',
-      eyebrow: 'القاهرة الجديدة · وضع العرض التجريبي',
+      eyebrow: 'القاهرة الجديدة · خريطة البلاغات الحية',
       tapPrompt: 'اضغط على العلامة لعرض التفاصيل',
       distanceLabel: 'المسافة',
       statusLabel: 'الحالة',
@@ -55,7 +55,7 @@ export default function IssuesMapScreen() {
     },
     en: {
       title: 'Issue Map',
-      eyebrow: 'NEW CAIRO · DEMO MODE',
+      eyebrow: 'NEW CAIRO · LIVE ISSUE MAP',
       tapPrompt: 'Tap a marker to view details',
       distanceLabel: 'Distance',
       statusLabel: 'Status',

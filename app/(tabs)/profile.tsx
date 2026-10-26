@@ -60,11 +60,11 @@ export default function ProfileScreen() {
 
   const t = {
     ar: {
-      title: 'الملف الشخصي 👤',
+      title: 'الملف الشخصي',
       subtitle: 'إدارة حسابك وإعدادات التطبيق الشخصية',
       accountSettings: 'إعدادات الحساب',
       language: 'لغة التطبيق',
-      currentLang: 'العربية (Arabic) 🇪🇬',
+      currentLang: 'العربية (Arabic)',
       notifications: 'الإشعارات والتنبيهات',
       privacy: 'سياسة الخصوصية والأمان',
       logout: 'تسجيل الخروج من الحساب',
@@ -74,11 +74,11 @@ export default function ProfileScreen() {
       flexDirection: 'row-reverse' as const,
     },
     en: {
-      title: 'Profile 👤',
+      title: 'Profile',
       subtitle: 'Manage your account and personal app settings',
       accountSettings: 'Account Settings',
       language: 'App Language',
-      currentLang: 'English 🌐',
+      currentLang: 'English',
       notifications: 'Notifications & Alerts',
       privacy: 'Privacy & Security Policy',
       logout: 'Log Out of Account',

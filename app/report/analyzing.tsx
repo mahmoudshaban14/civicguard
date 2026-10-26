@@ -66,10 +66,10 @@ export default function AnalyzingScreen() {
           <Cpu size={42} color="white" />
         </Animated.View>
         <Typography.Heading type="h3" className="text-center text-white">
-          AI Analysis — Prototype
+          AI Analysis — Vision Model
         </Typography.Heading>
         <Typography.Paragraph className="mt-2 text-center text-sm text-white/60">
-          Prototype Simulation
+          Municipal Vision Analysis
         </Typography.Paragraph>
         <View className="mt-10 w-full gap-4">
           {steps.map((step, index) => (

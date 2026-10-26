@@ -17,7 +17,7 @@ export default function ReportDetailsScreen() {
     return (
       <Screen>
         <AppHeader title="Report not found" showBack />
-        <Typography.Paragraph>This report is not available in Demo Mode.</Typography.Paragraph>
+        <Typography.Paragraph>This report is currently unavailable.</Typography.Paragraph>
       </Screen>
     );
   return (
@@ -66,7 +66,7 @@ export default function ReportDetailsScreen() {
       {report.status !== 'Resolved' ? (
         <Button className="mb-3" onPress={() => advanceReportStatus(report.id)}>
           <RotateCw size={18} color="white" />
-          <Button.Label>Advance Demo Status</Button.Label>
+          <Button.Label>Advance Status</Button.Label>
         </Button>
       ) : null}
       <View className="flex-row gap-3">

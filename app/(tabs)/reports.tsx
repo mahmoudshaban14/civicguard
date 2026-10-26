@@ -36,13 +36,13 @@ export default function ReportsScreen() {
   const t = {
     ar: {
       title: 'بلاغاتي',
-      subtitle: `${reports.length} بلاغات في وضع العرض التجريبي`,
+      subtitle: `${reports.length} بلاغات مسجلة`,
       noReports: 'لا توجد بلاغات حتى الآن',
       textAlign: 'right' as const,
     },
     en: {
       title: 'My Reports',
-      subtitle: `${reports.length} reports in Demo Mode`,
+      subtitle: `${reports.length} reports registered`,
       noReports: 'No reports yet',
       textAlign: 'left' as const,
     },

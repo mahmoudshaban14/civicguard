@@ -37,7 +37,7 @@ export default function LoginScreen() {
       identifierRequired: 'تحتاج لإدخال البريد الإلكتروني أو الرقم القومي أو الهاتف',
       passwordRequired: 'تحتاج لإدخال كلمة المرور',
       alertErrorMessage: 'بيانات الدخول غير صحيحة. يرجى التأكد من البيانات والمحاولة مجدداً.',
-      switchLangText: 'English 🌐',
+      switchLangText: 'English',
       textAlign: 'center' as const,
       inputTextAlign: 'right' as const,
     },
@@ -54,7 +54,7 @@ export default function LoginScreen() {
       identifierRequired: 'Please enter Email, National ID, or Phone number',
       passwordRequired: 'Please enter your password',
       alertErrorMessage: 'Invalid credentials. Please check your data and try again.',
-      switchLangText: 'عربي 🇪🇬',
+      switchLangText: 'عربي',
       textAlign: 'center' as const,
       inputTextAlign: 'left' as const,
     },
@@ -178,7 +178,7 @@ export default function LoginScreen() {
               }}
             >
               <Text style={{ color: '#991B1B', fontSize: 12.5, fontWeight: '600', textAlign: t.textAlign, lineHeight: 18 }}>
-                ⚠️ {generalError}
+                {generalError}
               </Text>
             </View>
           ) : null}
@@ -213,7 +213,7 @@ export default function LoginScreen() {
             />
             {identifierError ? (
               <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                ⚠️ {identifierError}
+                {identifierError}
               </Text>
             ) : null}
           </View>
@@ -248,7 +248,7 @@ export default function LoginScreen() {
             />
             {passwordError ? (
               <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                ⚠️ {passwordError}
+                {passwordError}
               </Text>
             ) : null}
           </View>

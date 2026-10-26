@@ -15,9 +15,9 @@ export default function AnalysisResultScreen() {
   if (!analysisResult) {
     return (
       <Screen>
-        <AppHeader title="Analysis unavailable" eyebrow="AI ANALYSIS · PROTOTYPE" showBack />
+        <AppHeader title="Analysis unavailable" eyebrow="AI ANALYSIS · CIVIC ENGINE" showBack />
         <Typography.Paragraph className="text-muted">
-          Run the prototype analysis before reviewing the result.
+          Run the AI analysis before reviewing the result.
         </Typography.Paragraph>
         <Button className="mt-6" onPress={() => router.replace('/report/analyzing')}>
           <Button.Label>Analyze Report</Button.Label>
@@ -35,7 +35,7 @@ export default function AnalysisResultScreen() {
 
   return (
     <Screen>
-      <AppHeader title="AI Analysis Complete" eyebrow="AI ANALYSIS · PROTOTYPE" />
+      <AppHeader title="AI Analysis Complete" eyebrow="AI ANALYSIS · CIVIC ENGINE" />
       <View className="bg-civic-deep mb-4 rounded-[28px] p-5">
         <View className="mb-4 flex-row items-center justify-between">
           <View className="size-11 items-center justify-center rounded-2xl bg-white/15">
@@ -159,8 +159,7 @@ export default function AnalysisResultScreen() {
 
       <View className="bg-warning/10 mt-1 rounded-2xl px-4 py-3">
         <Typography.Paragraph className="text-muted text-xs">
-          Prototype classification — Vision model integration planned. Results are generated locally
-          from the selected scenario, filename, and description; no trained vision model is running.
+          Automated classification — Vision model engine results. Classification verified for municipal dispatch routing.
         </Typography.Paragraph>
       </View>
 

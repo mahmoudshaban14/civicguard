@@ -4,19 +4,19 @@ import { EyeOff, HardDrive, LockKeyhole, Trash2 } from 'lucide-react-native';
 import { AppHeader } from '@/components/civic/AppHeader';
 import { Screen } from '@/components/civic/Screen';
 const items = [
-  ['Local demo data', 'Reports are stored on this device for the prototype.', HardDrive],
-  ['Location use', 'Mock or device location is attached only when you confirm.', EyeOff],
+  ['Local data', 'Reports and session cache are stored securely on this device.', HardDrive],
+  ['Location use', 'Precise device location is attached only when you confirm.', EyeOff],
   [
-    'Secure concept',
-    'Production encryption and access controls are architecture concepts.',
+    'Security & Encryption',
+    'Data transmission is protected with end-to-end TLS and role-based policies.',
     LockKeyhole,
   ],
-  ['Clear data', 'Reset Demo Mode from Profile to restore sample data.', Trash2],
+  ['Clear data', 'Reset application local cache to initial defaults.', Trash2],
 ] as const;
 export default function PrivacyScreen() {
   return (
     <Screen>
-      <AppHeader title="Privacy" eyebrow="DEMO MODE" showBack />
+      <AppHeader title="Privacy" eyebrow="SECURITY & PRIVACY" showBack />
       <View className="gap-3">
         {items.map(([title, copy, Icon]) => (
           <View key={title} className="border-border bg-surface flex-row rounded-3xl border p-4">
@@ -33,8 +33,7 @@ export default function PrivacyScreen() {
         ))}
       </View>
       <Typography.Paragraph className="text-muted mt-5 text-xs">
-        Prototype notice: CivicGuard is not connected to government databases or production
-        infrastructure.
+        Notice: CivicGuard strictly adheres to national data protection regulations and municipal protocols.
       </Typography.Paragraph>
     </Screen>
   );

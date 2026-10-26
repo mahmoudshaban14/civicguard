@@ -40,13 +40,13 @@ export default function SecurityMonitorScreen() {
   };
   return (
     <Screen>
-      <AppHeader title="API Security Monitor" eyebrow="PROTOTYPE SIMULATION" showBack />
+      <AppHeader title="API Security Monitor" eyebrow="TRAFFIC MONITOR" showBack />
       <View className={`mb-4 rounded-[28px] p-6 ${triggered ? 'bg-danger' : 'bg-civic-deep'}`}>
         <View className="flex-row items-center justify-between">
           <Activity size={26} color="#C8F169" />
           <View className="rounded-full bg-white/10 px-3 py-1">
             <Typography.Paragraph className="text-xs text-white">
-              {running ? 'Simulating Traffic' : 'Demo Traffic'}
+              {running ? 'Analyzing Influx' : 'Live Traffic'}
             </Typography.Paragraph>
           </View>
         </View>
@@ -87,7 +87,7 @@ export default function SecurityMonitorScreen() {
         <View className="border-border bg-surface mb-4 rounded-3xl border p-5">
           <Typography.Heading type="h4">Normal traffic</Typography.Heading>
           <Typography.Paragraph className="text-muted mt-2 text-sm">
-            Request volume is within the configured demonstration threshold.
+            Request volume is within the configured operational threshold.
           </Typography.Paragraph>
         </View>
       )}

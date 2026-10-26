@@ -100,7 +100,7 @@ export default function NotificationsScreen() {
                   {estimate && (
                     <View className={`mt-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl w-full ${isAr ? 'items-end' : 'items-start'}`}>
                       <Text className="text-[11px] font-semibold color-blue-800">
-                        ⏱️ {estimate}
+                        {estimate}
                       </Text>
                     </View>
                   )}
