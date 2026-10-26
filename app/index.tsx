@@ -12,11 +12,11 @@ export default function Index() {
         // فحص المفتاح الخاص بالإصدار الحالي v1.0.4
         const value = await AsyncStorage.getItem('@has_seen_onboarding_v1_0_4');
         setHasSeenOnboarding(value === 'true');
-      } catch (e) {
+      } catch (_e) {
         setHasSeenOnboarding(false);
       }
     }
-    checkOnboardingStatus();
+    void checkOnboardingStatus();
   }, []);
 
   // شاشة تحميل بسيطة أثناء قراءة الـ Memory

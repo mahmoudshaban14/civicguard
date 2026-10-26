@@ -51,8 +51,14 @@ interface CivicGuardStore {
   loading: boolean;
   updateDraft: (next: Partial<DraftReport>) => void;
   resetDraft: () => void;
-  analyzeDraft: (preferredCategory?: CivicIssueCategory) => Promise<CivicAnalysisResult>;
-  submitDraft: (overrideDraft?: Partial<DraftReport>) => Promise<CivicReport | null>;
+  analyzeDraft: (
+    preferredCategory?: CivicIssueCategory,
+    overrideDraft?: Partial<DraftReport>,
+  ) => Promise<CivicAnalysisResult>;
+  submitDraft: (
+    overrideDraft?: Partial<DraftReport>,
+    analysisOverride?: CivicAnalysisResult | null,
+  ) => Promise<CivicReport | null>;
   fetchReports: () => Promise<void>;
   refreshReports: () => Promise<void>;
   updateStatus: (id: string, status: ReportStatus) => void;
@@ -261,29 +267,36 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   }, []);
 
   const analyzeDraft = useCallback(
-    async (preferredCategory?: CivicIssueCategory) => {
-      const location = { latitude: draft.latitude, longitude: draft.longitude, area: draft.area };
+    async (preferredCategory?: CivicIssueCategory, overrideDraft?: Partial<DraftReport>) => {
+      // overrideDraft lets a screen that just called updateDraft() analyze the new
+      // values immediately instead of the stale `draft` captured by this callback.
+      const activeDraft = { ...draft, ...overrideDraft };
+      const location = {
+        latitude: activeDraft.latitude,
+        longitude: activeDraft.longitude,
+        area: activeDraft.area,
+      };
       const localInput = {
-        imageKey: draft.imageKey,
-        scenarioKey: draft.scenarioKey,
-        uri: draft.imageUri,
-        fileName: draft.imageFileName,
+        imageKey: activeDraft.imageKey,
+        scenarioKey: activeDraft.scenarioKey,
+        uri: activeDraft.imageUri,
+        fileName: activeDraft.imageFileName,
       };
 
       // Citizen overrode the category: no new Gemini call, but keep the uploaded photo.
       if (preferredCategory && analysisResult?.imagePath) {
-        const local = await analyzeCivicImage(localInput, draft.description, location, preferredCategory);
+        const local = await analyzeCivicImage(localInput, activeDraft.description, location, preferredCategory);
         const overridden = { ...local, imagePath: analysisResult.imagePath };
         setAnalysisResult(overridden);
         return overridden;
       }
 
       // Real photo -> Gemini through the backend. Any failure -> offline prototype.
-      if (draft.imageUri && !preferredCategory) {
+      if (activeDraft.imageUri && !preferredCategory) {
         try {
           const remote = await analyzeWithGemini({
-            imageUri: draft.imageUri,
-            description: draft.description,
+            imageUri: activeDraft.imageUri,
+            description: activeDraft.description,
             ...location,
           });
           setAnalysisResult(remote);
@@ -293,7 +306,7 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
         }
       }
 
-      const result = await analyzeCivicImage(localInput, draft.description, location, preferredCategory);
+      const result = await analyzeCivicImage(localInput, activeDraft.description, location, preferredCategory);
       setAnalysisResult(result);
       return result;
     },
@@ -301,9 +314,11 @@ export function CivicGuardProvider({ children }: PropsWithChildren) {
   );
 
   const submitDraft = useCallback(
-    async (overrideDraft?: Partial<DraftReport>) => {
+    async (overrideDraft?: Partial<DraftReport>, analysisOverride?: CivicAnalysisResult | null) => {
       const activeDraft = { ...draft, ...overrideDraft };
-      const analysis = analysisResult;
+      // analysisOverride: result just returned by analyzeDraft() in the same handler
+      // (React state is not updated yet inside that handler).
+      const analysis = analysisOverride ?? analysisResult;
       const rawSeverity = analysis?.severity ?? 'Medium';
       const safeSeverity = rawSeverity === 'Requires Review' ? 'Medium' : rawSeverity;
       const category = analysis?.category ?? 'Other / Unrecognized Civic Issue';

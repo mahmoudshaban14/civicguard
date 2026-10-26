@@ -68,7 +68,7 @@ export default function OnboardingScreen() {
         animated: true,
       });
     } else {
-      finishOnboarding();
+      void finishOnboarding();
     }
   };
 
@@ -76,7 +76,7 @@ export default function OnboardingScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       {/* زر تخطي */}
       <View style={{ paddingHorizontal: 24, paddingTop: 16, flexDirection: 'row', justifyContent: 'flex-end', zIndex: 10 }}>
-        <TouchableOpacity onPress={finishOnboarding} style={{ padding: 8 }}>
+        <TouchableOpacity onPress={() => void finishOnboarding()} style={{ padding: 8 }}>
           <Text style={{ color: '#64748B', fontWeight: '700', fontSize: 14 }}>
             تخطي (Skip)
           </Text>

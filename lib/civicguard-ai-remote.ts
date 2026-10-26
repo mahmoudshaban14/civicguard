@@ -71,6 +71,9 @@ export async function uploadReportImage(imageUri: string, token: string): Promis
   return signed.path;
 }
 
+/** Longer than the backend's AI_TIMEOUT_MS so the server's fallback answer arrives first. */
+const ANALYZE_CLIENT_TIMEOUT_MS = 40000;
+
 export interface RemoteAnalysisInput {
   imageUri: string;
   description: string;
@@ -89,9 +92,12 @@ export async function analyzeWithGemini(input: RemoteAnalysisInput): Promise<Civ
   if (!token) throw new Error('Not signed in');
 
   const imagePath = await uploadReportImage(input.imageUri, token);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ANALYZE_CLIENT_TIMEOUT_MS);
   const response = await apiClient<AnalyzeApiResponse>('/v1/reports/analyze', {
     method: 'POST',
     token,
+    signal: controller.signal,
     body: JSON.stringify({
       image_path: imagePath,
       description: input.description || undefined,
@@ -99,7 +105,7 @@ export async function analyzeWithGemini(input: RemoteAnalysisInput): Promise<Civ
       longitude: input.longitude,
       area_name: input.area || undefined,
     }),
-  });
+  }).finally(() => clearTimeout(timer));
 
   const r = response.result;
   const category = getCategoryById(r.category_id as CivicIssueId);

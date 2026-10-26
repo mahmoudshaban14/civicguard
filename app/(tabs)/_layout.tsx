@@ -36,10 +36,12 @@ export default function TabLayout() {
       }
     };
 
-    loadAppLanguage();
+    void loadAppLanguage();
 
     // فحص دوري خفيف كل ثانية لضمان الاستجابة اللحظية عند تغيير اللغة في البروفايل
-    const interval = setInterval(loadAppLanguage, 1000);
+    const interval = setInterval(() => {
+      void loadAppLanguage();
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 

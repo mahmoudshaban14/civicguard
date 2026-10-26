@@ -1,5 +1,4 @@
 import { GoogleGenAI } from '@google/genai';
-import { config } from '../../config.js';
 import { SEVERITIES, type AiProvider, type ProviderInput, type ProviderOutput } from './types.js';
 
 const SYSTEM_INSTRUCTION = `You are the image-triage assistant of CivicGuard, a municipal civic-issue reporting system.

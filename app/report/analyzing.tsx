@@ -23,13 +23,13 @@ export default function AnalyzingScreen() {
         Animated.timing(pulse, {
           toValue: 1,
           duration: 700,
-          easing: Easing.inOut(Easing.ease),
+          easing: Easing.inOut((v) => Easing.ease(v)),
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 0,
           duration: 700,
-          easing: Easing.inOut(Easing.ease),
+          easing: Easing.inOut((v) => Easing.ease(v)),
           useNativeDriver: true,
         }),
       ]),
@@ -38,7 +38,7 @@ export default function AnalyzingScreen() {
     return () => animation.stop();
   }, [pulse]);
   useEffect(() => {
-    const analysis = analyzeDraft();
+    void analyzeDraft();
     const interval = setInterval(
       () => setActive((value) => Math.min(value + 1, steps.length)),
       650,

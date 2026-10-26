@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { View, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { Typography } from 'heroui-native';
-import { Bell, CheckCircle2, Clock3, ShieldAlert, Award, Clock } from 'lucide-react-native';
+import { Bell, CheckCircle2, Clock3, ShieldAlert, Award } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppHeader } from '@/components/civic/AppHeader';
 import { Screen } from '@/components/civic/Screen';
@@ -22,7 +22,7 @@ export default function NotificationsScreen() {
         console.error('Error loading language', e);
       }
     }
-    loadLang();
+    void loadLang();
   }, []);
 
   const isAr = lang === 'ar';
