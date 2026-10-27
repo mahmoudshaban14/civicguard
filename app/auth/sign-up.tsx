@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 const parseDigits = (str: string) => {
   return str.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
@@ -40,7 +41,12 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+
+  // 1. ضبط اللغة الافتراضية لتكون الإنجليزية 'en'
+  const [lang, setLang] = useState<'ar' | 'en'>('en');
+
+  // 2. حالة إظهار / إخفاء كلمة المرور
+  const [showPassword, setShowPassword] = useState(false);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -58,6 +64,7 @@ export default function SignUpScreen() {
       emailPlaceholder: 'example@gmail.com',
       passwordLabel: 'كلمة المرور',
       passwordPlaceholder: '••••••••',
+      passStrengthLabel: 'قوة كلمة المرور: ',
       signUpBtn: 'إنشاء الحساب',
       loadingBtn: 'جاري إنشاء الحساب...',
       loginLink: 'لديك حساب بالفعل؟ تسجيل الدخول',
@@ -88,6 +95,7 @@ export default function SignUpScreen() {
       emailPlaceholder: 'example@gmail.com',
       passwordLabel: 'Password',
       passwordPlaceholder: '••••••••',
+      passStrengthLabel: 'Password Strength: ',
       signUpBtn: 'Create Account',
       loadingBtn: 'Creating Account...',
       loginLink: 'Already have an account? Log In',
@@ -198,258 +206,277 @@ export default function SignUpScreen() {
         <View style={{ width: '100%', maxWidth: 480, alignSelf: 'center' }}>
           {/* زر تحويل اللغة */}
           <View style={{ marginBottom: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
-          <TouchableOpacity
-            onPress={() => {
-              setLang(lang === 'ar' ? 'en' : 'ar');
-              setErrors({});
-            }}
-            activeOpacity={0.8}
+            <TouchableOpacity
+              onPress={() => {
+                setLang(lang === 'ar' ? 'en' : 'ar');
+                setErrors({});
+              }}
+              activeOpacity={0.8}
+              style={{
+                backgroundColor: '#FFFFFF',
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                borderRadius: 24,
+                borderWidth: 1.5,
+                borderColor: '#1E293B',
+                shadowColor: '#1E293B',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 3,
+              }}
+            >
+              <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 13 }}>
+                {t.switchLangText}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* الكارت الرئيسي */}
+          <View
             style={{
               backgroundColor: '#FFFFFF',
-              paddingVertical: 8,
-              paddingHorizontal: 16,
               borderRadius: 24,
-              borderWidth: 1.5,
-              borderColor: '#1E293B',
-              shadowColor: '#1E293B',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 3,
+              padding: 24,
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.08,
+              shadowRadius: 20,
+              elevation: 5,
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
             }}
           >
-            <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 13 }}>
-              {t.switchLangText}
+            <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A', marginBottom: 4, textAlign: t.textAlign }}>
+              {t.title}
             </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* الكارت الرئيسي */}
-        <View
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: 24,
-            padding: 24,
-            shadowColor: '#0F172A',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.08,
-            shadowRadius: 20,
-            elevation: 5,
-            borderWidth: 1,
-            borderColor: '#E2E8F0',
-          }}
-        >
-          <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A', marginBottom: 4, textAlign: t.textAlign }}>
-            {t.title}
-          </Text>
-          <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 20, textAlign: t.textAlign, lineHeight: 20 }}>
-            {t.subtitle}
-          </Text>
-
-          {/* الاسم الكامل */}
-          <View style={{ marginBottom: 14 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
-              {t.fullNameLabel}
+            <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 20, textAlign: t.textAlign, lineHeight: 20 }}>
+              {t.subtitle}
             </Text>
-            <TextInput
-              placeholder={t.fullNamePlaceholder}
-              value={fullName}
-              maxLength={50}
-              onChangeText={(val) => {
-                const filtered = val.replace(/[^a-zA-Z\u0600-\u06FF\s]/g, '');
-                setFullName(filtered);
-                setErrors((prev) => ({ ...prev, fullName: '' }));
-              }}
-              placeholderTextColor="#94A3B8"
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: errors.fullName ? '#DC2626' : '#CBD5E1',
-                borderRadius: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                textAlign: t.textAlign,
-                fontSize: 14,
-                color: '#0F172A',
-              }}
-            />
-            {errors.fullName ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.fullName}</Text> : null}
-          </View>
 
-          {/* الرقم القومي */}
-          <View style={{ marginBottom: 14 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
-              {t.nationalIdLabel}
-            </Text>
-            <TextInput
-              placeholder={t.nationalIdPlaceholder}
-              value={nationalId}
-              keyboardType="numeric"
-              maxLength={14}
-              onChangeText={(val) => {
-                const filtered = val.replace(/[^0-9٠-٩]/g, '');
-                setNationalId(filtered);
-                setErrors((prev) => ({ ...prev, nationalId: '' }));
-              }}
-              placeholderTextColor="#94A3B8"
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: errors.nationalId ? '#DC2626' : '#CBD5E1',
-                borderRadius: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                textAlign: t.textAlign,
-                fontSize: 14,
-                color: '#0F172A',
-              }}
-            />
-            {errors.nationalId ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.nationalId}</Text> : null}
-          </View>
-
-          {/* رقم الموبايل */}
-          <View style={{ marginBottom: 14 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
-              {t.phoneLabel}
-            </Text>
-            <TextInput
-              placeholder={t.phonePlaceholder}
-              value={phone}
-              keyboardType="phone-pad"
-              maxLength={11}
-              onChangeText={(val) => {
-                const filtered = val.replace(/[^0-9٠-٩]/g, '');
-                setPhone(filtered);
-                setErrors((prev) => ({ ...prev, phone: '' }));
-              }}
-              placeholderTextColor="#94A3B8"
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: errors.phone ? '#DC2626' : '#CBD5E1',
-                borderRadius: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                textAlign: t.textAlign,
-                fontSize: 14,
-                color: '#0F172A',
-              }}
-            />
-            {errors.phone ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.phone}</Text> : null}
-          </View>
-
-          {/* البريد الإلكتروني */}
-          <View style={{ marginBottom: 14 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
-              {t.emailLabel}
-            </Text>
-            <TextInput
-              placeholder={t.emailPlaceholder}
-              value={email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onChangeText={(val) => {
-                setEmail(val);
-                setErrors((prev) => ({ ...prev, email: '' }));
-              }}
-              placeholderTextColor="#94A3B8"
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: errors.email ? '#DC2626' : '#CBD5E1',
-                borderRadius: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                textAlign: t.textAlign,
-                fontSize: 14,
-                color: '#0F172A',
-              }}
-            />
-            {errors.email ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.email}</Text> : null}
-          </View>
-
-          {/* كلمة المرور */}
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
-              {t.passwordLabel}
-            </Text>
-            <TextInput
-              placeholder={t.passwordPlaceholder}
-              value={password}
-              secureTextEntry
-              onChangeText={(val) => {
-                setPassword(val);
-                setErrors((prev) => ({ ...prev, password: '' }));
-              }}
-              placeholderTextColor="#94A3B8"
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: errors.password ? '#DC2626' : '#CBD5E1',
-                borderRadius: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                textAlign: t.textAlign,
-                fontSize: 14,
-                color: '#0F172A',
-              }}
-            />
-
-            {password ? (
-              <View style={{ marginTop: 8 }}>
-                <View style={{ flexDirection: 'row', height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: '#E2E8F0' }}>
-                  <View style={{ flex: 1, backgroundColor: passwordStrength.score >= 1 ? passwordStrength.color : '#E2E8F0', marginRight: 2 }} />
-                  <View style={{ flex: 1, backgroundColor: passwordStrength.score >= 2 ? passwordStrength.color : '#E2E8F0', marginRight: 2 }} />
-                  <View style={{ flex: 1, backgroundColor: passwordStrength.score >= 3 ? passwordStrength.color : '#E2E8F0' }} />
-                </View>
-                <Text style={{ color: passwordStrength.color, fontSize: 11.5, fontWeight: '700', marginTop: 4, textAlign: t.textAlign }}>
-                  قوة كلمة المرور: {passwordStrength.label}
-                </Text>
-              </View>
-            ) : null}
-
-            {errors.password ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.password}</Text> : null}
-          </View>
-
-          {/* زر إنشاء الحساب */}
-          <TouchableOpacity
-            onPress={handleSignUp}
-            disabled={loading}
-            activeOpacity={0.8}
-            style={{
-              backgroundColor: loading ? '#60A5FA' : '#1E3A8A',
-              paddingVertical: 16,
-              borderRadius: 14,
-              alignItems: 'center',
-              marginBottom: 16,
-              shadowColor: '#1E3A8A',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: loading ? 0.1 : 0.3,
-              shadowRadius: 8,
-              elevation: loading ? 1 : 4,
-            }}
-          >
-            {loading ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator color="#FFFFFF" size="small" style={{ marginHorizontal: 8 }} />
-                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-                  {t.loadingBtn}
-                </Text>
-              </View>
-            ) : (
-              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-                {t.signUpBtn}
+            {/* الاسم الكامل */}
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
+                {t.fullNameLabel}
               </Text>
-            )}
-          </TouchableOpacity>
+              <TextInput
+                placeholder={t.fullNamePlaceholder}
+                value={fullName}
+                maxLength={50}
+                onChangeText={(val) => {
+                  const filtered = val.replace(/[^a-zA-Z\u0600-\u06FF\s]/g, '');
+                  setFullName(filtered);
+                  setErrors((prev) => ({ ...prev, fullName: '' }));
+                }}
+                placeholderTextColor="#94A3B8"
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: errors.fullName ? '#DC2626' : '#CBD5E1',
+                  borderRadius: 14,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  textAlign: t.textAlign,
+                  fontSize: 14,
+                  color: '#0F172A',
+                }}
+              />
+              {errors.fullName ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.fullName}</Text> : null}
+            </View>
 
-          {/* رابط تسجيل الدخول */}
-          <TouchableOpacity onPress={() => router.push('/auth/login')}>
-            <Text style={{ textAlign: 'center', color: '#2563EB', fontWeight: '700', fontSize: 13.5, marginTop: 4 }}>
-              {t.loginLink}
-            </Text>
-          </TouchableOpacity>
+            {/* الرقم القومي */}
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
+                {t.nationalIdLabel}
+              </Text>
+              <TextInput
+                placeholder={t.nationalIdPlaceholder}
+                value={nationalId}
+                keyboardType="numeric"
+                maxLength={14}
+                onChangeText={(val) => {
+                  const filtered = val.replace(/[^0-9٠-٩]/g, '');
+                  setNationalId(filtered);
+                  setErrors((prev) => ({ ...prev, nationalId: '' }));
+                }}
+                placeholderTextColor="#94A3B8"
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: errors.nationalId ? '#DC2626' : '#CBD5E1',
+                  borderRadius: 14,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  textAlign: t.textAlign,
+                  fontSize: 14,
+                  color: '#0F172A',
+                }}
+              />
+              {errors.nationalId ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.nationalId}</Text> : null}
+            </View>
 
+            {/* رقم الموبايل */}
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
+                {t.phoneLabel}
+              </Text>
+              <TextInput
+                placeholder={t.phonePlaceholder}
+                value={phone}
+                keyboardType="phone-pad"
+                maxLength={11}
+                onChangeText={(val) => {
+                  const filtered = val.replace(/[^0-9٠-٩]/g, '');
+                  setPhone(filtered);
+                  setErrors((prev) => ({ ...prev, phone: '' }));
+                }}
+                placeholderTextColor="#94A3B8"
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: errors.phone ? '#DC2626' : '#CBD5E1',
+                  borderRadius: 14,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  textAlign: t.textAlign,
+                  fontSize: 14,
+                  color: '#0F172A',
+                }}
+              />
+              {errors.phone ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.phone}</Text> : null}
+            </View>
+
+            {/* البريد الإلكتروني */}
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
+                {t.emailLabel}
+              </Text>
+              <TextInput
+                placeholder={t.emailPlaceholder}
+                value={email}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                onChangeText={(val) => {
+                  setEmail(val);
+                  setErrors((prev) => ({ ...prev, email: '' }));
+                }}
+                placeholderTextColor="#94A3B8"
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: errors.email ? '#DC2626' : '#CBD5E1',
+                  borderRadius: 14,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  textAlign: t.textAlign,
+                  fontSize: 14,
+                  color: '#0F172A',
+                }}
+              />
+              {errors.email ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.email}</Text> : null}
+            </View>
+
+            {/* كلمة المرور مع زر Show / Hide Password */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', marginBottom: 6, textAlign: t.textAlign, color: '#334155' }}>
+                {t.passwordLabel}
+              </Text>
+              <View
+                style={{
+                  flexDirection: lang === 'ar' ? 'row-reverse' : 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: errors.password ? '#DC2626' : '#CBD5E1',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                }}
+              >
+                <TextInput
+                  placeholder={t.passwordPlaceholder}
+                  value={password}
+                  secureTextEntry={!showPassword}
+                  onChangeText={(val) => {
+                    setPassword(val);
+                    setErrors((prev) => ({ ...prev, password: '' }));
+                  }}
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    textAlign: t.textAlign,
+                    fontSize: 14,
+                    color: '#0F172A',
+                    fontWeight: '500',
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                  style={{ padding: 6 }}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color="#64748B" />
+                  ) : (
+                    <Eye size={20} color="#64748B" />
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {password ? (
+                <View style={{ marginTop: 8 }}>
+                  <View style={{ flexDirection: 'row', height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: '#E2E8F0' }}>
+                    <View style={{ flex: 1, backgroundColor: passwordStrength.score >= 1 ? passwordStrength.color : '#E2E8F0', marginRight: 2 }} />
+                    <View style={{ flex: 1, backgroundColor: passwordStrength.score >= 2 ? passwordStrength.color : '#E2E8F0', marginRight: 2 }} />
+                    <View style={{ flex: 1, backgroundColor: passwordStrength.score >= 3 ? passwordStrength.color : '#E2E8F0' }} />
+                  </View>
+                  <Text style={{ color: passwordStrength.color, fontSize: 11.5, fontWeight: '700', marginTop: 4, textAlign: t.textAlign }}>
+                    {t.passStrengthLabel}{passwordStrength.label}
+                  </Text>
+                </View>
+              ) : null}
+
+              {errors.password ? <Text style={{ color: '#DC2626', fontSize: 11.5, marginTop: 4, textAlign: t.textAlign }}>{errors.password}</Text> : null}
+            </View>
+
+            {/* زر إنشاء الحساب */}
+            <TouchableOpacity
+              onPress={handleSignUp}
+              disabled={loading}
+              activeOpacity={0.8}
+              style={{
+                backgroundColor: loading ? '#60A5FA' : '#1E3A8A',
+                paddingVertical: 16,
+                borderRadius: 14,
+                alignItems: 'center',
+                marginBottom: 16,
+                shadowColor: '#1E3A8A',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: loading ? 0.1 : 0.3,
+                shadowRadius: 8,
+                elevation: loading ? 1 : 4,
+              }}
+            >
+              {loading ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator color="#FFFFFF" size="small" style={{ marginHorizontal: 8 }} />
+                  <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
+                    {t.loadingBtn}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
+                  {t.signUpBtn}
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* رابط تسجيل الدخول */}
+            <TouchableOpacity onPress={() => router.push('/auth/login')}>
+              <Text style={{ textAlign: 'center', color: '#2563EB', fontWeight: '700', fontSize: 13.5, marginTop: 4 }}>
+                {t.loginLink}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

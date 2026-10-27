@@ -10,13 +10,24 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { Eye, EyeOff } from 'lucide-react-native';
+
+// دالة تحويل الأرقام العربية إلى أرقام إنجليزية لضمان تطابق الاستعلام
+const parseDigits = (str: string) => {
+  return str.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+};
 
 export default function LoginScreen() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+
+  // 1. اللغة الافتراضية أصبحت الإنجليزية 'en'
+  const [lang, setLang] = useState<'ar' | 'en'>('en');
+
+  // 2. حالة إظهار / إخفاء كلمة المرور
+  const [showPassword, setShowPassword] = useState(false);
 
   // State للتحكم في رسائل الأخطاء
   const [identifierError, setIdentifierError] = useState('');
@@ -66,8 +77,10 @@ export default function LoginScreen() {
     setPasswordError('');
     setGeneralError('');
 
+    const rawInput = identifier.trim();
+
     // التحقق من الحقول الفارغة
-    if (!identifier.trim()) {
+    if (!rawInput) {
       setIdentifierError(t.identifierRequired);
       hasError = true;
     }
@@ -81,15 +94,37 @@ export default function LoginScreen() {
 
     setLoading(true);
 
+    const cleanInput = parseDigits(rawInput);
+    let emailToUse = rawInput;
+
+    // 3. الاستعلام التكيفي: لو المدخل مش إيميل، بنستعلم بالرقم القومي أو phone_number
+    if (!rawInput.includes('@')) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .or(`phone_number.eq.${cleanInput},national_id.eq.${cleanInput}`)
+        .maybeSingle();
+
+      if (profileError || !profile || !profile.email) {
+        console.log('Profile lookup error:', profileError);
+        setLoading(false);
+        setGeneralError(t.alertErrorMessage);
+        return;
+      }
+
+      emailToUse = profile.email;
+    }
+
     // محاولة تسجيل الدخول مع Supabase Auth
-    const { error } = await supabase.auth.signInWithPassword({
-      email: identifier.trim(),
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: emailToUse,
       password: password,
     });
 
     setLoading(false);
 
-    if (error) {
+    if (authError) {
+      console.log('Auth Error:', authError.message);
       setGeneralError(t.alertErrorMessage);
       return;
     }
@@ -157,148 +192,167 @@ export default function LoginScreen() {
               borderColor: '#E2E8F0',
             }}
           >
-          {/* تم سنترة العنوان والوصف في المنتصف */}
-          <Text style={{ fontSize: 26, fontWeight: '800', color: '#0F172A', marginBottom: 6, textAlign: t.textAlign }}>
-            {t.title}
-          </Text>
-          <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 20, textAlign: t.textAlign, lineHeight: 20 }}>
-            {t.subtitle}
-          </Text>
+            {/* العنوان والوصف */}
+            <Text style={{ fontSize: 26, fontWeight: '800', color: '#0F172A', marginBottom: 6, textAlign: t.textAlign }}>
+              {t.title}
+            </Text>
+            <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 20, textAlign: t.textAlign, lineHeight: 20 }}>
+              {t.subtitle}
+            </Text>
 
-          {/* تنبيه خطأ الداتابيز أو عدم تطابق الحساب */}
-          {generalError ? (
-            <View
+            {/* تنبيه الخطأ العام */}
+            {generalError ? (
+              <View
+                style={{
+                  backgroundColor: '#FEF2F2',
+                  borderWidth: 1,
+                  borderColor: '#FCA5A5',
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 18,
+                }}
+              >
+                <Text style={{ color: '#991B1B', fontSize: 12.5, fontWeight: '600', textAlign: t.textAlign, lineHeight: 18 }}>
+                  {generalError}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* حقل المعرف (إيميل / رقم قومي / هاتف) */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: lang === 'ar' ? 'right' : 'left', color: '#334155' }}>
+                {t.identifierLabel}
+              </Text>
+              <TextInput
+                placeholder={t.identifierPlaceholder}
+                value={identifier}
+                onChangeText={(val) => {
+                  setIdentifier(val);
+                  if (val.trim()) setIdentifierError('');
+                  setGeneralError('');
+                }}
+                autoCapitalize="none"
+                placeholderTextColor="#94A3B8"
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: identifierError ? '#DC2626' : '#CBD5E1',
+                  borderRadius: 14,
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  textAlign: t.inputTextAlign,
+                  fontSize: 14.5,
+                  color: '#0F172A',
+                  fontWeight: '500',
+                }}
+              />
+              {identifierError ? (
+                <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                  {identifierError}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* حقل كلمة المرور مع زر إظهار/إخفاء */}
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: lang === 'ar' ? 'right' : 'left', color: '#334155' }}>
+                {t.passwordLabel}
+              </Text>
+              <View
+                style={{
+                  flexDirection: lang === 'ar' ? 'row-reverse' : 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: passwordError ? '#DC2626' : '#CBD5E1',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                }}
+              >
+                <TextInput
+                  placeholder={t.passwordPlaceholder}
+                  value={password}
+                  onChangeText={(val) => {
+                    setPassword(val);
+                    if (val) setPasswordError('');
+                    setGeneralError('');
+                  }}
+                  secureTextEntry={!showPassword}
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    flex: 1,
+                    paddingVertical: 14,
+                    textAlign: t.inputTextAlign,
+                    fontSize: 14.5,
+                    color: '#0F172A',
+                    fontWeight: '500',
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                  style={{ padding: 6 }}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color="#64748B" />
+                  ) : (
+                    <Eye size={20} color="#64748B" />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {passwordError ? (
+                <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                  {passwordError}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* زر نسيت كلمة المرور */}
+            <TouchableOpacity
+              onPress={() => router.push('/auth/forgot-password' as any)}
+              style={{ alignSelf: lang === 'ar' ? 'flex-start' : 'flex-end', marginBottom: 20 }}
+            >
+              <Text style={{ color: '#2563EB', fontSize: 12.5, fontWeight: '700' }}>
+                {t.forgotBtn}
+              </Text>
+            </TouchableOpacity>
+
+            {/* زر تسجيل الدخول */}
+            <TouchableOpacity
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.8}
               style={{
-                backgroundColor: '#FEF2F2',
-                borderWidth: 1,
-                borderColor: '#FCA5A5',
+                backgroundColor: '#1E3A8A',
+                paddingVertical: 16,
                 borderRadius: 14,
-                padding: 12,
-                marginBottom: 18,
+                alignItems: 'center',
+                marginBottom: 16,
+                shadowColor: '#1E3A8A',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 4,
               }}
             >
-              <Text style={{ color: '#991B1B', fontSize: 12.5, fontWeight: '600', textAlign: t.textAlign, lineHeight: 18 }}>
-                {generalError}
-              </Text>
-            </View>
-          ) : null}
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
+                  {t.loginBtn}
+                </Text>
+              )}
+            </TouchableOpacity>
 
-          {/* حقل المعرف (إيميل / رقم قومي / هاتف) */}
-          <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: lang === 'ar' ? 'right' : 'left', color: '#334155' }}>
-              {t.identifierLabel}
-            </Text>
-            <TextInput
-              placeholder={t.identifierPlaceholder}
-              value={identifier}
-              onChangeText={(val) => {
-                setIdentifier(val);
-                if (val.trim()) setIdentifierError('');
-                setGeneralError('');
-              }}
-              autoCapitalize="none"
-              placeholderTextColor="#94A3B8"
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: identifierError ? '#DC2626' : '#CBD5E1',
-                borderRadius: 14,
-                paddingVertical: 14,
-                paddingHorizontal: 16,
-                textAlign: t.inputTextAlign,
-                fontSize: 14.5,
-                color: '#0F172A',
-                fontWeight: '500',
-              }}
-            />
-            {identifierError ? (
-              <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                {identifierError}
+            {/* رابط إنشاء حساب */}
+            <TouchableOpacity onPress={() => router.push('/auth/sign-up' as any)}>
+              <Text style={{ textAlign: 'center', color: '#2563EB', fontWeight: '700', fontSize: 13.5, marginTop: 4 }}>
+                {t.signUpLink}
               </Text>
-            ) : null}
+            </TouchableOpacity>
           </View>
-
-          {/* حقل كلمة المرور */}
-          <View style={{ marginBottom: 12 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 8, textAlign: lang === 'ar' ? 'right' : 'left', color: '#334155' }}>
-              {t.passwordLabel}
-            </Text>
-            <TextInput
-              placeholder={t.passwordPlaceholder}
-              value={password}
-              onChangeText={(val) => {
-                setPassword(val);
-                if (val) setPasswordError('');
-                setGeneralError('');
-              }}
-              secureTextEntry
-              placeholderTextColor="#94A3B8"
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: passwordError ? '#DC2626' : '#CBD5E1',
-                borderRadius: 14,
-                paddingVertical: 14,
-                paddingHorizontal: 16,
-                textAlign: t.inputTextAlign,
-                fontSize: 14.5,
-                color: '#0F172A',
-                fontWeight: '500',
-              }}
-            />
-            {passwordError ? (
-              <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', marginTop: 6, textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                {passwordError}
-              </Text>
-            ) : null}
-          </View>
-
-          {/* زر نسيت كلمة المرور */}
-          <TouchableOpacity
-            onPress={() => router.push('/auth/forgot-password' as any)}
-            style={{ alignSelf: lang === 'ar' ? 'flex-start' : 'flex-end', marginBottom: 20 }}
-          >
-            <Text style={{ color: '#2563EB', fontSize: 12.5, fontWeight: '700' }}>
-              {t.forgotBtn}
-            </Text>
-          </TouchableOpacity>
-
-          {/* زر تسجيل الدخول */}
-          <TouchableOpacity
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.8}
-            style={{
-              backgroundColor: '#1E3A8A',
-              paddingVertical: 16,
-              borderRadius: 14,
-              alignItems: 'center',
-              marginBottom: 16,
-              shadowColor: '#1E3A8A',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-                {t.loginBtn}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          {/* رابط إنشاء حساب */}
-          <TouchableOpacity onPress={() => router.push('/auth/sign-up' as any)}>
-            <Text style={{ textAlign: 'center', color: '#2563EB', fontWeight: '700', fontSize: 13.5, marginTop: 4 }}>
-              {t.signUpLink}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
-  </SafeAreaView>
-);
+      </ScrollView>
+    </SafeAreaView>
+  );
 }

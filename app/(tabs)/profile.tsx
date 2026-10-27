@@ -8,30 +8,22 @@ import {
 } from 'react-native';
 import { UserRound, Globe, Bell, LockKeyhole, LogOut, ChevronRight } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+  // استخدام سياق اللغة الموحد لدعم التغيير اللحظي عبر التطبيق
+  const { lang, toggleLanguage } = useLanguage();
   const [userName, setUserName] = useState<string>('مواطن');
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
       async function loadUserData() {
-        try {
-          const savedLang = await AsyncStorage.getItem('@app_language');
-          if (isMounted && (savedLang === 'en' || savedLang === 'ar')) {
-            setLang(savedLang);
-          }
-        } catch (e) {
-          console.error('Error loading language in ProfileScreen:', e);
-        }
-
         const { data: { user } } = await supabase.auth.getUser();
         if (isMounted && user) {
-          const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'مواطن';
+          const name = user.user_metadata?.full_name || user.email?.split('@')[0] || (lang === 'ar' ? 'مواطن' : 'Citizen');
           setUserName(name);
         }
       }
@@ -39,18 +31,8 @@ export default function ProfileScreen() {
       return () => {
         isMounted = false;
       };
-    }, [])
+    }, [lang])
   );
-
-  const toggleLanguage = async () => {
-    const newLang = lang === 'ar' ? 'en' : 'ar';
-    setLang(newLang);
-    try {
-      await AsyncStorage.setItem('@app_language', newLang);
-    } catch (e) {
-      console.error('Error saving language', e);
-    }
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -91,7 +73,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        
+
         {/* عنوان الصفحة */}
         <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A', textAlign: t.textAlign, marginBottom: 4 }}>
           {t.title}
@@ -100,7 +82,7 @@ export default function ProfileScreen() {
           {t.subtitle}
         </Text>
 
-        {/* كارت البروفايل الرئيسي (بنفس ستايل الكاردات) */}
+        {/* كارت البروفايل الرئيسي */}
         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2, alignItems: 'center', marginBottom: 20 }}>
           <View style={{ backgroundColor: '#EFF6FF', width: 64, height: 64, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#BFDBFE' }}>
             <UserRound size={30} color="#1E3A8A" />
@@ -115,7 +97,7 @@ export default function ProfileScreen() {
 
         {/* خيارات القائمة */}
         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#E2E8F0', overflow: 'hidden', marginBottom: 20, elevation: 2 }}>
-          
+
           {/* إعدادات الحساب */}
           <TouchableOpacity
             onPress={() => router.push('/profile/account' as any)}
@@ -130,7 +112,7 @@ export default function ProfileScreen() {
             <ChevronRight size={18} color="#94A3B8" style={{ transform: [{ scaleX: lang === 'ar' ? -1 : 1 }] }} />
           </TouchableOpacity>
 
-          {/* تبديل اللغة */}
+          {/* تبديل اللغة المربوط بـ LanguageContext الموحد */}
           <TouchableOpacity
             onPress={toggleLanguage}
             style={{ flexDirection: t.flexDirection, alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}

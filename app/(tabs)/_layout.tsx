@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FilePlus2, Home, Map, UserRound, ClipboardList } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useThemeColor } from 'heroui-native';
 import type { ColorValue } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const statusBarStyle = 'dark' as const;
 const icon =
   (Icon: typeof Home) =>
-  ({ color, size }: { color: ColorValue; size: number }) => (
-    <Icon color={color} size={size ?? 23} strokeWidth={2.2} />
-  );
+    ({ color, size }: { color: ColorValue; size: number }) => (
+      <Icon color={color} size={size ?? 23} strokeWidth={2.2} />
+    );
 
 export default function TabLayout() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+  // استخدام سياق اللغة التفاعلي بدلاً من الـ Polling والـ setInterval
+  const { lang } = useLanguage();
 
   const [background, border, accent, muted] = useThemeColor([
     'background',
@@ -22,28 +23,6 @@ export default function TabLayout() {
     'accent',
     'muted',
   ]);
-
-  useEffect(() => {
-    // قراءة اللغة وفحصها باستمرار عند العودة للشاشة
-    const loadAppLanguage = async () => {
-      try {
-        const savedLang = await AsyncStorage.getItem('@app_language');
-        if (savedLang === 'en' || savedLang === 'ar') {
-          setLang(savedLang);
-        }
-      } catch (e) {
-        console.error('Error loading tab layout language', e);
-      }
-    };
-
-    void loadAppLanguage();
-
-    // فحص دوري خفيف كل ثانية لضمان الاستجابة اللحظية عند تغيير اللغة في البروفايل
-    const interval = setInterval(() => {
-      void loadAppLanguage();
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const isRTL = lang === 'ar';
 
@@ -93,7 +72,7 @@ export default function TabLayout() {
         }}
       >
         {/* في حالة العربي يتم تعكيس ترتيب العناصر مصفوفياً ليصبح Home أقصى اليمين فورا */}
-        {isRTL ? screens.reverse() : screens}
+        {isRTL ? [...screens].reverse() : screens}
       </Tabs>
     </>
   );

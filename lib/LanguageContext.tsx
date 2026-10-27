@@ -9,12 +9,13 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType>({
-  lang: 'ar',
-  toggleLanguage: () => {},
+  lang: 'en',
+  toggleLanguage: () => { },
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [lang, setLang] = useState<Language>('ar');
+  // 1. تغيير اللغة الافتراضية لتكون الإنجليزية 'en'
+  const [lang, setLang] = useState<Language>('en');
 
   useEffect(() => {
     async function loadLang() {
@@ -31,14 +32,14 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const toggleLanguage = useCallback(async () => {
-    const nextLang = lang === 'ar' ? 'en' : 'ar';
-    setLang(nextLang);
-    try {
-      await AsyncStorage.setItem('@app_language', nextLang);
-    } catch (e) {
-      console.error('Error saving language', e);
-    }
-  }, [lang]);
+    setLang((prev) => {
+      const nextLang = prev === 'en' ? 'ar' : 'en';
+      AsyncStorage.setItem('@app_language', nextLang).catch((e) =>
+        console.error('Error saving language', e)
+      );
+      return nextLang;
+    });
+  }, []);
 
   const value = useMemo(() => ({ lang, toggleLanguage }), [lang, toggleLanguage]);
 
