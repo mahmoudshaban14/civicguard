@@ -30,7 +30,6 @@ export interface CivicAnalysisResult {
   department: string;
   secondaryIssues: CivicIssueCategory[];
   requiresManualReview: boolean;
-  possibleDuplicate: string;
   recommendedAction: string;
   /** 'gemini' = real vision analysis, 'fallback' = AI unavailable, 'prototype' = local keyword classifier */
   source: 'prototype' | 'gemini' | 'fallback';
@@ -105,7 +104,6 @@ function createResult(
     department: requiresManualReview ? 'Manual Routing' : category.department,
     secondaryIssues,
     requiresManualReview,
-    possibleDuplicate: 'No matching active report found',
     recommendedAction: requiresManualReview
       ? 'Submit the report for manual review or add clearer evidence.'
       : 'Forward the report to the responsible authority for inspection.',

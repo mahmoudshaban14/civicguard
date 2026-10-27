@@ -173,6 +173,21 @@ export async function updateReportStatus(
   if (input.status === 'duplicate' && input.duplicate_of) {
     updatePayload.duplicate_of = input.duplicate_of;
   }
+  if (input.department !== undefined) {
+    updatePayload.department = input.department || null;
+    if (input.department) {
+      const { data: dept } = await supabase
+        .from('departments')
+        .select('id')
+        .ilike('name', input.department)
+        .maybeSingle();
+      if (dept) {
+        updatePayload.assigned_department_id = dept.id;
+      }
+    } else {
+      updatePayload.assigned_department_id = null;
+    }
+  }
 
   const { data: updatedReport, error: updateError } = await supabase
     .from('reports')

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { Button, Typography } from 'heroui-native';
-import { AlertTriangle, Check, MapPin, ShieldCheck, Sparkles } from 'lucide-react-native';
+import { AlertTriangle, MapPin, ShieldCheck, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { AppHeader } from '@/components/civic/AppHeader';
@@ -139,11 +139,7 @@ export default function AnalysisResultScreen() {
           value={analysisResult.explanation}
           icon={<Sparkles size={18} color="#167A62" />}
         />
-        <Row
-          label="Possible Duplicate"
-          value={analysisResult.possibleDuplicate}
-          icon={<Check size={18} color="#167A62" />}
-        />
+
         <Row
           label="Recommended Action"
           value={analysisResult.recommendedAction}

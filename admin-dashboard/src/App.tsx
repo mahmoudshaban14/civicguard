@@ -177,7 +177,7 @@ function App() {
       if (!token) throw new Error('No valid session token found')
 
       const res = await adminApiClient<{ reports: Report[] }>(
-        '/v1/authority/reports',
+        '/v1/authority/reports?limit=1000',
         { token },
       )
       setReports(res.reports ?? [])
@@ -192,8 +192,42 @@ function App() {
   }
 
   useEffect(() => {
-    if (user && profile?.role === 'admin') {
+    if (!user || profile?.role !== 'admin') return
+
+    void loadReportsFromApi()
+
+    const channel = supabase
+      .channel('app-reports-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reports' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newReport = payload.new as Report
+            setReports((current) => {
+              if (current.some((r) => r.id === newReport.id)) return current
+              return [newReport, ...current]
+            })
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as Report
+            setReports((current) =>
+              current.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
+            )
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id: string }).id
+            setReports((current) => current.filter((r) => r.id !== deletedId))
+          }
+        },
+      )
+      .subscribe()
+
+    const pollInterval = window.setInterval(() => {
       void loadReportsFromApi()
+    }, 15000)
+
+    return () => {
+      void supabase.removeChannel(channel)
+      window.clearInterval(pollInterval)
     }
   }, [user, profile])
 

@@ -18,7 +18,7 @@ export const authorityReportsQuerySchema = z.object({
     .optional(),
   severity: z.enum(['Low', 'Medium', 'High', 'Critical', 'Requires Review']).optional(),
   department_id: z.string().guid().optional(),
-  limit: z.coerce.number().min(1).max(100).default(50),
+  limit: z.coerce.number().min(1).max(1000).default(50),
   offset: z.coerce.number().min(0).default(0),
 });
 
@@ -47,6 +47,7 @@ export const updateReportStatusSchema = z.object({
   note: z.string().max(1000).optional(),
   // Only meaningful when status = 'duplicate': the report this one duplicates.
   duplicate_of: z.string().guid().optional(),
+  department: z.string().nullable().optional(),
 });
 
 export type UpdateReportStatusInput = z.infer<typeof updateReportStatusSchema>;

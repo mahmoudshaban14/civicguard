@@ -1,4 +1,4 @@
-﻿
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import {
@@ -9,6 +9,7 @@ import {
   useMap,
 } from 'react-leaflet'
 import { supabase } from './lib/supabase'
+import { adminApiClient } from './lib/api'
 import DuplicatesPanel from './DuplicatesPanel'
 import 'leaflet/dist/leaflet.css'
 import './GISMap.css'
@@ -33,6 +34,7 @@ type Report = {
   longitude: number | null
   image_path: string | null
   description: string | null
+  image_description: string | null
 }
 
 type Position = [number, number]
@@ -536,35 +538,18 @@ function GISMap({ language }: { language: Language }) {
     setError('')
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
-
-      if (userError || !user) {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) {
         throw new Error('Your session has expired. Please sign in again.')
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
+      const res = await adminApiClient<{ reports: Report[] }>(
+        '/v1/authority/reports?limit=1000',
+        { token },
+      )
 
-      if (profileError || profile?.role !== 'admin') {
-        throw new Error('Administrator access is required.')
-      }
-
-      const { data, error: reportsError } = await supabase
-        .from('reports')
-        .select(
-          'id, report_code, category, status, severity, department, created_at, latitude, longitude, image_path, description',
-        )
-        .order('created_at', { ascending: false })
-
-      if (reportsError) throw reportsError
-
-      setReports((data ?? []) as Report[])
+      setReports(res.reports ?? [])
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load reports.',
@@ -574,13 +559,47 @@ function GISMap({ language }: { language: Language }) {
     }
   }
 
- useEffect(() => {
-  const timer = window.setTimeout(() => {
+  useEffect(() => {
     void loadReports()
-  }, 0)
 
-  return () => window.clearTimeout(timer)
-}, [])
+    const channel = supabase
+      .channel('gis-reports-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reports' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newReport = payload.new as Report
+            setReports((current) => {
+              if (current.some((r) => r.id === newReport.id)) return current
+              return [newReport, ...current]
+            })
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as Report
+            setReports((current) =>
+              current.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
+            )
+            setSelected((current) =>
+              current && current.id === updated.id ? { ...current, ...updated } : current,
+            )
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id: string }).id
+            setReports((current) => current.filter((r) => r.id !== deletedId))
+            setSelected((current) => (current && current.id === deletedId ? null : current))
+          }
+        },
+      )
+      .subscribe()
+
+    const pollInterval = window.setInterval(() => {
+      void loadReports()
+    }, 15000)
+
+    return () => {
+      void supabase.removeChannel(channel)
+      window.clearInterval(pollInterval)
+    }
+  }, [])
 
   function uniqueCaseInsensitive(values: (string | null | undefined)[]): string[] {
     const unique = new Map<string, string>()
@@ -856,21 +875,24 @@ function GISMap({ language }: { language: Language }) {
     setSaveSuccess(false)
 
     try {
-      const { data, error: updateError } = await supabase
-        .from('reports')
-        .update({
-          status: editStatus,
-          department: editDepartment || null,
-        })
-        .eq('id', selected.id)
-        .select(
-          'id, report_code, category, status, severity, department, created_at, latitude, longitude, image_path, description',
-        )
-        .single()
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
 
-      if (updateError) throw updateError
+      const res = await adminApiClient<{ report: Report }>(
+        `/v1/authority/reports/${selected.id}/status`,
+        {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify({
+            status: editStatus,
+            department: editDepartment || null,
+            note: `Status updated to ${editStatus} via GIS Map`,
+          }),
+        },
+      )
 
-      const updatedReport = data as Report
+      const updatedReport = res.report as Report
 
       setReports((current) =>
         current.map((report) =>
@@ -1321,6 +1343,16 @@ function GISMap({ language }: { language: Language }) {
                 <p>
                   {selected.description ||
                     getTranslation(language, 'noDescription')}
+                </p>
+              </div>
+
+              <div className="gis-info-card">
+                <span className="gis-info-label">
+                  {getTranslation(language, 'aiImageDescription')}
+                </span>
+                <p>
+                  {selected.image_description?.trim() ||
+                    getTranslation(language, 'noAiImageDescription')}
                 </p>
               </div>
             </div>

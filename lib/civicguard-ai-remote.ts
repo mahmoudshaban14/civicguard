@@ -119,7 +119,6 @@ export async function analyzeWithGemini(input: RemoteAnalysisInput): Promise<Civ
     department: r.department,
     secondaryIssues: r.secondary_issues.map((id) => getCategoryById(id as CivicIssueId).label),
     requiresManualReview: r.requires_manual_review,
-    possibleDuplicate: 'No matching active report found',
     recommendedAction: r.recommended_action || 'Forward the report to the responsible authority for inspection.',
     source: response.source,
     imageDescription: r.image_description,

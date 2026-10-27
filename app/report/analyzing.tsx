@@ -10,7 +10,6 @@ const steps = [
   'Analyzing image...',
   'Detecting problem...',
   'Checking location...',
-  'Checking duplicate reports...',
   'Determining responsible department...',
 ];
 export default function AnalyzingScreen() {
@@ -38,7 +37,7 @@ export default function AnalyzingScreen() {
     return () => animation.stop();
   }, [pulse]);
   useEffect(() => {
-    void analyzeDraft();
+    const analysis = analyzeDraft();
     const interval = setInterval(
       () => setActive((value) => Math.min(value + 1, steps.length)),
       650,
