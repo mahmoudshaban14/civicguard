@@ -36,13 +36,13 @@ export const createReportSchema = z.object({
   image_path: z.string().optional(),
   // Result of POST /v1/reports/analyze. The server reads severity, explanation
   // and confidence from its own stored copy, never from the client.
-  analysis_id: z.string().uuid().optional(),
+  analysis_id: z.string().guid().optional(),
 });
 
 export type CreateReportInput = z.infer<typeof createReportSchema>;
 
 export const getReportParamsSchema = z.object({
-  id: z.string().uuid('Report id must be a valid UUID'),
+  id: z.string().guid('Report id must be a valid UUID'),
 });
 
 export type GetReportParams = z.infer<typeof getReportParamsSchema>;

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api-client';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -81,21 +82,39 @@ export default function LoginScreen() {
 
     setLoading(true);
 
-    // محاولة تسجيل الدخول مع Supabase Auth
-    const { error } = await supabase.auth.signInWithPassword({
-      email: identifier.trim(),
-      password: password,
-    });
+    try {
+      // The backend resolves National ID / phone to an email privately, then
+      // verifies the password with Supabase Auth. It never returns lookup-only
+      // email data to unauthenticated clients.
+      const { session } = await apiClient<{
+        session: { access_token: string; refresh_token: string };
+      }>('/v1/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          identifier: identifier.trim(),
+          password,
+        }),
+      });
 
-    setLoading(false);
+      const { error } = await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
 
-    if (error) {
+      if (error) {
+        setGeneralError(t.alertErrorMessage);
+        return;
+      }
+
+      // Successful login; Supabase persists the session in AsyncStorage.
+      router.replace('/(tabs)');
+    } catch {
+      // Keep the same user-facing message for unknown identifiers and bad
+      // passwords to avoid account enumeration.
       setGeneralError(t.alertErrorMessage);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    // النجاح والتوجيه للواجهة الرئيسية
-    router.replace('/(tabs)');
   }
 
   return (

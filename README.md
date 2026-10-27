@@ -31,7 +31,7 @@ This repository contains:
 ### Backend
 - **Database**: PostgreSQL (Supabase)
 - **Storage**: Supabase Storage (`report-images` private bucket)
-- **Auth**: Supabase Auth (Email / Password with RLS)
+- **Auth**: Supabase Auth (Email / Password with RLS); the backend supports email, National ID, or Egyptian phone login without exposing profile lookups.
 
 ---
 
@@ -56,6 +56,7 @@ This repository contains:
    ```env
    EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
    EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   EXPO_PUBLIC_API_URL=http://localhost:3000
    ```
 
 3. **Start the development server:**
@@ -70,6 +71,23 @@ This repository contains:
    - Scan the terminal QR code with Expo Go to run on a physical device.
 
 ---
+
+### Running the Backend API
+
+1. **Install dependencies:**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+2. **Configure `backend/.env`** using `backend/.env.example`. Keep `SUPABASE_SERVICE_ROLE_KEY` on the server only; never place it in the mobile app or dashboard environment.
+
+3. **Start the API:**
+   ```bash
+   npm run dev
+   ```
+
+Set `EXPO_PUBLIC_API_URL` to an API host reachable by the device (for a physical phone, use your development machine's LAN IP rather than `localhost`). The mobile login screen sends email, National ID, or phone plus password to `POST /v1/auth/login`. The backend resolves non-email identifiers using a restricted server-side query and verifies the password with Supabase Auth. It returns a Supabase session only after successful authentication. The endpoint has a dedicated per-IP rate limit; production deployments with multiple API instances should use a shared rate-limit store or enforce equivalent limits at the gateway.
 
 ### Running the Admin Dashboard
 
