@@ -45,6 +45,7 @@ export async function listAuthorityReports(
       severity,
       confidence,
       description,
+      image_description,
       latitude,
       longitude,
       image_path,
@@ -137,6 +138,30 @@ export async function updateReportStatus(
     }
   }
 
+  // 3b. Linking a duplicate: the target must be a different, existing report
+  if (input.duplicate_of) {
+    if (input.status !== 'duplicate') {
+      throw new AppError(400, 'INVALID_REQUEST', "duplicate_of can only be used with status 'duplicate'");
+    }
+    if (input.duplicate_of === reportId) {
+      throw new AppError(400, 'INVALID_REQUEST', 'A report cannot be a duplicate of itself');
+    }
+    const { data: target, error: targetError } = await supabase
+      .from('reports')
+      .select('id, assigned_department_id')
+      .eq('id', input.duplicate_of)
+      .maybeSingle();
+    if (targetError) {
+      throw new Error(`Failed to verify duplicate target: ${targetError.message}`);
+    }
+    if (
+      !target ||
+      (user.role === 'authority' && target.assigned_department_id !== user.department_id)
+    ) {
+      throw new AppError(404, 'NOT_FOUND', 'Duplicate target report not found');
+    }
+  }
+
   // 4. Update status in database
   const updatePayload: Record<string, unknown> = {
     status: input.status,
@@ -145,6 +170,24 @@ export async function updateReportStatus(
     status_note: input.note ?? null,
     updated_at: new Date().toISOString(),
   };
+  if (input.status === 'duplicate' && input.duplicate_of) {
+    updatePayload.duplicate_of = input.duplicate_of;
+  }
+  if (input.department !== undefined) {
+    updatePayload.department = input.department || null;
+    if (input.department) {
+      const { data: dept } = await supabase
+        .from('departments')
+        .select('id')
+        .ilike('name', input.department)
+        .maybeSingle();
+      if (dept) {
+        updatePayload.assigned_department_id = dept.id;
+      }
+    } else {
+      updatePayload.assigned_department_id = null;
+    }
+  }
 
   const { data: updatedReport, error: updateError } = await supabase
     .from('reports')

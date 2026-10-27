@@ -1,17 +1,16 @@
 import { Image, View } from 'react-native';
 import { Button, Typography } from 'heroui-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { Camera, Map, RotateCw } from 'lucide-react-native';
+import { Camera, Map } from 'lucide-react-native';
 import { AppHeader } from '@/components/civic/AppHeader';
 import { Screen } from '@/components/civic/Screen';
 import { StatusBadge } from '@/components/civic/StatusBadge';
 import { Timeline } from '@/components/civic/Timeline';
-import { SAMPLE_IMAGES } from '@/lib/civicguard-data';
 import { useCivicGuard } from '@/lib/civicguard-store';
 
 export default function ReportDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { reports, advanceReportStatus } = useCivicGuard();
+  const { reports } = useCivicGuard();
   const report = reports.find((item) => item.id === id);
   if (!report)
     return (
@@ -28,11 +27,20 @@ export default function ReportDetailsScreen() {
         showBack
         right={<StatusBadge value={report.status} />}
       />
-      <Image
-        source={report.imageUri ? { uri: report.imageUri } : SAMPLE_IMAGES[report.imageKey]}
-        style={{ width: '100%', height: 220, borderRadius: 28 }}
-        resizeMode="cover"
-      />
+      {report.imageUri ? (
+        <Image
+          source={{ uri: report.imageUri }}
+          style={{ width: '100%', height: 220, borderRadius: 28 }}
+          resizeMode="cover"
+        />
+      ) : (
+        <View
+          style={{ width: '100%', height: 220, borderRadius: 28 }}
+          className="bg-surface border-border items-center justify-center border"
+        >
+          <Typography.Paragraph className="text-muted text-sm">No photo</Typography.Paragraph>
+        </View>
+      )}
       <View className="border-border bg-surface my-4 rounded-3xl border p-5">
         <View className="mb-4 flex-row items-center justify-between">
           <View>
@@ -63,12 +71,6 @@ export default function ReportDetailsScreen() {
           Your report is currently being handled by the {report.department}.
         </Typography.Paragraph>
       </View>
-      {report.status !== 'Resolved' ? (
-        <Button className="mb-3" onPress={() => advanceReportStatus(report.id)}>
-          <RotateCw size={18} color="white" />
-          <Button.Label>Advance Status</Button.Label>
-        </Button>
-      ) : null}
       <View className="flex-row gap-3">
         <Button variant="secondary" className="flex-1" onPress={() => router.push('/(tabs)/map')}>
           <Map size={18} color="#167A62" />

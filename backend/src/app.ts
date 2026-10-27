@@ -10,6 +10,7 @@ import { analysisRouter } from './modules/analysis/routes.js';
 import { uploadsRouter } from './modules/uploads/routes.js';
 import { notificationsRouter } from './modules/notifications/routes.js';
 import { authorityRouter } from './modules/authority/routes.js';
+import { authRouter } from './modules/auth/routes.js';
 
 export const app = express();
 
@@ -77,6 +78,7 @@ app.get('/health', (_req, res) => {
 });
 
 // V1 Routes
+app.use('/v1/auth', authRouter);
 // Must be mounted before reportsRouter so /analyze is never read as a report id
 app.use('/v1/reports/analyze', analysisRouter);
 app.use('/v1/reports', reportsRouter);

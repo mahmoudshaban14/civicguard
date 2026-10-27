@@ -9,6 +9,7 @@ import {
   assignReportDepartmentSchema,
   updateReportActionStatusSchema,
 } from './schema.js';
+import { listReportDuplicates } from '../duplicates/service.js';
 import {
   listAuthorityReports,
   updateReportStatus,
@@ -32,6 +33,20 @@ authorityRouter.get(
         req.query as unknown as import('./schema.js').AuthorityReportsQuery,
       );
       res.json({ reports });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /v1/authority/reports/:id/duplicates  (admin-only information, never shown to citizens)
+authorityRouter.get(
+  '/reports/:id/duplicates',
+  validate({ params: reportIdParamsSchema }),
+  async (req, res, next) => {
+    try {
+      const duplicates = await listReportDuplicates(req.user!, req.params.id as string);
+      res.json({ duplicates });
     } catch (err) {
       next(err);
     }

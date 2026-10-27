@@ -1988,3 +1988,2247 @@ html[dir="ltr"] .reports-section td {
 .dashboard[dir="ltr"] .resolution-rate-card .resolution-rate-track {
   direction: ltr;
 }
+
+
+/* AI-generated image description in the reports table */
+.ai-image-description-cell {
+  max-width: 260px;
+  min-width: 160px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+  font-size: 13px;
+}
+.export-button {
+  padding: 9px 14px;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #17365d;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.export-button:hover:not(:disabled) { background: #eef4fb; }
+.export-button:disabled { opacity: 0.5; cursor: not-allowed; }
+@media print {
+  .reports-section .section-heading,
+  .export-button { display: none !important; }
+}
+/* Reports toolbar refinement */
+.dashboard .reports-section .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.dashboard .reports-section .reports-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.dashboard .reports-section .reports-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashboard .reports-section .reports-actions .export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 17px;
+  border: 1px solid #dbe4ef;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #203650;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease,
+    box-shadow 160ms ease, transform 160ms ease;
+}
+
+.dashboard .reports-section .reports-actions .export-button:first-child {
+  border-color: #1d64d8;
+  background: #1d64d8;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(29, 100, 216, 0.15);
+}
+
+.dashboard .reports-section .reports-actions .export-button:first-child:hover:not(:disabled) {
+  background: #1855b8;
+  border-color: #1855b8;
+}
+
+.dashboard .reports-section .reports-actions .export-button:last-child:hover:not(:disabled) {
+  background: #f3f7fc;
+  border-color: #b9cbe0;
+}
+
+.dashboard .reports-section .reports-actions .export-button:focus-visible {
+  outline: 3px solid rgba(29, 100, 216, 0.2);
+  outline-offset: 2px;
+}
+
+.dashboard .reports-section .reports-actions .export-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.dashboard .reports-section .reports-filter select {
+  width: auto;
+  min-width: 155px;
+  max-width: 210px;
+  min-height: 42px;
+  padding: 0 34px 0 13px;
+  border: 1px solid #dbe4ef;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+html[dir="rtl"] .dashboard .reports-section .reports-toolbar {
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .dashboard .reports-section .section-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .dashboard .reports-section .reports-toolbar {
+    width: 100%;
+    justify-content: flex-start;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard .reports-section .reports-actions {
+    width: 100%;
+  }
+
+  .dashboard .reports-section .reports-actions .export-button {
+    flex: 1 1 120px;
+  }
+
+  .dashboard .reports-section .reports-filter,
+  .dashboard .reports-section .reports-filter select {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* CivicGuard Reports redesign v2 - Command Center */
+
+.dashboard .reports-section {
+  padding: 0 !important;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #dce4ee;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(15, 35, 60, 0.07);
+}
+
+/* Command-center header */
+.dashboard .reports-section .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin: 0;
+  padding: 28px 30px;
+  color: #ffffff;
+  background: linear-gradient(120deg, #10243d 0%, #183957 100%);
+  border: 0;
+  border-bottom: 3px solid #3282d8;
+}
+
+.dashboard .reports-heading-copy {
+  flex: 1 1 230px;
+  min-width: 0;
+}
+
+.dashboard .reports-heading-copy h2 {
+  margin: 0;
+  color: #ffffff !important;
+  font-size: 25px;
+  font-weight: 760;
+  letter-spacing: -0.4px;
+  line-height: 1.4;
+}
+
+.dashboard .reports-heading-copy .page-description {
+  margin: 7px 0 0;
+  color: #c2d1e2 !important;
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 1.8;
+  transform: none;
+}
+
+/* Toolbar */
+.dashboard .reports-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dashboard .reports-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboard .reports-actions .export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 41px;
+  padding: 0 15px;
+  border: 1px solid #49627e;
+  border-radius: 7px;
+  background: #203d5b;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.dashboard .reports-actions .export-button:first-child {
+  border-color: #4a9af0;
+  background: #2878c7;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.dashboard .reports-actions .export-button:first-child:hover:not(:disabled) {
+  border-color: #70b3ff;
+  background: #2167ad;
+}
+
+.dashboard .reports-actions .export-button:last-child:hover:not(:disabled) {
+  border-color: #829ab4;
+  background: #2b4b6d;
+}
+
+.dashboard .reports-actions .export-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dashboard .reports-filter {
+  min-width: 160px;
+}
+
+.dashboard .reports-filter select {
+  width: 100%;
+  min-height: 41px;
+  padding: 0 32px 0 12px;
+  border: 1px solid #49627e;
+  border-radius: 7px;
+  background-color: #ffffff;
+  color: #213951;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Report list panel */
+.dashboard .reports-section .table-wrapper {
+  width: auto;
+  margin: 22px;
+  overflow-x: auto;
+  border: 1px solid #dfe6ef;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.dashboard .reports-section table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: separate;
+  border-spacing: 0;
+  white-space: normal;
+}
+
+.dashboard .reports-section thead th {
+  padding: 15px 15px;
+  color: #52657b !important;
+  background: #eaf0f7;
+  border-top: 0;
+  border-bottom: 1px solid #d9e2ed;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15px;
+  text-transform: none;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.dashboard .reports-section tbody td {
+  padding: 15px;
+  color: #354a62;
+  background: #ffffff;
+  border-bottom: 1px solid #e9eef4;
+  font-size: 12px;
+  line-height: 1.65;
+  vertical-align: middle;
+}
+
+.dashboard .reports-section tbody tr {
+  transition: background 150ms ease;
+}
+
+.dashboard .reports-section tbody tr:hover td {
+  background: #f1f6fc;
+}
+
+.dashboard .reports-section tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dashboard .reports-section td strong {
+  color: #1c4776;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dashboard .reports-section .ai-image-description-cell {
+  min-width: 180px;
+  max-width: 300px;
+  color: #53667d;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Status labels */
+.dashboard .reports-section .status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 9px;
+  border: 1px solid #d7e2ef;
+  border-radius: 6px;
+  background: #edf3fa;
+  color: #385674;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+/* Inline status editor */
+.dashboard .reports-section tbody select {
+  min-height: 35px;
+  max-width: 190px;
+  padding: 5px 26px 5px 9px;
+  border: 1px solid #cbd8e7;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #29435e;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+/* Keyboard accessibility */
+.dashboard .reports-section button:focus-visible,
+.dashboard .reports-section select:focus-visible {
+  outline: 3px solid rgba(63, 145, 226, 0.35);
+  outline-offset: 2px;
+}
+
+/* Arabic layout */
+html[dir="rtl"] .dashboard .reports-heading-copy,
+html[dir="rtl"] .dashboard .reports-heading-copy .page-description {
+  text-align: right;
+}
+
+html[dir="rtl"] .dashboard .reports-toolbar {
+  justify-content: flex-start;
+}
+
+html[dir="rtl"] .dashboard .reports-section .table-wrapper {
+  direction: rtl;
+}
+
+html[dir="rtl"] .dashboard .reports-section thead th,
+html[dir="rtl"] .dashboard .reports-section tbody td {
+  text-align: right;
+}
+
+html[dir="ltr"] .dashboard .reports-heading-copy,
+html[dir="ltr"] .dashboard .reports-heading-copy .page-description {
+  text-align: left;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .dashboard .reports-section .section-heading {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 23px;
+  }
+
+  .dashboard .reports-toolbar {
+    justify-content: flex-start;
+  }
+
+  .dashboard .reports-section .table-wrapper {
+    margin: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard .reports-heading-copy h2 {
+    font-size: 22px;
+  }
+
+  .dashboard .reports-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard .reports-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard .reports-actions .export-button {
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .dashboard .reports-filter,
+  .dashboard .reports-filter select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .dashboard .reports-section .table-wrapper {
+    margin: 12px;
+  }
+}
+
+/* CivicGuard topbar refinement */
+.dashboard .topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 58px;
+}
+
+.dashboard .topbar h1:empty {
+  display: none;
+}
+
+.dashboard .topbar:has(h1:empty) {
+  justify-content: flex-end;
+}
+
+.dashboard .language-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 104px;
+  padding: 0 16px;
+  border: 1px solid #cbd8e7;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #193653;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  box-shadow: 0 2px 6px rgba(16, 36, 61, 0.05);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease,
+    color 160ms ease, box-shadow 160ms ease;
+}
+
+.dashboard .language-toggle:hover {
+  border-color: #347fc5;
+  background: #edf5ff;
+  color: #15579a;
+  box-shadow: 0 4px 12px rgba(16, 36, 61, 0.09);
+  transform: none;
+}
+
+.dashboard .language-toggle:focus-visible {
+  outline: 3px solid rgba(52, 127, 197, 0.28);
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .dashboard .topbar:has(h1:empty) {
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .dashboard .language-toggle {
+    align-self: auto;
+  }
+}
+
+/* CivicGuard Notification Center */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-menu-wrapper {
+  position: relative;
+}
+
+.notification-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--cg-border);
+  border-radius: 12px;
+  background: var(--cg-surface);
+  color: var(--cg-navy);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  inset-inline-end: -5px;
+  min-width: 19px;
+  padding: 2px 5px;
+  border: 2px solid var(--cg-surface);
+  border-radius: 20px;
+  background: var(--cg-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.sidebar-notification-count {
+  margin-inline-start: auto;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: #e8efff;
+  color: var(--cg-blue);
+  font-size: 11px;
+}
+
+.notification-dropdown {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 12px);
+  inset-inline-end: 0;
+  width: min(390px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid var(--cg-border);
+  border-radius: 16px;
+  background: var(--cg-surface);
+  box-shadow: 0 18px 48px rgba(23, 55, 95, .16);
+}
+
+.notification-dropdown-header,
+.notifications-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--cg-border);
+}
+
+.notification-dropdown-list,
+.notification-page-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-dropdown-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--cg-border);
+  background: var(--cg-surface);
+  color: var(--cg-text);
+  text-align: start;
+}
+
+.notification-item:hover {
+  background: var(--cg-background);
+}
+
+.notification-item-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notification-item-content strong,
+.notification-card-content h3 {
+  color: var(--cg-navy);
+  font-size: 13px;
+}
+
+.notification-item-content span,
+.notification-card-content p {
+  overflow-wrap: anywhere;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.notification-item-content small,
+.notification-card-content time {
+  color: var(--cg-text-muted);
+  font-size: 11px;
+}
+
+.notification-item.is-unread,
+.notification-card.is-unread {
+  background: #f3f7ff;
+}
+
+.notification-unread-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--cg-blue);
+}
+
+.notification-text-button,
+.notification-view-all,
+.notification-report-link {
+  border: 0;
+  background: transparent;
+  color: var(--cg-blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.notification-view-all {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+}
+
+.notification-empty,
+.notification-error {
+  padding: 20px 16px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.notification-error,
+.notification-page-error {
+  color: var(--cg-danger);
+}
+
+.notifications-page {
+  padding: 24px 0;
+}
+
+.notifications-page-heading {
+  padding: 0 0 20px;
+  border-bottom: 0;
+}
+
+.notifications-page-heading h2 {
+  margin: 0 0 8px;
+  color: var(--cg-navy);
+  font-size: 24px;
+}
+
+.notifications-page-heading p {
+  margin: 0;
+  color: var(--cg-text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.notifications-mark-all,
+.notification-filter,
+.notification-mark-read {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--cg-border);
+  border-radius: 10px;
+  background: var(--cg-surface);
+  color: var(--cg-navy);
+  font-size: 12px;
+}
+
+.notification-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.notification-filter.active {
+  border-color: var(--cg-blue);
+  background: #edf3ff;
+  color: var(--cg-blue);
+}
+
+.notification-page-list {
+  gap: 10px;
+}
+
+.notification-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--cg-border);
+  border-radius: 14px;
+  background: var(--cg-surface);
+}
+
+.notification-card-icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #eaf1ff;
+  color: var(--cg-blue);
+}
+
+.notification-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-card-content h3 {
+  margin: 1px 0 7px;
+}
+
+.notification-card-content p {
+  margin: 0 0 9px;
+}
+
+.notification-report-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.notification-page-empty,
+.notification-page-error {
+  display: flex;
+  min-height: 160px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  border: 1px dashed var(--cg-border);
+  border-radius: 14px;
+  background: var(--cg-surface);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .notifications-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .notification-card {
+    gap: 10px;
+    padding: 13px;
+  }
+}
+
+/* =====================================================
+   CivicGuard GIS page â€” aligned with Reports page
+   ===================================================== */
+
+.dashboard .gis-section {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 28px;
+  padding: 26px;
+  overflow: hidden;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.045);
+}
+
+.dashboard .gis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.dashboard .gis-header > div {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.dashboard .gis-header .page-description {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+.dashboard .gis-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 1px solid #1d4ed8;
+  border-radius: 9px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.dashboard .gis-refresh:hover:not(:disabled) {
+  background: #1e40af;
+  box-shadow: 0 4px 10px rgba(29, 78, 216, 0.18);
+}
+
+.dashboard .gis-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 24px;
+}
+
+.dashboard .gis-metric {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-align: start;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.dashboard .gis-metric:hover {
+  border-color: #bfdbfe;
+  transform: translateY(-1px);
+}
+
+.dashboard .gis-metric span {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.dashboard .gis-metric strong {
+  margin-top: 8px;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 750;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard .gis-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 20px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.dashboard .gis-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.dashboard .gis-filters select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.dashboard .gis-filters select:hover {
+  border-color: #94a3b8;
+}
+
+.dashboard .gis-filters select:focus-visible {
+  outline: 3px solid rgba(63, 145, 226, 0.25);
+  outline-offset: 2px;
+  border-color: #3f91e2;
+}
+
+.dashboard .gis-view-toggle {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+.dashboard .gis-view-toggle button {
+  min-height: 38px;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #475569;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.dashboard .gis-view-toggle button:hover:not(.active) {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.dashboard .gis-view-toggle button.active {
+  background: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(29, 78, 216, 0.2);
+}
+
+.dashboard .gis-map-frame {
+  height: 520px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dbe3ee;
+  border-radius: 12px;
+  background: #f1f5f9;
+}
+
+.dashboard .gis-legend {
+  gap: 12px 18px;
+  margin: 4px 0 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.dashboard .gis-legend > strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.dashboard .gis-table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.dashboard .gis-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.dashboard .gis-table th,
+.dashboard .gis-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e8edf4;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.65;
+  vertical-align: middle;
+}
+
+.dashboard .gis-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.dashboard .gis-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dashboard .gis-table tbody tr {
+  transition: background 140ms ease;
+}
+
+.dashboard .gis-table tbody tr:hover,
+.dashboard .gis-table tbody tr.selected {
+  background: #eff6ff;
+}
+
+.dashboard .gis-table tbody tr:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+}
+
+.dashboard .gis-table td button {
+  padding: 8px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.dashboard .gis-table td button:hover {
+  background: #dbeafe;
+}
+
+.dashboard .gis-notice {
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.dashboard .gis-error {
+  border-radius: 10px;
+  line-height: 1.7;
+}
+
+.dashboard .gis-loading {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Match the Reports page's Arabic and English alignment */
+html[dir="rtl"] .dashboard .gis-section {
+  direction: rtl;
+}
+
+html[dir="rtl"] .dashboard .gis-header {
+  text-align: right;
+}
+
+html[dir="rtl"] .dashboard .gis-filters {
+  direction: rtl;
+}
+
+html[dir="rtl"] .dashboard .gis-filters select {
+  text-align: right;
+}
+
+html[dir="rtl"] .dashboard .gis-table {
+  direction: rtl;
+}
+
+html[dir="rtl"] .dashboard .gis-table th,
+html[dir="rtl"] .dashboard .gis-table td {
+  text-align: right;
+}
+
+html[dir="ltr"] .dashboard .gis-section {
+  direction: ltr;
+}
+
+html[dir="ltr"] .dashboard .gis-table th,
+html[dir="ltr"] .dashboard .gis-table td {
+  text-align: left;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .dashboard .gis-section {
+    padding: 22px;
+  }
+
+  .dashboard .gis-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard .gis-map-frame {
+    height: 460px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .dashboard .gis-section {
+    padding: 15px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+  }
+
+  .dashboard .gis-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .dashboard .gis-header > div {
+    flex-basis: auto;
+  }
+
+  .dashboard .gis-refresh {
+    width: 100%;
+  }
+
+  .dashboard .gis-metrics {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .dashboard .gis-metric {
+    padding: 16px;
+  }
+
+  .dashboard .gis-metric strong {
+    font-size: 25px;
+  }
+
+  .dashboard .gis-filters {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+    padding: 14px;
+  }
+
+  .dashboard .gis-filters select {
+    min-height: 44px;
+  }
+
+  .dashboard .gis-view-toggle {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard .gis-view-toggle button {
+    flex: 1;
+    padding-inline: 10px;
+  }
+
+  .dashboard .gis-map-frame {
+    height: 380px;
+    border-radius: 10px;
+  }
+
+  .dashboard .gis-legend {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .dashboard .gis-table-wrap {
+    border-radius: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard .gis-metric,
+  .dashboard .gis-refresh,
+  .dashboard .gis-view-toggle button,
+  .dashboard .gis-table tbody tr {
+    transition: none;
+  }
+}
+
+/* GIS header â€” match the Reports page heading */
+.dashboard .gis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin: -26px -26px 22px;
+  padding: 28px 30px;
+  color: #ffffff;
+  background: linear-gradient(120deg, #12345a 0%, #1d4e80 58%, #28659a 100%);
+  border-radius: 13px 13px 0 0;
+  box-sizing: border-box;
+}
+
+.dashboard .gis-header .page-description {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.dashboard .gis-header h1,
+.dashboard .gis-header h2,
+.dashboard .gis-header h3 {
+  color: #ffffff;
+}
+
+.dashboard .gis-header .gis-refresh {
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .dashboard .gis-header {
+    margin: -22px -22px 20px;
+    padding: 23px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard .gis-header {
+    margin: -15px -15px 18px;
+    padding: 20px 18px;
+    border-radius: 11px 11px 0 0;
+  }
+}
+
+/* Exact same header background as Reports page */
+.dashboard .gis-header {
+  background: linear-gradient(120deg, #10243d 0%, #183957 100%) !important;
+  border: 0 !important;
+  border-bottom: 3px solid #3282d8 !important;
+  color: #ffffff !important;
+}
+
+.dashboard .gis-header .page-description {
+  color: #c2d1e2 !important;
+}
+
+.dashboard .gis-header h1,
+.dashboard .gis-header h2,
+.dashboard .gis-header h3 {
+  color: #ffffff !important;
+}
+
+/* GIS page title aligned with the Reports heading */
+.dashboard .gis-header > div h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 25px;
+  font-weight: 760;
+  letter-spacing: -0.4px;
+  line-height: 1.4;
+}
+/* CivicGuard formal sign-out button refinement */
+.sidebar .sidebar-signout {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.24);
+  border-radius: 9px;
+  color: #fca5a5;
+  font-weight: 600;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.sidebar .sidebar-signout:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(248, 113, 113, 0.48);
+  color: #fecaca;
+}
+
+.sidebar .sidebar-signout:active {
+  transform: translateY(1px);
+}
+
+.sidebar .sidebar-signout:focus-visible {
+  outline: 2px solid #f87171;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar .sidebar-signout {
+    transition: none;
+  }
+
+  .sidebar .sidebar-signout:active {
+    transform: none;
+  }
+}
+
+
+/* CivicGuard notification dropdown visual restoration */
+.dashboard .notification-dropdown {
+  width: min(410px, calc(100vw - 28px));
+  overflow: hidden;
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(15, 35, 60, 0.22);
+}
+
+.dashboard .notification-dropdown-header {
+  padding: 16px 18px;
+  background: linear-gradient(120deg, #10243d 0%, #183957 100%);
+  border-bottom: 3px solid #3282d8;
+  color: #ffffff;
+}
+
+.dashboard .notification-dropdown-header > strong {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.dashboard .notification-dropdown-header .notifications-mark-all {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 11px;
+  transition: background-color 160ms ease;
+}
+
+.dashboard .notification-dropdown-header .notifications-mark-all:hover {
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.dashboard .notification-dropdown-list {
+  max-height: 370px;
+  overflow-y: auto;
+}
+
+.dashboard .notification-dropdown .notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid #e8edf4;
+  background: #ffffff;
+  color: #24364b;
+  text-align: start;
+  transition: background-color 150ms ease;
+}
+
+.dashboard .notification-dropdown .notification-item:hover {
+  background: #f5f8fc;
+}
+
+/* Match the actual "unread" class used by App.tsx */
+.dashboard .notification-dropdown .notification-item.unread {
+  background: #edf4ff;
+  box-shadow: inset 3px 0 0 #3282d8;
+}
+
+.dashboard .notification-dropdown .notification-item > div {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashboard .notification-dropdown .notification-item strong {
+  color: #17365d;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.dashboard .notification-dropdown .notification-item p {
+  margin: 0;
+  color: #52647a;
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.dashboard .notification-dropdown .notification-item small {
+  color: #7b899a;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.dashboard .notification-dropdown .notification-mark-read {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #c8d9ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d4e80;
+  cursor: pointer;
+}
+
+.dashboard .notification-dropdown .notification-mark-read:hover {
+  border-color: #3282d8;
+  background: #e5efff;
+}
+
+.dashboard .notification-dropdown .notification-empty,
+.dashboard .notification-dropdown .notification-error {
+  margin: 0;
+  padding: 22px 18px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.dashboard .notification-dropdown .view-all-notifications {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  border: 0;
+  border-top: 1px solid #e1e9f2;
+  background: #f7faff;
+  color: #1d4e80;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.dashboard .notification-dropdown .view-all-notifications:hover {
+  background: #eaf2ff;
+}
+
+.dashboard .notification-dropdown button:focus-visible {
+  outline: 2px solid #3282d8;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .dashboard .notification-dropdown {
+    width: min(380px, calc(100vw - 24px));
+  }
+
+  .dashboard .notification-dropdown-header {
+    gap: 8px;
+    padding: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard .notification-dropdown * {
+    transition: none !important;
+  }
+}
+
+/* CivicGuard polished sidebar design */
+.dashboard .sidebar {
+  width: 250px;
+  padding: 28px 18px 18px;
+  background: linear-gradient(180deg, #102a46 0%, #0c2038 100%);
+  color: #f5f8fc;
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 6px 0 28px rgba(12, 32, 56, 0.12);
+}
+
+.dashboard .sidebar .brand {
+  position: relative;
+  gap: 12px;
+  padding: 0 3px 23px;
+  margin-bottom: 23px;
+  border-bottom: 1px solid rgba(205, 222, 242, 0.13);
+}
+
+.dashboard .sidebar .brand-icon {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  border-radius: 13px;
+  background: linear-gradient(145deg, #2c6597, #1a456f);
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 800;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard .sidebar .brand .sidebar-admin-name {
+  margin: 0;
+  padding: 0;
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.6;
+  text-align: start;
+}
+
+.dashboard .sidebar .brand > div:last-child p {
+  margin: 4px 0 0;
+  color: #a9bfd7;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.dashboard .sidebar .menu-label {
+  margin: 0 9px 12px;
+  color: #8fa9c6;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.4px;
+  line-height: 1.6;
+}
+
+.dashboard .sidebar .navigation {
+  gap: 6px;
+}
+
+.dashboard .sidebar .nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 0 13px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #c0d0e2;
+  font-size: 13px;
+  font-weight: 550;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease,
+    border-color 160ms ease;
+}
+
+.dashboard .sidebar .nav-link svg {
+  flex: 0 0 19px;
+  width: 19px;
+  height: 19px;
+  color: #9eb6d0;
+  transition: color 160ms ease;
+}
+
+.dashboard .sidebar .nav-link:hover {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.065);
+  color: #ffffff;
+}
+
+.dashboard .sidebar .nav-link:hover svg {
+  color: #d8eaff;
+}
+
+.dashboard .sidebar .nav-link.active {
+  border-color: rgba(133, 190, 247, 0.17);
+  background: linear-gradient(
+    100deg,
+    rgba(55, 111, 166, 0.38),
+    rgba(40, 81, 123, 0.2)
+  );
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.dashboard .sidebar .nav-link.active::before {
+  position: absolute;
+  inset-block: 9px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 4px;
+  background: #78b9f5;
+  content: "";
+}
+
+.dashboard .sidebar .nav-link.active svg {
+  color: #9dceff;
+}
+
+.dashboard .sidebar .sidebar-bottom {
+  margin-top: auto;
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px solid rgba(205, 222, 242, 0.13);
+  border-radius: 0;
+  background: transparent;
+}
+
+.dashboard .sidebar .sidebar-signout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.075);
+  color: #f4b5b5;
+  font-size: 12px;
+  font-weight: 650;
+  transition: background 160ms ease, border-color 160ms ease,
+    color 160ms ease;
+}
+
+.dashboard .sidebar .sidebar-signout:hover {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(239, 68, 68, 0.14);
+  color: #ffe0e0;
+}
+
+.dashboard .sidebar .sidebar-signout:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .dashboard .sidebar {
+    width: 100%;
+    padding: 18px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .dashboard .sidebar .brand {
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
+
+  .dashboard .sidebar .navigation {
+    gap: 5px;
+  }
+
+  .dashboard .sidebar .nav-link {
+    min-height: 44px;
+  }
+
+  .dashboard .sidebar .sidebar-bottom {
+    margin-top: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard .sidebar .nav-link,
+  .dashboard .sidebar .nav-link svg,
+  .dashboard .sidebar .sidebar-signout {
+    transition: none;
+  }
+}
+/* CivicGuard signout color refinement */
+.dashboard .sidebar .sidebar-signout {
+  color: #ffd0d0;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(255, 160, 160, 0.3);
+}
+
+.dashboard .sidebar .sidebar-signout:hover {
+  color: #ffffff;
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(255, 180, 180, 0.55);
+}
+/* =====================================================
+   CivicGuard Notifications Center redesign v1
+   Matches the Reports and GIS Map visual identity
+   ===================================================== */
+
+.dashboard .notifications-page {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 28px;
+  padding: 0 !important;
+  overflow: hidden;
+  color: #263445;
+  background: #f8fafc;
+  border: 1px solid #dce4ee;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(15, 35, 60, 0.07);
+}
+
+/* Dark command-center header */
+.dashboard .notifications-page .notifications-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin: 0;
+  padding: 28px 30px;
+  background: linear-gradient(120deg, #10243d 0%, #183957 100%);
+  border: 0;
+  border-bottom: 3px solid #3282d8;
+}
+
+.dashboard .notifications-page .notifications-page-heading > div {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.dashboard .notifications-page .notifications-page-heading h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 25px;
+  font-weight: 760;
+  letter-spacing: -0.4px;
+  line-height: 1.4;
+}
+
+.dashboard .notifications-page .notifications-page-heading p {
+  margin: 7px 0 0;
+  color: #c2d1e2;
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 1.8;
+}
+
+/* Header action */
+.dashboard .notifications-page .notifications-mark-all {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 17px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 9px;
+  background: #ffffff;
+  color: #173957;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.dashboard .notifications-page .notifications-mark-all:hover:not(:disabled) {
+  background: #eaf2fb;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.dashboard .notifications-page .notifications-mark-all:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Notification list spacing */
+.dashboard .notifications-page .notification-page-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+}
+
+/* Individual notification panel */
+.dashboard .notifications-page .notification-card {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #dfe6ef;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 7px rgba(15, 35, 60, 0.035);
+  transition: border-color 150ms ease, box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.dashboard .notifications-page .notification-card:hover {
+  border-color: #c5d5e8;
+  box-shadow: 0 5px 15px rgba(15, 35, 60, 0.07);
+}
+
+.dashboard .notifications-page .notification-card.is-unread {
+  border-inline-start: 4px solid #3282d8;
+  background: #f3f7ff;
+}
+
+.dashboard .notifications-page .notification-card.is-read {
+  border-inline-start: 4px solid #d8e1ec;
+  background: #ffffff;
+}
+
+.dashboard .notifications-page .notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  padding: 19px 21px;
+  border: 0;
+  background: transparent;
+  color: #263445;
+  text-align: start;
+}
+
+.dashboard .notifications-page .notification-item:hover {
+  background: transparent;
+}
+
+.dashboard .notifications-page .notification-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dashboard .notifications-page .notification-content h3 {
+  margin: 0 0 8px;
+  color: #1c4776;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.dashboard .notifications-page .notification-card.is-unread
+.notification-content h3 {
+  color: #173957;
+}
+
+.dashboard .notifications-page .notification-content p {
+  margin: 0 0 10px;
+  color: #52657b;
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.dashboard .notifications-page .notification-content small {
+  display: block;
+  color: #7b899a;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* Mark-one-as-read action */
+.dashboard .notifications-page .notification-mark-read {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 11px;
+  border: 1px solid #c8d9ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d4e80;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.dashboard .notifications-page .notification-mark-read:hover {
+  border-color: #3282d8;
+  background: #e5efff;
+}
+
+/* Loading, empty and error states */
+.dashboard .notifications-page .notification-empty,
+.dashboard .notifications-page .notification-error {
+  margin: 22px;
+  padding: 30px 22px;
+  border: 1px solid #dfe6ef;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 13px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.dashboard .notifications-page .notification-empty {
+  color: #64748b;
+}
+
+.dashboard .notifications-page .notification-error {
+  border-color: #fecaca;
+  background: #fff7f7;
+  color: #b42318;
+}
+
+/* Arabic and English alignment */
+html[dir="rtl"] .dashboard .notifications-page .notifications-page-heading,
+html[dir="rtl"] .dashboard .notifications-page .notification-item {
+  direction: rtl;
+}
+
+html[dir="rtl"] .dashboard .notifications-page .notifications-page-heading > div,
+html[dir="rtl"] .dashboard .notifications-page .notification-content {
+  text-align: right;
+}
+
+html[dir="ltr"] .dashboard .notifications-page .notifications-page-heading,
+html[dir="ltr"] .dashboard .notifications-page .notification-item {
+  direction: ltr;
+}
+
+html[dir="ltr"] .dashboard .notifications-page .notifications-page-heading > div,
+html[dir="ltr"] .dashboard .notifications-page .notification-content {
+  text-align: left;
+}
+
+/* Keyboard accessibility */
+.dashboard .notifications-page button:focus-visible {
+  outline: 3px solid rgba(63, 145, 226, 0.4);
+  outline-offset: 3px;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .dashboard .notifications-page .notifications-page-heading {
+    padding: 23px;
+  }
+
+  .dashboard .notifications-page .notification-page-list {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard .notifications-page {
+    border-radius: 12px;
+    margin-bottom: 18px;
+  }
+
+  .dashboard .notifications-page .notifications-page-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+    padding: 21px;
+  }
+
+  .dashboard .notifications-page .notifications-page-heading h2 {
+    font-size: 22px;
+  }
+
+  .dashboard .notifications-page .notifications-mark-all {
+    width: 100%;
+  }
+
+  .dashboard .notifications-page .notification-page-list {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .dashboard .notifications-page .notification-item {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 13px;
+    padding: 15px;
+  }
+
+  .dashboard .notifications-page .notification-mark-read {
+    align-self: flex-start;
+  }
+
+  html[dir="rtl"] .dashboard .notifications-page .notification-mark-read {
+    align-self: flex-start;
+  }
+
+  .dashboard .notifications-page .notification-empty,
+  .dashboard .notifications-page .notification-error {
+    margin: 12px;
+    padding: 22px 14px;
+  }
+}
+
+
+
+/* Keep notification bell beside language toggle */
+.dashboard .topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dashboard .topbar > div:first-child:empty {
+  display: none;
+}
+
+.dashboard .notification-menu-wrapper {
+  position: relative;
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.dashboard .language-toggle {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+/* CivicGuard login page refinement v1 */
+.auth-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(ellipse at 12% 12%, rgba(52, 120, 246, 0.10), transparent 38%),
+    radial-gradient(ellipse at 90% 88%, rgba(24, 44, 75, 0.08), transparent 36%),
+    #f4f7fc;
+}
+
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  padding: clamp(28px, 5vw, 44px);
+  overflow: hidden;
+  border: 1px solid rgba(218, 227, 240, 0.95);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow:
+    0 24px 65px rgba(26, 48, 82, 0.09),
+    0 3px 10px rgba(26, 48, 82, 0.035);
+}
+
+.auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #17345f, #3478f6, #74a5ff);
+}
+
+.auth-card > .brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin: 8px auto 22px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #1d3b69, #3478f6);
+  box-shadow: 0 9px 22px rgba(52, 120, 246, 0.22);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.auth-card h1 {
+  margin: 0 0 10px;
+  color: var(--navy, #182c4b);
+  font-size: clamp(25px, 4vw, 30px);
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: -0.6px;
+  text-align: center;
+}
+
+.auth-card .auth-description,
+.auth-card > p:not(.eyebrow):not(.auth-footer):not(.auth-error) {
+  margin: 0;
+  color: #718096;
+  font-size: 14px;
+  line-height: 1.9;
+  text-align: center;
+}
+
+.auth-language-toggle {
+  display: block;
+  width: fit-content;
+  min-height: 36px;
+  margin: 0 0 22px auto;
+  padding: 7px 13px;
+  border: 1px solid #dce5f1;
+  border-radius: 10px;
+  background: #f8faff;
+  color: #24446f;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.auth-language-toggle:hover {
+  border-color: #b9cdef;
+  background: #eef4ff;
+  transform: translateY(-1px);
+}
+
+.auth-card form {
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.auth-card label {
+  margin-top: 8px;
+  color: #34445d;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.auth-card input {
+  min-height: 50px;
+  padding: 0 15px;
+  border: 1px solid #d8e1ed;
+  border-radius: 11px;
+  background: #fbfcff;
+  color: #1f2f46;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.auth-card input:hover {
+  border-color: #bdcde2;
+}
+
+.auth-card input:focus {
+  border-color: #3478f6;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(52, 120, 246, 0.11);
+}
+
+.auth-card input[type="email"] {
+  direction: ltr;
+  text-align: left;
+}
+
+.auth-card form button {
+  min-height: 50px;
+  margin-top: 16px;
+  border-radius: 11px;
+  background: linear-gradient(100deg, #1d3b69, #3478f6);
+  box-shadow: 0 7px 16px rgba(52, 120, 246, 0.17);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s, filter 0.2s;
+}
+
+.auth-card form button:hover {
+  background: linear-gradient(100deg, #19345d, #286be8);
+  box-shadow: 0 10px 22px rgba(52, 120, 246, 0.23);
+  transform: translateY(-1px);
+}
+
+.auth-card form button:focus-visible,
+.auth-language-toggle:focus-visible {
+  outline: 3px solid rgba(52, 120, 246, 0.35);
+  outline-offset: 3px;
+}
+
+.auth-card form button:disabled {
+  box-shadow: none;
+  transform: none;
+}
+
+.auth-error {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 20px 14px;
+  }
+
+  .auth-card {
+    max-width: 100%;
+    padding: 30px 22px;
+    border-radius: 18px;
+  }
+
+  .auth-card > .brand-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    font-size: 25px;
+  }
+}
+/* CivicGuard login page refinement end */

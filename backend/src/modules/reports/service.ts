@@ -3,6 +3,8 @@ import type { AuthUser } from '../../middleware/auth.js';
 import { AppError } from '../../middleware/error-handler.js';
 import type { ListReportsQuery } from './schema.js';
 import { getUsableAnalysis, markAnalysisUsed } from '../analysis/service.js';
+import { getBoundingBox, calculateDistanceMeters } from '../../utils/geo.js';
+import { runDuplicateCheck } from '../duplicates/service.js';
 
 export async function listReports(user: AuthUser, query: ListReportsQuery) {
   const supabase = getSupabaseAdmin();
@@ -19,6 +21,7 @@ export async function listReports(user: AuthUser, query: ListReportsQuery) {
       severity,
       confidence,
       description,
+      image_description,
       area_name,
       latitude,
       longitude,
@@ -114,6 +117,7 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
     ...(ai && {
       confidence: ai.confidence,
       explanation: ai.explanation,
+      image_description: ai.image_description || null,
       secondary_issues: ai.secondary_issues,
       requires_manual_review: ai.requires_manual_review,
     }),
@@ -137,6 +141,7 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
       severity,
       confidence,
       description,
+      image_description,
       area_name,
       latitude,
       longitude,
@@ -158,6 +163,22 @@ export async function createReport(user: AuthUser, input: import('./schema.js').
     await markAnalysisUsed(analysis.id, user.id, report.id);
   }
 
+  // Duplicate detection is for admins only: it runs in the background, never
+  // delays or fails the citizen's submission, and nothing is returned to the citizen.
+  void (async () => {
+    try {
+      await runDuplicateCheck({
+        id: report.id,
+        category_id: report.category_id,
+        latitude: report.latitude,
+        longitude: report.longitude,
+        image_path: report.image_path,
+      });
+    } catch (err) {
+      console.error('[duplicates] check failed for report', report.id, err instanceof Error ? err.message : err);
+    }
+  })();
+
   return report;
 }
 
@@ -177,6 +198,7 @@ export async function getReportById(user: AuthUser, reportId: string) {
       severity,
       confidence,
       description,
+      image_description,
       area_name,
       latitude,
       longitude,
@@ -254,33 +276,6 @@ export async function getReportById(user: AuthUser, reportId: string) {
     events: events ?? [],
     signedImageUrl,
   };
-}
-
-// Bounding box approximation helper for geography distance search
-function getBoundingBox(lat: number, lng: number, radiusMeters: number) {
-  const earthRadius = 6371000; // in meters
-  const dLat = (radiusMeters / earthRadius) * (180 / Math.PI);
-  const dLng = (radiusMeters / (earthRadius * Math.cos((lat * Math.PI) / 180))) * (180 / Math.PI);
-
-  return {
-    minLat: lat - dLat,
-    maxLat: lat + dLat,
-    minLng: lng - dLng,
-    maxLng: lng + dLng,
-  };
-}
-
-// Haversine formula for exact distance filtering
-function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000; // meters
-  const toRad = (v: number) => (v * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
 }
 
 export async function getNearbyReports(query: import('./schema.js').NearbyReportsQuery) {

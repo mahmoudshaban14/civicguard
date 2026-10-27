@@ -31,7 +31,21 @@ export interface ProviderOutput {
   recommended_action: string;
 }
 
+export interface CompareInput {
+  a: { bytes: Buffer; mimeType: string };
+  b: { bytes: Buffer; mimeType: string };
+  categoryLabel: string;
+}
+
+export interface CompareOutput {
+  same_issue: boolean;
+  confidence: number; // 0..1
+  reason: string;
+}
+
 export interface AiProvider {
   readonly name: string;
   analyze(input: ProviderInput): Promise<ProviderOutput>;
+  /** Do two photos show the same physical problem? Optional so mocks can omit it. */
+  compareImages?(input: CompareInput): Promise<CompareOutput>;
 }

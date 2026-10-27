@@ -9,6 +9,8 @@ import {
   useMap,
 } from 'react-leaflet'
 import { supabase } from './lib/supabase'
+import { adminApiClient } from './lib/api'
+import DuplicatesPanel from './DuplicatesPanel'
 import 'leaflet/dist/leaflet.css'
 import './GISMap.css'
 import {
@@ -32,6 +34,7 @@ type Report = {
   longitude: number | null
   image_path: string | null
   description: string | null
+  image_description: string | null
 }
 
 type Position = [number, number]
@@ -53,6 +56,100 @@ type GovernoratesData = {
   features: GovernorateFeature[]
 }
 
+
+type FilterOption = {
+  value: string
+  label: string
+}
+
+function FilterDropdown({
+  label,
+  value,
+  options,
+  onChange,
+  disabled = false,
+}: {
+  label: string
+  value: string
+  options: FilterOption[]
+  onChange: (value: string) => void
+  disabled?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const selectedOption = options.find((option) => option.value === value)
+
+  useEffect(() => {
+    if (!open) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div className="gis-filter">
+      <span className="gis-filter-label">{label}</span>
+      <div className="gis-filter-control" ref={dropdownRef}>
+        <button
+          type="button"
+          className="gis-filter-trigger"
+          aria-label={label}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          disabled={disabled}
+          onClick={() => setOpen((previous) => !previous)}
+        >
+          <span className="gis-filter-value">
+            {selectedOption?.label ?? value}
+          </span>
+          <span className="gis-filter-chevron" aria-hidden="true">▾</span>
+        </button>
+
+        {open && !disabled && (
+          <div className="gis-filter-menu" role="listbox" aria-label={label}>
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={option.value === value}
+                className={
+                  option.value === value
+                    ? 'gis-filter-option selected'
+                    : 'gis-filter-option'
+                }
+                onClick={() => {
+                  onChange(option.value)
+                  setOpen(false)
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 function translateGovernorate(name: string, language: Language): string {
   if (language !== 'ar') return name
 
@@ -339,6 +436,7 @@ function translateDepartment(value: string, language: Language): string {
   const department = value.trim().toLowerCase()
 
   const translations: Record<string, string> = {
+    'road maintenance department': '\u0635\u064a\u0627\u0646\u0629 \u0627\u0644\u0637\u0631\u0642',
     'electricity / public lighting': '\u0627\u0644\u0643\u0647\u0631\u0628\u0627\u0621 / \u0625\u0646\u0627\u0631\u0629 \u0627\u0644\u0634\u0648\u0627\u0631\u0639',
     'manual routing': '\u0627\u0644\u062a\u0648\u062c\u064a\u0647 \u0627\u0644\u064a\u062f\u0648\u064a',
     'municipal enforcement': '\u0627\u0644\u0631\u0642\u0627\u0628\u0629 \u0627\u0644\u0628\u0644\u062f\u064a\u0629',
@@ -440,35 +538,18 @@ function GISMap({ language }: { language: Language }) {
     setError('')
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
-
-      if (userError || !user) {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) {
         throw new Error('Your session has expired. Please sign in again.')
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
+      const res = await adminApiClient<{ reports: Report[] }>(
+        '/v1/authority/reports?limit=1000',
+        { token },
+      )
 
-      if (profileError || profile?.role !== 'admin') {
-        throw new Error('Administrator access is required.')
-      }
-
-      const { data, error: reportsError } = await supabase
-        .from('reports')
-        .select(
-          'id, report_code, category, status, severity, department, created_at, latitude, longitude, image_path, description',
-        )
-        .order('created_at', { ascending: false })
-
-      if (reportsError) throw reportsError
-
-      setReports((data ?? []) as Report[])
+      setReports(res.reports ?? [])
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load reports.',
@@ -478,13 +559,47 @@ function GISMap({ language }: { language: Language }) {
     }
   }
 
- useEffect(() => {
-  const timer = window.setTimeout(() => {
+  useEffect(() => {
     void loadReports()
-  }, 0)
 
-  return () => window.clearTimeout(timer)
-}, [])
+    const channel = supabase
+      .channel('gis-reports-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reports' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newReport = payload.new as Report
+            setReports((current) => {
+              if (current.some((r) => r.id === newReport.id)) return current
+              return [newReport, ...current]
+            })
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as Report
+            setReports((current) =>
+              current.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
+            )
+            setSelected((current) =>
+              current && current.id === updated.id ? { ...current, ...updated } : current,
+            )
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id: string }).id
+            setReports((current) => current.filter((r) => r.id !== deletedId))
+            setSelected((current) => (current && current.id === deletedId ? null : current))
+          }
+        },
+      )
+      .subscribe()
+
+    const pollInterval = window.setInterval(() => {
+      void loadReports()
+    }, 15000)
+
+    return () => {
+      void supabase.removeChannel(channel)
+      window.clearInterval(pollInterval)
+    }
+  }, [])
 
   function uniqueCaseInsensitive(values: (string | null | undefined)[]): string[] {
     const unique = new Map<string, string>()
@@ -730,6 +845,28 @@ function GISMap({ language }: { language: Language }) {
     }
   }
 
+  // Used by the staff-only "possible duplicates" panel in the details modal.
+  function openReportById(reportId: string): boolean {
+    const target = reports.find((report) => report.id === reportId)
+    if (!target) return false
+    setSelected(target)
+    setImageUrl('')
+    setImageError('')
+    return true
+  }
+
+  function handleMarkedDuplicate(reportId: string, status: string) {
+    setReports((current) =>
+      current.map((report) =>
+        report.id === reportId ? { ...report, status } : report,
+      ),
+    )
+    setSelected((current) =>
+      current && current.id === reportId ? { ...current, status } : current,
+    )
+    setEditStatus(status)
+  }
+
   async function saveReportChanges() {
     if (!selected || savingChanges) return
 
@@ -738,21 +875,24 @@ function GISMap({ language }: { language: Language }) {
     setSaveSuccess(false)
 
     try {
-      const { data, error: updateError } = await supabase
-        .from('reports')
-        .update({
-          status: editStatus,
-          department: editDepartment || null,
-        })
-        .eq('id', selected.id)
-        .select(
-          'id, report_code, category, status, severity, department, created_at, latitude, longitude, image_path, description',
-        )
-        .single()
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No valid session token found')
 
-      if (updateError) throw updateError
+      const res = await adminApiClient<{ report: Report }>(
+        `/v1/authority/reports/${selected.id}/status`,
+        {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify({
+            status: editStatus,
+            department: editDepartment || null,
+            note: `Status updated to ${editStatus} via GIS Map`,
+          }),
+        },
+      )
 
-      const updatedReport = data as Report
+      const updatedReport = res.report as Report
 
       setReports((current) =>
         current.map((report) =>
@@ -761,15 +901,23 @@ function GISMap({ language }: { language: Language }) {
       )
       setSelected(updatedReport)
       setSaveSuccess(true)
-    } catch (err) {
-      setSaveError(
+    } catch (err: unknown) {
+      console.error('[CivicGuard] Save report failed:', err)
+
+      const errorMessage =
         err instanceof Error
           ? err.message
-          : language === 'ar'
-            ? '\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a.'
-            : 'Unable to save changes.',
-      )
-    } finally {
+          : typeof err === 'object' &&
+              err !== null &&
+              'message' in err &&
+              typeof err.message === 'string'
+            ? err.message
+            : language === 'ar'
+              ? '\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a.'
+              : 'Unable to save changes.'
+
+      setSaveError(errorMessage)
+} finally {
       setSavingChanges(false)
     }
   }
@@ -779,6 +927,7 @@ function GISMap({ language }: { language: Language }) {
       <div className="gis-header">
         <div>
           
+          <h2>{t('gisMap')}</h2>
           <p className="page-description">{t('mapDescription')}</p>
         </div>
         <button
@@ -803,97 +952,88 @@ function GISMap({ language }: { language: Language }) {
         
       </div>
 
-     <div className="gis-filters">
-        <label>
-          {t('status')}
-          <select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value="all">{t('allStatuses')}</option>
-            {uniqueCaseInsensitive([
+      <div className="gis-filters">
+        <FilterDropdown
+          label={t('status')}
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: t('allStatuses') },
+            ...uniqueCaseInsensitive([
               ...Object.keys(STATUS_COLORS),
               ...reports.map((report) => report.status),
-            ]).map((status) => (
-                <option key={status} value={status}>
-                  {translateStatus(status, language)}
-                </option>
-              ))}
-          </select>
-        </label>
+            ]).map((status) => ({
+              value: status,
+              label: translateStatus(status, language),
+            })),
+          ]}
+        />
 
-        <label>
-          {t('category')}
-          <select
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-          >
-            <option value="all">{t('allCategories')}</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {translateCategory(category, language)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FilterDropdown
+          label={t('category')}
+          value={categoryFilter}
+          onChange={setCategoryFilter}
+          options={[
+            { value: 'all', label: t('allCategories') },
+            ...categories.map((category) => ({
+              value: category,
+              label: translateCategory(category, language),
+            })),
+          ]}
+        />
 
-        <label>
-          {t('severity')}
-          <select
-            value={severityFilter}
-            onChange={(event) => setSeverityFilter(event.target.value)}
-          >
-            <option value="all">{t('allSeverities')}</option>
-            {SEVERITY_LEVELS.map((level) => (
-              <option key={level} value={level}>
-                {translateSeverity(level, language)}
-              </option>
-            ))}
-            <option value={NONE_VALUE}>{t('notAnalyzed')}</option>
-          </select>
-        </label>
+        <FilterDropdown
+          label={t('severity')}
+          value={severityFilter}
+          onChange={setSeverityFilter}
+          options={[
+            { value: 'all', label: t('allSeverities') },
+            ...SEVERITY_LEVELS.map((level) => ({
+              value: level,
+              label: translateSeverity(level, language),
+            })),
+            { value: NONE_VALUE, label: t('notAnalyzed') },
+          ]}
+        />
 
-        <label>
-          {t('department')}
-          <select
-            value={departmentFilter}
-            onChange={(event) => setDepartmentFilter(event.target.value)}
-          >
-            <option value="all">{t('allDepartments')}</option>
-            {departments.map((department) => (
-              <option key={department} value={department}>{translateDepartment(department, language)}</option>
-            ))}
-            <option value={NONE_VALUE}>{t('unassigned')}</option>
-          </select>
-        </label>
+        <FilterDropdown
+          label={t('department')}
+          value={departmentFilter}
+          onChange={setDepartmentFilter}
+          options={[
+            { value: 'all', label: t('allDepartments') },
+            ...departments.map((department) => ({
+              value: department,
+              label: translateDepartment(department, language),
+            })),
+            { value: NONE_VALUE, label: t('unassigned') },
+          ]}
+        />
 
-        <label>
-          {t('governorate')}
-          <select
-            value={governorateFilter}
-            onChange={(event) => {
-              setHasManualGovernorateSelection(true)
-              setGovernorateFilter(event.target.value)
-            }}
-            disabled={!governorates}
-          >
-            <option value="all">{t('allEgypt')}</option>
-            {[...(governorates?.features ?? [])]
+        <FilterDropdown
+          label={t('governorate')}
+          value={governorateFilter}
+          disabled={!governorates}
+          onChange={(value) => {
+            setHasManualGovernorateSelection(true)
+            setGovernorateFilter(value)
+          }}
+          options={[
+            { value: 'all', label: t('allEgypt') },
+            ...[...(governorates?.features ?? [])]
               .sort((a, b) =>
                 a.properties.name.localeCompare(b.properties.name),
               )
-              .map((feature) => (
-                <option
-                  key={feature.properties.name}
-                  value={feature.properties.name}
-                >
-                  {translateGovernorate(feature.properties.name, language)}
-                </option>
-              ))}
-          </select>
-        </label>
+              .map((feature) => ({
+                value: feature.properties.name,
+                label: translateGovernorate(
+                  feature.properties.name,
+                  language,
+                ),
+              })),
+          ]}
+        />
       </div>
-
       <div className="gis-view-toggle" role="group" aria-label={t('reports')}>
         <button
           type="button"
@@ -1205,6 +1345,16 @@ function GISMap({ language }: { language: Language }) {
                     getTranslation(language, 'noDescription')}
                 </p>
               </div>
+
+              <div className="gis-info-card">
+                <span className="gis-info-label">
+                  {getTranslation(language, 'aiImageDescription')}
+                </span>
+                <p>
+                  {selected.image_description?.trim() ||
+                    getTranslation(language, 'noAiImageDescription')}
+                </p>
+              </div>
             </div>
 
             <div className="gis-modal-meta">
@@ -1260,6 +1410,15 @@ function GISMap({ language }: { language: Language }) {
               </div>
             </div>
 
+            <DuplicatesPanel
+              key={selected.id}
+              reportId={selected.id}
+              reportStatus={selected.status}
+              language={language}
+              onOpenReport={openReportById}
+              onMarkedDuplicate={handleMarkedDuplicate}
+            />
+
             <div
               className="gis-edit-controls"
               style={{
@@ -1272,71 +1431,65 @@ function GISMap({ language }: { language: Language }) {
                 borderRadius: '12px',
               }}
             >
-              <label style={{ display: 'grid', gap: '7px', fontWeight: 600 }}>
-                {language === 'ar'
-                  ? '\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u062d\u0627\u0644\u0629'
-                  : 'Change status'}
-                <select
-                  value={editStatus}
-                  onChange={(event) => {
-                    setEditStatus(event.target.value)
-                    setSaveError('')
-                    setSaveSuccess(false)
-                  }}
-                  disabled={savingChanges}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px' }}
-                >
-                  {[
-                    'submitted',
-                    'ai_analyzed',
-                    'assigned',
-                    'under_review',
-                    'in_progress',
-                    'resolved',
-                    'rejected',
-                    'duplicate',
-                    'invalid',
-                    'escalated',
-                    'manual_review_required',
-                  ].map((status) => (
-                    <option key={status} value={status}>
-                      {translateStatus(status, language)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <FilterDropdown
+                label={
+                  language === 'ar'
+                    ? '\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u062d\u0627\u0644\u0629'
+                    : 'Change status'
+                }
+                value={editStatus}
+                disabled={savingChanges}
+                onChange={(value) => {
+                  setEditStatus(value)
+                  setSaveError('')
+                  setSaveSuccess(false)
+                }}
+                options={[
+                  'submitted',
+                  'ai_analyzed',
+                  'assigned',
+                  'under_review',
+                  'in_progress',
+                  'resolved',
+                  'rejected',
+                  'duplicate',
+                  'invalid',
+                  'escalated',
+                  'manual_review_required',
+                ].map((status) => ({
+                  value: status,
+                  label: translateStatus(status, language),
+                }))}
+              />
 
-              <label style={{ display: 'grid', gap: '7px', fontWeight: 600 }}>
-                {getTranslation(language, 'department')}
-                <select
-                  value={editDepartment}
-                  onChange={(event) => {
-                    setEditDepartment(event.target.value)
-                    setSaveError('')
-                    setSaveSuccess(false)
-                  }}
-                  disabled={savingChanges}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px' }}
-                >
-                  <option value="">
-                    {getTranslation(language, 'unassigned')}
-                  </option>
-                  {[
+              <FilterDropdown
+                label={getTranslation(language, 'department')}
+                value={editDepartment}
+                disabled={savingChanges}
+                onChange={(value) => {
+                  setEditDepartment(value)
+                  setSaveError('')
+                  setSaveSuccess(false)
+                }}
+                options={[
+                  {
+                    value: '',
+                    label: getTranslation(language, 'unassigned'),
+                  },
+                  ...[
                     ...KNOWN_DEPARTMENTS,
                     ...(selected.department &&
                     !KNOWN_DEPARTMENTS.includes(selected.department)
                       ? [selected.department]
                       : []),
-                  ].map((department) => (
-                    <option key={department} value={department}>
-                      {translateDepartment(department, language)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  ].map((department) => ({
+                    value: department,
+                    label: translateDepartment(department, language),
+                  })),
+                ]}
+              />
             </div>
-
-            <button
+<button
               type="button"
               onClick={() => void viewImage(selected)}
               disabled={imageLoading}
@@ -1444,3 +1597,5 @@ function GISMap({ language }: { language: Language }) {
 }
 
 export default GISMap
+
+
