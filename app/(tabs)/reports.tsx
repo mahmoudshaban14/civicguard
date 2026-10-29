@@ -1,37 +1,17 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { FlatList, RefreshControl, View, Text } from 'react-native';
-import { useState, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
 import { ClipboardList } from 'lucide-react-native';
 
 import { ReportCard } from '@/components/civic/ReportCard';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { useCivicGuard } from '@/lib/civicguard-store';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function ReportsScreen() {
    const { reports, refreshReports, fetchError } = useCivicGuard();
    const [refreshing, setRefreshing] = useState(false);
-   const [lang, setLang] = useState<'ar' | 'en'>('ar');
-
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      async function checkLanguage() {
-        try {
-          const savedLang = await AsyncStorage.getItem('@app_language');
-          if (isMounted && (savedLang === 'en' || savedLang === 'ar')) {
-            setLang(savedLang);
-          }
-        } catch (e) {
-          console.error('Error loading language in ReportsScreen:', e);
-        }
-      }
-      void checkLanguage();
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+   const { lang } = useLanguage();
 
   const t = {
     ar: {

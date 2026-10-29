@@ -1,35 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 import { FileText, MapPin, ShieldCheck, ArrowRight, ArrowLeft, Camera } from 'lucide-react-native';
 
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { useCivicGuard } from '@/lib/civicguard-store';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function HomeScreen() {
   const { reports } = useCivicGuard();
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
-
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      async function checkLanguage() {
-        try {
-          const savedLang = await AsyncStorage.getItem('@app_language');
-          if (isMounted && (savedLang === 'en' || savedLang === 'ar')) {
-            setLang(savedLang);
-          }
-        } catch (e) {
-          console.error('Error loading language in HomeScreen:', e);
-        }
-      }
-      void checkLanguage();
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+  const { lang } = useLanguage();
 
   const totalReports = reports.length;
   const resolvedReports = reports.filter(r => r.status === 'Resolved').length;

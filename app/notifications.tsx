@@ -1,29 +1,14 @@
-import { useEffect, useState } from 'react';
 import { View, ScrollView, Text } from 'react-native';
 import { Typography } from 'heroui-native';
 import { Bell, CheckCircle2, Clock3, ShieldAlert, Award } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppHeader } from '@/components/civic/AppHeader';
 import { Screen } from '@/components/civic/Screen';
 import { useCivicGuard } from '@/lib/civicguard-store';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function NotificationsScreen() {
   const { notifications } = useCivicGuard();
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
-
-  useEffect(() => {
-    async function loadLang() {
-      try {
-        const savedLang = await AsyncStorage.getItem('@app_language');
-        if (savedLang === 'en' || savedLang === 'ar') {
-          setLang(savedLang);
-        }
-      } catch (e) {
-        console.error('Error loading language', e);
-      }
-    }
-    void loadLang();
-  }, []);
+  const { lang } = useLanguage();
 
   const isAr = lang === 'ar';
 

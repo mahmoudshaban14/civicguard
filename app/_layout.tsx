@@ -29,6 +29,7 @@ import { registerServiceWorker } from '@/lib/registerServiceWorker';
 import { reportErrorToParent } from '@/lib/reportPreviewError';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { CivicGuardProvider } from '@/lib/civicguard-store';
+import { LanguageProvider } from '@/lib/LanguageContext';
 import { supabase } from '@/lib/supabase';
 
 function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
@@ -191,15 +192,17 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider>
-        <CivicGuardProvider>
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F6FAF8' } }}>
-            <Stack.Screen name="onboarding" />
-            <Stack.Screen name="auth/login" />
-            <Stack.Screen name="auth/sign-up" />
-            <Stack.Screen name="(tabs)" />
-          </Stack>
-          <InstallPrompt />
-        </CivicGuardProvider>
+        <LanguageProvider>
+          <CivicGuardProvider>
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F6FAF8' } }}>
+              <Stack.Screen name="onboarding" />
+              <Stack.Screen name="auth/login" />
+              <Stack.Screen name="auth/sign-up" />
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+            <InstallPrompt />
+          </CivicGuardProvider>
+        </LanguageProvider>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
   );

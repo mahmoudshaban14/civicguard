@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api-client';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Eye, EyeOff } from 'lucide-react-native';
 
 // دالة تحويل الأرقام العربية إلى أرقام إنجليزية لضمان تطابق الاستعلام
@@ -23,8 +25,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // 1. اللغة الافتراضية أصبحت الإنجليزية 'en'
-  const [lang, setLang] = useState<'ar' | 'en'>('en');
+  const { lang, toggleLanguage } = useLanguage();
 
   // 2. حالة إظهار / إخفاء كلمة المرور
   const [showPassword, setShowPassword] = useState(false);
@@ -95,51 +96,39 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      const cleanInput = parseDigits(rawInput);
-    let emailToUse = rawInput;
+      // The backend resolves National ID / phone to an email privately, then
+      // verifies the password with Supabase Auth. It never returns lookup-only
+      // email data to unauthenticated clients.
+      const { session } = await apiClient<{
+        session: { access_token: string; refresh_token: string };
+      }>('/v1/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          identifier: rawInput,
+          password,
+        }),
+      });
 
-    // 3. الاستعلام التكيفي: لو المدخل مش إيميل، بنستعلم بالرقم القومي أو phone_number
-    if (!rawInput.includes('@')) {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .or(`phone_number.eq.${cleanInput},national_id.eq.${cleanInput}`)
-        .maybeSingle();
+      const { error } = await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
 
-      if (profileError || !profile || !profile.email) {
-        console.log('Profile lookup error:', profileError);
-        setLoading(false);
+      if (error) {
         setGeneralError(t.alertErrorMessage);
         return;
       }
 
-      emailToUse = profile.email;
-    }
-
-    // محاولة تسجيل الدخول مع Supabase Auth
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: emailToUse,
-      password: password,
-    });
-
-    setLoading(false);
-
-    if (authError) {
-      console.log('Auth Error:', authError.message);
+      // Successful login; Supabase persists the session in AsyncStorage.
+      router.replace('/(tabs)');
+    } catch {
+      // Keep the same user-facing message for unknown identifiers and bad
+      // passwords to avoid account enumeration.
       setGeneralError(t.alertErrorMessage);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    // Successful login; Supabase persists the session in AsyncStorage.
-    router.replace('/(tabs)');
-  } catch {
-    // Keep the same user-facing message for unknown identifiers and bad
-    // passwords to avoid account enumeration.
-    setGeneralError(t.alertErrorMessage);
-  } finally {
-    setLoading(false);
   }
-}
 
 return (
   <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
@@ -159,7 +148,7 @@ return (
         <View style={{ marginBottom: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
           <TouchableOpacity
             onPress={() => {
-              setLang(lang === 'ar' ? 'en' : 'ar');
+              toggleLanguage();
               setIdentifierError('');
               setPasswordError('');
               setGeneralError('');

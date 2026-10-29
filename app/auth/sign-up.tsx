@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Eye, EyeOff } from 'lucide-react-native';
 
 const parseDigits = (str: string) => {
@@ -42,8 +43,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // 1. ضبط اللغة الافتراضية لتكون الإنجليزية 'en'
-  const [lang, setLang] = useState<'ar' | 'en'>('en');
+  const { lang, toggleLanguage } = useLanguage();
 
   // 2. حالة إظهار / إخفاء كلمة المرور
   const [showPassword, setShowPassword] = useState(false);
@@ -208,7 +208,7 @@ export default function SignUpScreen() {
           <View style={{ marginBottom: 16, flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity
               onPress={() => {
-                setLang(lang === 'ar' ? 'en' : 'ar');
+                toggleLanguage();
                 setErrors({});
               }}
               activeOpacity={0.8}

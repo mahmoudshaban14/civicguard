@@ -1,9 +1,8 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { BottomSheet, Button, Typography } from 'heroui-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import MapView, { type MapMarker } from '@/components/MapView';
 import { AppHeader } from '@/components/civic/AppHeader';
@@ -11,32 +10,12 @@ import { StatusBadge } from '@/components/civic/StatusBadge';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { NEW_CAIRO_REGION, SEVERITY_COLORS, type CivicReport } from '@/lib/civicguard-data';
 import { useCivicGuard } from '@/lib/civicguard-store';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function IssuesMapScreen() {
   const { reports } = useCivicGuard();
   const [selected, setSelected] = useState<CivicReport | null>(null);
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
-
-  // جلب وتحديث اللغة فوراً عند فتح أو التركيز على الشاشة
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      async function checkLanguage() {
-        try {
-          const savedLang = await AsyncStorage.getItem('@app_language');
-          if (isMounted && (savedLang === 'en' || savedLang === 'ar')) {
-            setLang(savedLang);
-          }
-        } catch (e) {
-          console.error('Error loading language in IssuesMapScreen:', e);
-        }
-      }
-      checkLanguage();
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+  const { lang } = useLanguage();
 
   const t = {
     ar: {

@@ -2,31 +2,21 @@ import { useState, useEffect } from 'react';
 import { View, TextInput, Alert, ScrollView } from 'react-native';
 import { Button, Typography } from 'heroui-native';
 import { router } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '@/components/civic/Screen';
 import { AppHeader } from '@/components/civic/AppHeader';
 import { supabase } from '@/lib/supabase';
 import { User, Mail, Phone, Save } from 'lucide-react-native';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function AccountScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+  const { lang } = useLanguage();
 
   useEffect(() => {
     async function getUserData() {
-      // جلب اللغة المحفوظة
-      try {
-        const savedLang = await AsyncStorage.getItem('@app_language');
-        if (savedLang === 'en' || savedLang === 'ar') {
-          setLang(savedLang);
-        }
-      } catch (e) {
-        console.error('Error loading language', e);
-      }
-
       // جلب بيانات المستخدم من Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
