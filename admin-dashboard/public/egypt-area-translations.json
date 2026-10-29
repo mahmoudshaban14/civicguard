@@ -1,0 +1,2195 @@
+﻿{
+    "value":  [
+                  {
+                      "id":  "EG0100",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0101",
+                      "englishName":  "Al Tibbin",
+                      "arabicName":  "قسم التبين",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0102",
+                      "englishName":  "Hilwan",
+                      "arabicName":  "قسم حلوان",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0103",
+                      "englishName":  "15 Mayu",
+                      "arabicName":  "قسم 15 مايو",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0104",
+                      "englishName":  "Maadi",
+                      "arabicName":  "قسم المعادي",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0105",
+                      "englishName":  "Tura",
+                      "arabicName":  "قسم طره",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0106",
+                      "englishName":  "Misr Al-Qadima",
+                      "arabicName":  "مصر القديمة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0107",
+                      "englishName":  "Sayyida Zainab",
+                      "arabicName":  "قسم السيدة زينب",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0108",
+                      "englishName":  "Al Khalifa",
+                      "arabicName":  "قسم الخليفة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0109",
+                      "englishName":  "Abdin",
+                      "arabicName":  "قسم عابدين",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0110",
+                      "englishName":  "Muski",
+                      "arabicName":  "قسم الموسكي",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0111",
+                      "englishName":  "Qasr Al-Nile",
+                      "arabicName":  "قسم قصر النيل",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0112",
+                      "englishName":  "Bulaq",
+                      "arabicName":  "قسم بولاق",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0113",
+                      "englishName":  "Al Azbakiyya",
+                      "arabicName":  "قسم الأزبكية",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0114",
+                      "englishName":  "Al Darb al-Ahmar",
+                      "arabicName":  "قسم الدرب الأحمر",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0115",
+                      "englishName":  "Gamaliyya",
+                      "arabicName":  "قسم الجمالية",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0116",
+                      "englishName":  "Bab Al-Shariyya",
+                      "arabicName":  "قسم باب الشعرية",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0117",
+                      "englishName":  "Al Zahir",
+                      "arabicName":  "قسم الظاهر",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0118",
+                      "englishName":  "Al Sharabiyya",
+                      "arabicName":  "قسم الشرابية",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0119",
+                      "englishName":  "Shubra",
+                      "arabicName":  "قسم شبرا",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0120",
+                      "englishName":  "Rud Al-Farag",
+                      "arabicName":  "قسم روض الفرج",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0121",
+                      "englishName":  "Al Sahil",
+                      "arabicName":  "قسم الساحل",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0122",
+                      "englishName":  "Al Wayli",
+                      "arabicName":  "قسم الوايلي",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0123",
+                      "englishName":  "Hadaiq Al-Qubba",
+                      "arabicName":  "قسم حدائق القبة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0124",
+                      "englishName":  "Al Zaytun",
+                      "arabicName":  "قسم الزيتون",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0125",
+                      "englishName":  "Al Matariyya",
+                      "arabicName":  "قسم المطرية",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0126",
+                      "englishName":  "Nasr City",
+                      "arabicName":  "قسم أول مدينة نصر",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0127",
+                      "englishName":  "Madinat Nasr-2",
+                      "arabicName":  "قسم ثان مدينة نصر",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0128",
+                      "englishName":  "Misr al-Gadida",
+                      "arabicName":  "قسم مصر الجديدة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0129",
+                      "englishName":  "Nuzha",
+                      "arabicName":  "قسم النزهة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0130",
+                      "englishName":  "Ain Shams",
+                      "arabicName":  "قسم عين شمس",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0131",
+                      "englishName":  "Zawiyya Al-Hamra",
+                      "arabicName":  "قسم الزاوية الحمراء",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0132",
+                      "englishName":  "Al Salam",
+                      "arabicName":  "قسم السلام",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0133",
+                      "englishName":  "Zamalik",
+                      "arabicName":  "قسم الزمالك",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0134",
+                      "englishName":  "Minshat Nasir",
+                      "arabicName":  "منشأة ناصر",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0135",
+                      "englishName":  "Basatin",
+                      "arabicName":  "قسم البساتين",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0136",
+                      "englishName":  "Marg",
+                      "arabicName":  "قسم المرج",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0137",
+                      "englishName":  "New Cairo-1",
+                      "arabicName":  "قسم أول القاهرة الجديدة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0138",
+                      "englishName":  "New Cairo-2",
+                      "arabicName":  "قسم ثان القاهرة الجديدة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0139",
+                      "englishName":  "New Cairo-3",
+                      "arabicName":  "قسم ثالث القاهرة الجديدة",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0140",
+                      "englishName":  "Shroq",
+                      "arabicName":  "قسم الشروق",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0141",
+                      "englishName":  "Badr",
+                      "arabicName":  "قسم بدر",
+                      "governorateEnglish":  "Cairo"
+                  },
+                  {
+                      "id":  "EG0200",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0201",
+                      "englishName":  "Muntazah",
+                      "arabicName":  "قسم المنتزة",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0202",
+                      "englishName":  "Al Raml",
+                      "arabicName":  "قسم أول الرمل",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0203",
+                      "englishName":  "Sidi Gabir",
+                      "arabicName":  "قسم سيدى جابر",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0204",
+                      "englishName":  "Bab Sharqi",
+                      "arabicName":  "قسم باب شرقى",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0205",
+                      "englishName":  "Muharam Bik",
+                      "arabicName":  "قسم محرم بك",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0206",
+                      "englishName":  "Al Attarin",
+                      "arabicName":  "قسم العطارين",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0207",
+                      "englishName":  "Al Manshiyya",
+                      "arabicName":  "قسم المنشية",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0208",
+                      "englishName":  "Karmuz",
+                      "arabicName":  "قسم كرموز",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0209",
+                      "englishName":  "A L Labban",
+                      "arabicName":  "قسم اللبان",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0210",
+                      "englishName":  "Al Gumruk",
+                      "arabicName":  "قسم الجمرك",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0211",
+                      "englishName":  "Mina Al-Basal",
+                      "arabicName":  "قسم مينا البصل",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0212",
+                      "englishName":  "Al Dikhila",
+                      "arabicName":  "قسم الدخيلة",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0213",
+                      "englishName":  "Al Amreia",
+                      "arabicName":  "قسم العامرية",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0214",
+                      "englishName":  "Burg al-Arab",
+                      "arabicName":  "قسم برج العرب",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0215",
+                      "englishName":  "Port Alexandria Police Department",
+                      "arabicName":  "اداره شرطه ميناء الأسكندريه",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0216",
+                      "englishName":  "Burg Al-Arab City",
+                      "arabicName":  "مدينه برج العرب الجديده",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0217",
+                      "englishName":  "Kesm than Al Raml",
+                      "arabicName":  "قسم ثان الرمل",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0218",
+                      "englishName":  "North Coast",
+                      "arabicName":  "الساحل الشمالى",
+                      "governorateEnglish":  "Alexandria"
+                  },
+                  {
+                      "id":  "EG0301",
+                      "englishName":  "Al-Sharq",
+                      "arabicName":  "قسم الشرق",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0302",
+                      "englishName":  "Al-Arab",
+                      "arabicName":  "قسم العرب",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0303",
+                      "englishName":  "Al-Munakh",
+                      "arabicName":  "قسم المناخ",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0304",
+                      "englishName":  "Port Fuad",
+                      "arabicName":  "قسم بور فؤاد",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0305",
+                      "englishName":  "Al-Dawahy",
+                      "arabicName":  "قسم الضواحى",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0306",
+                      "englishName":  "Al-Ganoub",
+                      "arabicName":  "قسم الجنوب",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0307",
+                      "englishName":  "Al-Zohour",
+                      "arabicName":  "قسم الزهور",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0308",
+                      "englishName":  "Port Fuad 2",
+                      "arabicName":  "قسم ثان بور فؤاد",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0309",
+                      "englishName":  "Mubark-Sharq Tafrea",
+                      "arabicName":  "قسم مبارك - شرق التفريعة",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0310",
+                      "englishName":  "Al-Manasra",
+                      "arabicName":  "قسم المناصرة",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0311",
+                      "englishName":  "Al-Ganoub 2",
+                      "arabicName":  "قسم ثان الجنوب",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0312",
+                      "englishName":  "Police Department Port Said Port",
+                      "arabicName":  "إدارة شرطة ميناء بورسعيد",
+                      "governorateEnglish":  "Port Said"
+                  },
+                  {
+                      "id":  "EG0401",
+                      "englishName":  "Suez",
+                      "arabicName":  "قسم السويس",
+                      "governorateEnglish":  "Suez"
+                  },
+                  {
+                      "id":  "EG0402",
+                      "englishName":  "Al-Arbiin",
+                      "arabicName":  "قسم الأربعين",
+                      "governorateEnglish":  "Suez"
+                  },
+                  {
+                      "id":  "EG0403",
+                      "englishName":  "Ataqa",
+                      "arabicName":  "قسم عتاقة",
+                      "governorateEnglish":  "Suez"
+                  },
+                  {
+                      "id":  "EG0404",
+                      "englishName":  "Faysal",
+                      "arabicName":  "قسم فيصل",
+                      "governorateEnglish":  "Suez"
+                  },
+                  {
+                      "id":  "EG0405",
+                      "englishName":  "Al-Ganayin",
+                      "arabicName":  "قسم الجناين",
+                      "governorateEnglish":  "Suez"
+                  },
+                  {
+                      "id":  "EG0406",
+                      "englishName":  "Port Suez Police Department",
+                      "arabicName":  "إدارة شرطة ميناء السويس",
+                      "governorateEnglish":  "Suez"
+                  },
+                  {
+                      "id":  "EG1101",
+                      "englishName":  "Dumyat 1",
+                      "arabicName":  "قسم أول دمياط",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1102",
+                      "englishName":  "Dumyat",
+                      "arabicName":  "مركز دمياط",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1103",
+                      "englishName":  "Fariskur",
+                      "arabicName":  "مركز فارسكور",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1104",
+                      "englishName":  "Kafr Sad",
+                      "arabicName":  "مركز كفر سعد",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1105",
+                      "englishName":  "Dumyat Al-Gadida",
+                      "arabicName":  "قسم مدينه دمياط الجديده",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1106",
+                      "englishName":  "Ras al-Bar",
+                      "arabicName":  "قسم رأس البر",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1107",
+                      "englishName":  "Zarqa",
+                      "arabicName":  "مركز الزرقا",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1108",
+                      "englishName":  "Police Department Port of Damietta",
+                      "arabicName":  "إداره شرطه ميناء دمياط الجديد",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1109",
+                      "englishName":  "Dumyat 2",
+                      "arabicName":  "قسم ثان دمياط",
+                      "governorateEnglish":  "Damietta"
+                  },
+                  {
+                      "id":  "EG1201",
+                      "englishName":  "El Mansora 1",
+                      "arabicName":  "قسم اول المنصورة",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1202",
+                      "englishName":  "E Mansora 2",
+                      "arabicName":  "قسم ثان المنصورة",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1203",
+                      "englishName":  "El Mansora",
+                      "arabicName":  "مركز المنصورة",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1204",
+                      "englishName":  "Aga",
+                      "arabicName":  "مركز أجا",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1205",
+                      "englishName":  "Sinbillawin",
+                      "arabicName":  "مركز السنبلاوين",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1206",
+                      "englishName":  "Matariyya",
+                      "arabicName":  "مركز المطرية",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1207",
+                      "englishName":  "Manzala",
+                      "arabicName":  "مركز المنزلة",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1208",
+                      "englishName":  "Bilqas",
+                      "arabicName":  "مركز بلقاس",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1209",
+                      "englishName":  "Dikirnis",
+                      "arabicName":  "مركز دكرنس",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1210",
+                      "englishName":  "Shirbin",
+                      "arabicName":  "مركز شربين",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1211",
+                      "englishName":  "Talkha",
+                      "arabicName":  "مركز طلخا",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1212",
+                      "englishName":  "Mit Ghamr",
+                      "arabicName":  "قسم ميت غمر",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1213",
+                      "englishName":  "Mit Ghamr",
+                      "arabicName":  "مركز ميت غمر",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1214",
+                      "englishName":  "Minya Al-Nasr",
+                      "arabicName":  "مركز منية النصر",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1215",
+                      "englishName":  "Gamaliyya",
+                      "arabicName":  "مركز الجمالية",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1216",
+                      "englishName":  "Tamy Al-Amdid",
+                      "arabicName":  "مركز تمى الأمديد",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1217",
+                      "englishName":  "MIt Salsil",
+                      "arabicName":  "مركز ميت سلسيل",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1218",
+                      "englishName":  "Bany Abeed",
+                      "arabicName":  "مركز بنى عبيد",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1219",
+                      "englishName":  "Mahalet Demna",
+                      "arabicName":  "مركز محلة دمنة",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1220",
+                      "englishName":  "Gamsa",
+                      "arabicName":  "قسم جمصة",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1221",
+                      "englishName":  "Nebro",
+                      "arabicName":  "مركز نبروة",
+                      "governorateEnglish":  "Dakahlia"
+                  },
+                  {
+                      "id":  "EG1300",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1301",
+                      "englishName":  "Zaqaziq 1",
+                      "arabicName":  "قسم اول الزقازيق",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1302",
+                      "englishName":  "Zaqaziq 2",
+                      "arabicName":  "قسم ثان الزقازيق",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1303",
+                      "englishName":  "Zaqaziq",
+                      "arabicName":  "مركز الزقازيق",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1304",
+                      "englishName":  "Abu Hammad",
+                      "arabicName":  "مركز أبو حماد",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1305",
+                      "englishName":  "Abu Kabir",
+                      "arabicName":  "مركز أبوكبير",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1306",
+                      "englishName":  "Al-Husayniya",
+                      "arabicName":  "مركز الحسينية",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1307",
+                      "englishName":  "Al-Salhiyya",
+                      "arabicName":  "قسم الصالحية الجديدة",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1308",
+                      "englishName":  "Bilbis",
+                      "arabicName":  "مركز بلبيس",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1309",
+                      "englishName":  "10 Ramadan 1",
+                      "arabicName":  "قسم اول مدينة العاشر من رمضان",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1310",
+                      "englishName":  "Dyarb Nigm",
+                      "arabicName":  "مركز ديرب نجم",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1311",
+                      "englishName":  "Faqus",
+                      "arabicName":  "قسم فاقوس",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1312",
+                      "englishName":  "Faqus",
+                      "arabicName":  "مركز فاقوس",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1313",
+                      "englishName":  "Kafr Saqr",
+                      "arabicName":  "مركز كفر صقر",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1314",
+                      "englishName":  "Minya al-Qamh",
+                      "arabicName":  "مركز منيا القمح",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1315",
+                      "englishName":  "Hihya",
+                      "arabicName":  "مركز ههيا",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1316",
+                      "englishName":  "Mashtul Al-Suq",
+                      "arabicName":  "مركز مشتول السوق",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1317",
+                      "englishName":  "El-Ibrahimiya",
+                      "arabicName":  "مركز الأبراهيمية",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1318",
+                      "englishName":  "Al-Qanayat",
+                      "arabicName":  "قسم القنايات",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1319",
+                      "englishName":  "Awlad Saqr",
+                      "arabicName":  "مركز أولاد صقر",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1320",
+                      "englishName":  "Qurin",
+                      "arabicName":  "قسم القرين",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1321",
+                      "englishName":  "10 Ramadan 2",
+                      "arabicName":  "قسم ثان مدينه العاشر من رمضان",
+                      "governorateEnglish":  "Sharkia"
+                  },
+                  {
+                      "id":  "EG1400",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1401",
+                      "englishName":  "Banha",
+                      "arabicName":  "قسم بنها",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1402",
+                      "englishName":  "Banha",
+                      "arabicName":  "مركز بنها",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1403",
+                      "englishName":  "Al Khanka",
+                      "arabicName":  "مركز الخانكة",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1404",
+                      "englishName":  "Qanatir Al-Khayriyya",
+                      "arabicName":  "مركز القناطر الخيرية",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1405",
+                      "englishName":  "Shibin al-Qanatir",
+                      "arabicName":  "مركز شبين القناطر",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1406",
+                      "englishName":  "Shubra Al-Khayma 1",
+                      "arabicName":  "قسم أول شبرا الخيمة",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1407",
+                      "englishName":  "Shubra Al-Khayma 2",
+                      "arabicName":  "قسم ثان شبرا الخيمة",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1408",
+                      "englishName":  "Tukh",
+                      "arabicName":  "مركز طوخ",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1409",
+                      "englishName":  "Qalyub",
+                      "arabicName":  "قسم قليوب",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1410",
+                      "englishName":  "Qalyub",
+                      "arabicName":  "مركز قليوب",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1411",
+                      "englishName":  "Kafr Shukr",
+                      "arabicName":  "مركز كفر شكر",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1412",
+                      "englishName":  "Khsos",
+                      "arabicName":  "قسم الخصوص",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1413",
+                      "englishName":  "Abour",
+                      "arabicName":  "قسم العبور",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1414",
+                      "englishName":  "Qaha",
+                      "arabicName":  "قسم قها",
+                      "governorateEnglish":  "Kalyoubia"
+                  },
+                  {
+                      "id":  "EG1501",
+                      "englishName":  "Kafr Al-Shaykh",
+                      "arabicName":  "قسم كفر الشيخ",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1502",
+                      "englishName":  "Kafr Al-Shaykh",
+                      "arabicName":  "مركز كفر الشيخ",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1503",
+                      "englishName":  "Burullus",
+                      "arabicName":  "مركز البرلس",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1504",
+                      "englishName":  "Biyalu",
+                      "arabicName":  "مركز بيلا",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1505",
+                      "englishName":  "Disuq",
+                      "arabicName":  "قسم دسوق",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1506",
+                      "englishName":  "Disuq",
+                      "arabicName":  "مركز دسوق",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1507",
+                      "englishName":  "Sidi Salim",
+                      "arabicName":  "مركز سيدى سالم",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1508",
+                      "englishName":  "Fuwwa",
+                      "arabicName":  "مركز فوه",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1509",
+                      "englishName":  "Qillin",
+                      "arabicName":  "مركز قلين",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1510",
+                      "englishName":  "Mitubas",
+                      "arabicName":  "مركز مطوبس",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1511",
+                      "englishName":  "Al Hamul",
+                      "arabicName":  "مركز الحامول",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1512",
+                      "englishName":  "Riyad",
+                      "arabicName":  "مركز الرياض",
+                      "governorateEnglish":  "Kafr El-Shikh"
+                  },
+                  {
+                      "id":  "EG1601",
+                      "englishName":  "Tanta 1",
+                      "arabicName":  "قسم أول طنطا",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1602",
+                      "englishName":  "Tanta 2",
+                      "arabicName":  "قسم ثان طنطا",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1603",
+                      "englishName":  "Tanta",
+                      "arabicName":  "مركز طنطا",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1604",
+                      "englishName":  "Santa",
+                      "arabicName":  "مركز السنطة",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1605",
+                      "englishName":  "El Mahalla El Kobra 1",
+                      "arabicName":  "قسم أول المحلة الكبرى",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1606",
+                      "englishName":  "El Mahalla El Kobra 2",
+                      "arabicName":  "قسم ثان المحلة الكبرى",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1607",
+                      "englishName":  "El Mahalla El Kobra",
+                      "arabicName":  "مركز المحله الكبرى",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1608",
+                      "englishName":  "Basyun",
+                      "arabicName":  "مركز بسيون",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1609",
+                      "englishName":  "Zifta",
+                      "arabicName":  "مركز زفتى",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1610",
+                      "englishName":  "Samannud",
+                      "arabicName":  "مركز سمنود",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1611",
+                      "englishName":  "Qutur",
+                      "arabicName":  "مركز قطور",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1612",
+                      "englishName":  "Kafr Al-Zayyat",
+                      "arabicName":  "مركز كفر الزيات",
+                      "governorateEnglish":  "Gharbia"
+                  },
+                  {
+                      "id":  "EG1701",
+                      "englishName":  "Shibin al-Kum",
+                      "arabicName":  "قسم شبين الكوم",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1702",
+                      "englishName":  "Shibin al-Kum",
+                      "arabicName":  "مركز شبين الكوم",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1703",
+                      "englishName":  "Ashmun",
+                      "arabicName":  "مركز أشمون",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1704",
+                      "englishName":  "Al-Bagur",
+                      "arabicName":  "مركز الباجور",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1705",
+                      "englishName":  "Al-Shuhada",
+                      "arabicName":  "مركز الشهداء",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1706",
+                      "englishName":  "Birkat Al-Sab",
+                      "arabicName":  "مركز بركة السبع",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1707",
+                      "englishName":  "Tala",
+                      "arabicName":  "مركز تلا",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1708",
+                      "englishName":  "Quwisna",
+                      "arabicName":  "مركز قويسنا",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1709",
+                      "englishName":  "Minuf",
+                      "arabicName":  "مركز منوف",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1710",
+                      "englishName":  "Sirs Al-Layyana City",
+                      "arabicName":  "قسم مدينة سرس الليانة",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1711",
+                      "englishName":  "Sadat City",
+                      "arabicName":  "مركز السادات",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1712",
+                      "englishName":  "Minuf City",
+                      "arabicName":  "قسم مدينة منوف",
+                      "governorateEnglish":  "Menoufia"
+                  },
+                  {
+                      "id":  "EG1800",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1801",
+                      "englishName":  "Damanhur",
+                      "arabicName":  "قسم دمنهور",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1802",
+                      "englishName":  "Damanhur",
+                      "arabicName":  "مركز دمنهور",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1803",
+                      "englishName":  "Abu-l-Matamir",
+                      "arabicName":  "مركز ابوالمطامير",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1804",
+                      "englishName":  "Abu Hummus",
+                      "arabicName":  "مركز ابوحمص",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1805",
+                      "englishName":  "Al-Dilingat",
+                      "arabicName":  "مركز الدلنجات",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1806",
+                      "englishName":  "Al-Mahmudiyya",
+                      "arabicName":  "مركز المحمودية",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1807",
+                      "englishName":  "Itay Al-Barud",
+                      "arabicName":  "مركز إيتاى البارود",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1808",
+                      "englishName":  "Hush Isa",
+                      "arabicName":  "مركز حوش عيسى",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1809",
+                      "englishName":  "Rashid",
+                      "arabicName":  "مركز رشيد",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1810",
+                      "englishName":  "Shubra Khit",
+                      "arabicName":  "مركز شبراخيت",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1811",
+                      "englishName":  "Kafr Al-Dawwar",
+                      "arabicName":  "قسم كفرالدوار",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1812",
+                      "englishName":  "Kafr Al-Dawwar",
+                      "arabicName":  "مركز كفر الدوار",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1813",
+                      "englishName":  "Kum Hamada",
+                      "arabicName":  "مركز كوم حمادة",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1814",
+                      "englishName":  "Wadi Al-NatrUn",
+                      "arabicName":  "مركز وادى النطرون",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1815",
+                      "englishName":  "Al-Rahmaniyya",
+                      "arabicName":  "مركز الرحمانية",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1816",
+                      "englishName":  "Idku",
+                      "arabicName":  "مركز إدكو",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1817",
+                      "englishName":  "Nubariyya West",
+                      "arabicName":  "قسم غرب النوبارية",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1818",
+                      "englishName":  "Badr",
+                      "arabicName":  "مركز بدر",
+                      "governorateEnglish":  "Behera"
+                  },
+                  {
+                      "id":  "EG1901",
+                      "englishName":  "Ismailiyya 1",
+                      "arabicName":  "قسم أول الاسماعيلية",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG1902",
+                      "englishName":  "Ismailiyya 2",
+                      "arabicName":  "قسم ثان الاسماعيلية",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG1903",
+                      "englishName":  "Ismailiyya 3",
+                      "arabicName":  "قسم ثالث الاسماعيلية",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG1904",
+                      "englishName":  "Ismailiyya",
+                      "arabicName":  "مركز الاسماعيلية",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG1905",
+                      "englishName":  "Tal al-Kabir, al-",
+                      "arabicName":  "مركز التل الكبير",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG1906",
+                      "englishName":  "Qantara Gharb, al-",
+                      "arabicName":  "مركز القنطرة",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG1907",
+                      "englishName":  "Fayid",
+                      "arabicName":  "مركز فايد",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG1908",
+                      "englishName":  "Qantara Sharq, al-",
+                      "arabicName":  "قسم القنطرة شرق",
+                      "governorateEnglish":  "Ismailia"
+                  },
+                  {
+                      "id":  "EG2100",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2101",
+                      "englishName":  "Imbaba",
+                      "arabicName":  "قسم امبابه",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2102",
+                      "englishName":  "Al-Aguza",
+                      "arabicName":  "قسم العجوزة",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2103",
+                      "englishName":  "DuqqI",
+                      "arabicName":  "قسم الدقي",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2104",
+                      "englishName":  "Giza",
+                      "arabicName":  "قسم الجيزة",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2105",
+                      "englishName":  "Bulaq Al-DakrUr",
+                      "arabicName":  "قسم بولاق الدكرور",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2106",
+                      "englishName":  "Al-Ahram",
+                      "arabicName":  "قسم الأهرام",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2107",
+                      "englishName":  "6 October-1",
+                      "arabicName":  "قسم أول 6 أكتوبر",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2108",
+                      "englishName":  "Hwamdeia",
+                      "arabicName":  "قسم الحوامدية",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2109",
+                      "englishName":  "Giza",
+                      "arabicName":  "مركز الجيزة",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2110",
+                      "englishName":  "Badrashain",
+                      "arabicName":  "مركز البدرشين",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2111",
+                      "englishName":  "Saf",
+                      "arabicName":  "مركز الصف",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2112",
+                      "englishName":  "Ayat",
+                      "arabicName":  "مركز العياط",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2113",
+                      "englishName":  "Imbaba",
+                      "arabicName":  "مركز إمبابة",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2114",
+                      "englishName":  "Bahariya Oasis",
+                      "arabicName":  "قسم الواحاتالبحرية",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2115",
+                      "englishName":  "Atfeh",
+                      "arabicName":  "مركز أطفيح",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2116",
+                      "englishName":  "Auseem",
+                      "arabicName":  "مركز أوسيم",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2117",
+                      "englishName":  "Waraq",
+                      "arabicName":  "قسم الوراق",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2118",
+                      "englishName":  "Umraniyya",
+                      "arabicName":  "قسم العمرانية",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2119",
+                      "englishName":  "Shaykh Zayed",
+                      "arabicName":  "قسم الشيخ زايد",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2120",
+                      "englishName":  "Kardasa",
+                      "arabicName":  "مركز كرداسة",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2121",
+                      "englishName":  "6 October-2",
+                      "arabicName":  "قسم ثان 6 أكتوبر",
+                      "governorateEnglish":  "Giza"
+                  },
+                  {
+                      "id":  "EG2200",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2201",
+                      "englishName":  "Bani Swayf",
+                      "arabicName":  "قسم بنى سويف",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2202",
+                      "englishName":  "Bani Swayf",
+                      "arabicName":  "مركز بنى سويف",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2203",
+                      "englishName":  "Bani Swayf City",
+                      "arabicName":  "قسم مدينة بنى سويف الجديدة",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2204",
+                      "englishName":  "Al Fashn",
+                      "arabicName":  "مركز الفشن",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2205",
+                      "englishName":  "Al Wasta",
+                      "arabicName":  "مركز الواسطى",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2206",
+                      "englishName":  "Ahnasya",
+                      "arabicName":  "مركز أهناسيا",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2207",
+                      "englishName":  "Biba",
+                      "arabicName":  "مركز ببا",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2208",
+                      "englishName":  "Sumusta",
+                      "arabicName":  "مركز سمسطا",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2209",
+                      "englishName":  "Nasir",
+                      "arabicName":  "مركز ناصر",
+                      "governorateEnglish":  "Beni Suef"
+                  },
+                  {
+                      "id":  "EG2300",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2301",
+                      "englishName":  "Fayyum",
+                      "arabicName":  "قسم الفيوم",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2302",
+                      "englishName":  "Fayyum",
+                      "arabicName":  "مركز الفيوم",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2303",
+                      "englishName":  "Abshaway",
+                      "arabicName":  "مركز أبشواى",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2304",
+                      "englishName":  "Atsa",
+                      "arabicName":  "مركز أطسا",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2305",
+                      "englishName":  "Sinuras",
+                      "arabicName":  "مركز سنورس",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2306",
+                      "englishName":  "Tamya",
+                      "arabicName":  "مركز طامية",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2307",
+                      "englishName":  "Yousef El sadeq",
+                      "arabicName":  "مركز يوسف الصديق",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2308",
+                      "englishName":  "Fayyum City",
+                      "arabicName":  "مدينة الفيوم الجديدة",
+                      "governorateEnglish":  "Fayoum"
+                  },
+                  {
+                      "id":  "EG2400",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2401",
+                      "englishName":  "Kesm Al-minya",
+                      "arabicName":  "قسم المنيا",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2402",
+                      "englishName":  "Markz Al Minya",
+                      "arabicName":  "مركز المنيا",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2403",
+                      "englishName":  "New Minya",
+                      "arabicName":  "مدينة المنيا الجديدة",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2404",
+                      "englishName":  "Markz Abu Qurqas",
+                      "arabicName":  "مركز ابو قرقاص",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2405",
+                      "englishName":  "Markz Al Idwa",
+                      "arabicName":  "مركز العدوة",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2406",
+                      "englishName":  "Markz Bani Mazar",
+                      "arabicName":  "مركز بنى مزار",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2407",
+                      "englishName":  "Markz Dir Mawas",
+                      "arabicName":  "مركز دير مواس",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2408",
+                      "englishName":  "Markz Samalut",
+                      "arabicName":  "مركز سمالوط",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2409",
+                      "englishName":  "Markz Matay",
+                      "arabicName":  "مركز مطاى",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2410",
+                      "englishName":  "Markz Maghagha",
+                      "arabicName":  "مركز مغاغة",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2411",
+                      "englishName":  "Kesm Mallawi",
+                      "arabicName":  "قسم ملوى",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2412",
+                      "englishName":  "Markz Mallawi",
+                      "arabicName":  "مركز ملوى",
+                      "governorateEnglish":  "Menia"
+                  },
+                  {
+                      "id":  "EG2500",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "صحراء أسيوط",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2501",
+                      "englishName":  "Kesm Awal Assuit",
+                      "arabicName":  "قسم أول أسيوط",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2502",
+                      "englishName":  "Kesm Than Assuit",
+                      "arabicName":  "قسم ثان أسيوط",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2503",
+                      "englishName":  "Assuit",
+                      "arabicName":  "مركز أسيوط",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2504",
+                      "englishName":  "Abnub",
+                      "arabicName":  "مركز أبنوب",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2505",
+                      "englishName":  "Abu Tig",
+                      "arabicName":  "مركز أبوتيج",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2506",
+                      "englishName":  "Al- Badari",
+                      "arabicName":  "مركز البدارى",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2507",
+                      "englishName":  "Sahil Silim",
+                      "arabicName":  "مركز ساحل سليم",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2508",
+                      "englishName":  "Al-Ghanayem",
+                      "arabicName":  "مركز الغنايم",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2509",
+                      "englishName":  "Al-Qusia",
+                      "arabicName":  "مركز القوصية",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2510",
+                      "englishName":  "Dayrut",
+                      "arabicName":  "مركز ديروط",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2511",
+                      "englishName":  "Sidfa",
+                      "arabicName":  "مركز صدفا",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2512",
+                      "englishName":  "Manfalut",
+                      "arabicName":  "مركز منفلوط",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2513",
+                      "englishName":  "Alfath",
+                      "arabicName":  "مركز الفتح",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2514",
+                      "englishName":  "Assuit City",
+                      "arabicName":  "مدينة اسيوط الجديدة",
+                      "governorateEnglish":  "Assiut"
+                  },
+                  {
+                      "id":  "EG2600",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "صحراء سوهاج",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2601",
+                      "englishName":  "Suhag",
+                      "arabicName":  "قسم اول سوهاج",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2602",
+                      "englishName":  "Suhag-2",
+                      "arabicName":  "قسم ثان سوهاج",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2603",
+                      "englishName":  "Suhag",
+                      "arabicName":  "مركز سوهاج",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2604",
+                      "englishName":  "Akhmim",
+                      "arabicName":  "مركز أخميم",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2605",
+                      "englishName":  "Al-Balyana",
+                      "arabicName":  "مركز البلينا",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2606",
+                      "englishName":  "Al-Maragha",
+                      "arabicName":  "مركز المراغة",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2607",
+                      "englishName":  "Al-Minshat",
+                      "arabicName":  "مركز المنشأة",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2608",
+                      "englishName":  "Dar al-Salam",
+                      "arabicName":  "مركز دار السلام",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2609",
+                      "englishName":  "Girga",
+                      "arabicName":  "قسم جرجا",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2610",
+                      "englishName":  "Girga",
+                      "arabicName":  "مركز جرجا",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2611",
+                      "englishName":  "Guhayna Al-Gharbiyya",
+                      "arabicName":  "مركز جهينة الغربية",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2612",
+                      "englishName":  "Saqulta",
+                      "arabicName":  "مركز ساقلته",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2613",
+                      "englishName":  "Tama",
+                      "arabicName":  "مركز طما",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2614",
+                      "englishName":  "Tahta",
+                      "arabicName":  "مركز طهطا",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2615",
+                      "englishName":  "Kesm Tahta",
+                      "arabicName":  "قسم طهطا",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2616",
+                      "englishName":  "Kawther",
+                      "arabicName":  "قسم الكوثر",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2617",
+                      "englishName":  "Al Usayrat",
+                      "arabicName":  "مركز العسيرات",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2618",
+                      "englishName":  "Akhmim City",
+                      "arabicName":  "مدينة أخميم الجديدة",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2619",
+                      "englishName":  "Suhag City",
+                      "arabicName":  "مدينة سوهاج الجديدة",
+                      "governorateEnglish":  "Suhag"
+                  },
+                  {
+                      "id":  "EG2700",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "صحراء قنا",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2701",
+                      "englishName":  "Qina",
+                      "arabicName":  "قسم قنا",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2702",
+                      "englishName":  "Qina",
+                      "arabicName":  "مركز قنا",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2703",
+                      "englishName":  "Abu Tisht",
+                      "arabicName":  "مركز أبو طشت",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2704",
+                      "englishName":  "Armant",
+                      "arabicName":  "مركز أرمنت",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2705",
+                      "englishName":  "Isna",
+                      "arabicName":  "مركز إسنا",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2706",
+                      "englishName":  "Dishna",
+                      "arabicName":  "مركز دشنا",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2707",
+                      "englishName":  "Qus",
+                      "arabicName":  "مركز قوص",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2708",
+                      "englishName":  "Nag Hammadi",
+                      "arabicName":  "مركز نجع حمادى",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2709",
+                      "englishName":  "Naqada",
+                      "arabicName":  "مركز نقادة",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2710",
+                      "englishName":  "Farshut",
+                      "arabicName":  "مركز فرشوط",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2711",
+                      "englishName":  "Qift",
+                      "arabicName":  "مركز قفط",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2712",
+                      "englishName":  "Al Waqf",
+                      "arabicName":  "مركز الوقف",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2713",
+                      "englishName":  "Qina City",
+                      "arabicName":  "مدينة قنا الجديدة",
+                      "governorateEnglish":  "Qena"
+                  },
+                  {
+                      "id":  "EG2800",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2801",
+                      "englishName":  "Aswan",
+                      "arabicName":  "قسم أسوان",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2802",
+                      "englishName":  "Aswan",
+                      "arabicName":  "مركز أسوان",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2803",
+                      "englishName":  "Adfu",
+                      "arabicName":  "مركز أدفو",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2804",
+                      "englishName":  "Kum Umbu",
+                      "arabicName":  "مركز كوم امبو",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2805",
+                      "englishName":  "Nasr",
+                      "arabicName":  "مركز نصر",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2806",
+                      "englishName":  "Daraw",
+                      "arabicName":  "مركز دراو",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2807",
+                      "englishName":  "Abu Simbel",
+                      "arabicName":  "مركز أبوسنبل",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2808",
+                      "englishName":  "Aswan City",
+                      "arabicName":  "مدينة أسوان الجديدة",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2809",
+                      "englishName":  "Tushaka",
+                      "arabicName":  "مدينة توشكى الجديدة",
+                      "governorateEnglish":  "Aswan"
+                  },
+                  {
+                      "id":  "EG2900",
+                      "englishName":  "Zemam Out",
+                      "arabicName":  "خارج الزمام",
+                      "governorateEnglish":  "Luxor"
+                  },
+                  {
+                      "id":  "EG2901",
+                      "englishName":  "Luxor",
+                      "arabicName":  "قسم الأقصر",
+                      "governorateEnglish":  "Luxor"
+                  },
+                  {
+                      "id":  "EG2902",
+                      "englishName":  "Luxor",
+                      "arabicName":  "مركز الأقصر",
+                      "governorateEnglish":  "Luxor"
+                  },
+                  {
+                      "id":  "EG2903",
+                      "englishName":  "Tiba police station",
+                      "arabicName":  "مركز شرطة طيبة",
+                      "governorateEnglish":  "Luxor"
+                  },
+                  {
+                      "id":  "EG3101",
+                      "englishName":  "Hurghada 1",
+                      "arabicName":  "قسم أول الغردقة",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3102",
+                      "englishName":  "Qusir",
+                      "arabicName":  "قسم القصير",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3103",
+                      "englishName":  "Safaga",
+                      "arabicName":  "قسم سفاجا",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3104",
+                      "englishName":  "Marsa Alam",
+                      "arabicName":  "قسم مرسى علم",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3105",
+                      "englishName":  "Ras Gharib",
+                      "arabicName":  "قسم رأس غارب",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3106",
+                      "englishName":  "Shallatin",
+                      "arabicName":  "قسم شلاتين",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3107",
+                      "englishName":  "Halayib",
+                      "arabicName":  "قسم حلايب",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3108",
+                      "englishName":  "Hurghada 2",
+                      "arabicName":  "قسم ثان الغردقة",
+                      "governorateEnglish":  "Red Sea"
+                  },
+                  {
+                      "id":  "EG3201",
+                      "englishName":  "Al-Kharga Oasis",
+                      "arabicName":  "مركز الواحات الخارجة",
+                      "governorateEnglish":  "New Valley"
+                  },
+                  {
+                      "id":  "EG3202",
+                      "englishName":  "A-Dakhla Oasis",
+                      "arabicName":  "مركز الوحات الداخلة",
+                      "governorateEnglish":  "New Valley"
+                  },
+                  {
+                      "id":  "EG3203",
+                      "englishName":  "Al Farafra Oasis",
+                      "arabicName":  "مركز الفرافرة",
+                      "governorateEnglish":  "New Valley"
+                  },
+                  {
+                      "id":  "EG3204",
+                      "englishName":  "Paris Paris",
+                      "arabicName":  "مركز باريس",
+                      "governorateEnglish":  "New Valley"
+                  },
+                  {
+                      "id":  "EG3301",
+                      "englishName":  "Marsa Matruh",
+                      "arabicName":  "قسم مرسى مطروح",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3302",
+                      "englishName":  "Al-Hammam",
+                      "arabicName":  "قسم الحمام",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3303",
+                      "englishName":  "Salloum",
+                      "arabicName":  "قسم السلوم",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3304",
+                      "englishName":  "Daba",
+                      "arabicName":  "مركز الضبعة",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3305",
+                      "englishName":  "Sidi Barani",
+                      "arabicName":  "قسم سيدى برانى",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3306",
+                      "englishName":  "Siwa",
+                      "arabicName":  "مركز سيوة",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3307",
+                      "englishName":  "Alamn",
+                      "arabicName":  "قسم مارينا العلمين السياحية",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3308",
+                      "englishName":  "North Coast",
+                      "arabicName":  "قسم الساحل الشمالى-جزء",
+                      "governorateEnglish":  "Matrouh"
+                  },
+                  {
+                      "id":  "EG3401",
+                      "englishName":  "El Arish 1",
+                      "arabicName":  "قسم أول العريش",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3402",
+                      "englishName":  "El Arish 2",
+                      "arabicName":  "قسم ثان العريش",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3403",
+                      "englishName":  "El Arish 3",
+                      "arabicName":  "قسم ثالث العريش",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3404",
+                      "englishName":  "El Arish 4",
+                      "arabicName":  "قسم رابع العريش",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3405",
+                      "englishName":  "Bir Al-Abd",
+                      "arabicName":  "قسم بئر العبد",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3406",
+                      "englishName":  "Al-Hasna",
+                      "arabicName":  "قسم الحسنة",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3407",
+                      "englishName":  "Nakhl",
+                      "arabicName":  "قسم نخل",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3408",
+                      "englishName":  "Shaykh Zuwayd",
+                      "arabicName":  "قسم الشيخ زويد",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3409",
+                      "englishName":  "Rafah",
+                      "arabicName":  "قسم رفح",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3410",
+                      "englishName":  "Rummana",
+                      "arabicName":  "قسم رمانة",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3411",
+                      "englishName":  "Qasima",
+                      "arabicName":  "قسم القسيمة",
+                      "governorateEnglish":  "North Sinai"
+                  },
+                  {
+                      "id":  "EG3501",
+                      "englishName":  "Al-Tur",
+                      "arabicName":  "قسم الطور",
+                      "governorateEnglish":  "South Sinai"
+                  },
+                  {
+                      "id":  "EG3502",
+                      "englishName":  "Ras Sidr",
+                      "arabicName":  "قسم رأس سدر",
+                      "governorateEnglish":  "South Sinai"
+                  },
+                  {
+                      "id":  "EG3503",
+                      "englishName":  "Abu Radis",
+                      "arabicName":  "قسم أبو رديس",
+                      "governorateEnglish":  "South Sinai"
+                  },
+                  {
+                      "id":  "EG3504",
+                      "englishName":  "Sant Katrin",
+                      "arabicName":  "قسم سانت كاترين",
+                      "governorateEnglish":  "South Sinai"
+                  },
+                  {
+                      "id":  "EG3505",
+                      "englishName":  "Sharm el-Sheikh",
+                      "arabicName":  "قسم شرم الشيخ",
+                      "governorateEnglish":  "South Sinai"
+                  },
+                  {
+                      "id":  "EG3506",
+                      "englishName":  "Dahab",
+                      "arabicName":  "قسم دهب",
+                      "governorateEnglish":  "South Sinai"
+                  },
+                  {
+                      "id":  "EG3507",
+                      "englishName":  "Nuweiba",
+                      "arabicName":  "قسم نويبع",
+                      "governorateEnglish":  "South Sinai"
+                  },
+                  {
+                      "id":  "EG3508",
+                      "englishName":  "Taba",
+                      "arabicName":  "قسم طابا",
+                      "governorateEnglish":  "South Sinai"
+                  }
+              ],
+    "Count":  365
+}

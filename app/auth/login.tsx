@@ -94,7 +94,8 @@ export default function LoginScreen() {
 
     setLoading(true);
 
-    const cleanInput = parseDigits(rawInput);
+    try {
+      const cleanInput = parseDigits(rawInput);
     let emailToUse = rawInput;
 
     // 3. الاستعلام التكيفي: لو المدخل مش إيميل، بنستعلم بالرقم القومي أو phone_number

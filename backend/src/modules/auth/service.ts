@@ -11,10 +11,10 @@ type NormalizedIdentifier =
   | { kind: 'invalid'; value: '' };
 
 const DIGIT_MAP: Record<string, string> = {
-  '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
-  '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
-  '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
-  '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+  'Ù ': '0', 'Ù¡': '1', 'Ù¢': '2', 'Ù£': '3', 'Ù¤': '4',
+  'Ù¥': '5', 'Ù¦': '6', 'Ù§': '7', 'Ù¨': '8', 'Ù©': '9',
+  'Û°': '0', 'Û±': '1', 'Û²': '2', 'Û³': '3', 'Û´': '4',
+  'Ûµ': '5', 'Û¶': '6', 'Û·': '7', 'Û¸': '8', 'Û¹': '9',
 };
 
 export function normalizeLoginIdentifier(input: string): NormalizedIdentifier {
@@ -23,7 +23,7 @@ export function normalizeLoginIdentifier(input: string): NormalizedIdentifier {
     return { kind: 'email', value: trimmed.toLowerCase() };
   }
 
-  const ascii = trimmed.replace(/[٠-٩۰-۹]/g, (digit) => DIGIT_MAP[digit] ?? digit);
+  const ascii = trimmed.replace(/[Ù -Ù©Û°-Û¹]/g, (digit) => DIGIT_MAP[digit] ?? digit);
   if (!/^[+\d\s().-]+$/.test(ascii)) {
     return { kind: 'invalid', value: '' };
   }
@@ -99,4 +99,70 @@ export async function loginWithIdentifier(input: LoginInput) {
   }
 
   return { session: data.session };
+}
+
+
+export async function createManagedUser(input: import('./schema.js').CreateUserInput) {
+  const supabase = getSupabaseAdmin();
+
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email: input.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: {
+      full_name: input.full_name,
+    },
+  });
+
+  if (createError || !created.user) {
+    const message = createError?.message ?? '';
+    if (/already registered|already exists|duplicate/i.test(message)) {
+      throw new AppError(409, 'USER_ALREADY_EXISTS', 'An account with this email already exists.');
+    }
+    throw new AppError(400, 'USER_CREATION_FAILED', 'Unable to create this user account.');
+  }
+
+  // The database trigger creates the initial profile. Update that row rather
+  // than inserting another profile for the same auth user.
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      email: input.email,
+      full_name: input.full_name,
+      display_name: input.full_name,
+      role: input.role,
+      national_id: input.national_id,
+    })
+    .eq('id', created.user.id);
+
+  if (profileError) {
+    // Remove the Auth account if its profile update failed.
+    await supabase.auth.admin.deleteUser(created.user.id);
+
+    if (
+      profileError.code === '23505' ||
+      /national_id/i.test(profileError.message)
+    ) {
+      throw new AppError(
+        409,
+        'NATIONAL_ID_ALREADY_EXISTS',
+        'This national ID is already registered.'
+      );
+    }
+
+    throw new AppError(
+      500,
+      'PROFILE_CREATION_FAILED',
+      'The user profile could not be configured.'
+    );
+  }
+
+  return {
+    user: {
+      id: created.user.id,
+      email: input.email,
+      full_name: input.full_name,
+      role: input.role,
+    },
+  };
 }

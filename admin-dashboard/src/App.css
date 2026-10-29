@@ -2797,7 +2797,7 @@ html[dir="ltr"] .dashboard .reports-heading-copy .page-description {
 }
 
 /* =====================================================
-   CivicGuard GIS page â€” aligned with Reports page
+   CivicGuard GIS page Ã¢â‚¬â€ aligned with Reports page
    ===================================================== */
 
 .dashboard .gis-section {
@@ -3228,7 +3228,7 @@ html[dir="ltr"] .dashboard .gis-table td {
   }
 }
 
-/* GIS header â€” match the Reports page heading */
+/* GIS header Ã¢â‚¬â€ match the Reports page heading */
 .dashboard .gis-header {
   display: flex;
   align-items: center;
@@ -4232,3 +4232,924 @@ html[dir="ltr"] .dashboard .notifications-page .notification-content {
   }
 }
 /* CivicGuard login page refinement end */
+
+
+/* CivicGuard Analytics dashboard */
+.analytics-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  padding-bottom: 28px;
+}
+
+.analytics-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 26px;
+  border: 1px solid var(--border-color, #e7ebf2);
+  border-radius: 18px;
+  background: var(--card-bg, #fff);
+}
+
+.analytics-heading h2 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 750;
+}
+
+.analytics-heading p,
+.analytics-chart-heading p {
+  margin: 0;
+  color: var(--text-muted, #778196);
+  line-height: 1.7;
+  font-size: 13px;
+}
+
+.analytics-heading-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  color: #3977e8;
+  background: rgba(57, 119, 232, 0.1);
+}
+
+.analytics-stats-grid {
+  margin-top: 0;
+}
+
+.analytics-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  min-width: 0;
+}
+
+.analytics-chart-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--border-color, #e7ebf2);
+  border-radius: 18px;
+  background: var(--card-bg, #fff);
+  box-shadow: 0 5px 22px rgba(23, 42, 77, 0.035);
+}
+
+.analytics-chart-heading {
+  margin-bottom: 12px;
+}
+
+.analytics-chart-heading h3 {
+  margin: 0 0 7px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.analytics-chart {
+  width: 100%;
+  height: 300px;
+  min-width: 0;
+}
+
+.analytics-trend-chart {
+  width: 100%;
+  height: 300px;
+  min-width: 0;
+}
+
+.analytics-trend-card {
+  width: 100%;
+}
+
+.analytics-empty {
+  padding: 24px;
+  color: var(--text-muted, #778196);
+  text-align: center;
+}
+
+.analytics-error {
+  color: #c43d4b;
+}
+
+.analytics-page .recharts-default-tooltip {
+  border: 1px solid #e7ebf2 !important;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(23, 42, 77, 0.1);
+}
+
+@media (max-width: 900px) {
+  .analytics-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .analytics-heading {
+    padding: 19px;
+  }
+
+  .analytics-chart-card {
+    padding: 15px;
+  }
+
+  .analytics-chart,
+  .analytics-trend-chart {
+    height: 270px;
+  }
+}
+
+/* CivicGuard analytics refinements */
+.analytics-heading {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.analytics-heading h2 {
+  font-size: 1.65rem;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+
+.analytics-heading p {
+  max-width: 680px;
+  line-height: 1.7;
+}
+
+.analytics-chart-card {
+  overflow: hidden;
+}
+
+.analytics-chart-card .recharts-cartesian-axis-tick-value {
+  fill: var(--text-secondary, #64748b);
+}
+
+.analytics-chart-card .recharts-cartesian-grid-horizontal line {
+  stroke: var(--border-color, #e7ebf2);
+}
+
+.analytics-chart-card .recharts-bar-rectangle {
+  transition: opacity 160ms ease;
+}
+
+.analytics-chart-card .recharts-bar-rectangle:hover {
+  opacity: 0.82;
+}
+
+@media (max-width: 600px) {
+  .analytics-heading {
+    align-items: flex-start;
+  }
+
+  .analytics-heading h2 {
+    font-size: 1.35rem;
+  }
+
+  .analytics-chart {
+    height: 320px;
+  }
+}
+
+
+/* Analytics header â€” match Reports and GIS command-center headers */
+.dashboard .analytics-page .analytics-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin: 0;
+  padding: 28px 30px;
+  color: #ffffff;
+  background: linear-gradient(120deg, #10243d 0%, #183957 100%);
+  border: 0;
+  border-bottom: 3px solid #3282d8;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.dashboard .analytics-page .analytics-heading h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 25px;
+  font-weight: 760;
+  letter-spacing: -0.4px;
+  line-height: 1.4;
+}
+
+.dashboard .analytics-page .analytics-heading p {
+  margin: 7px 0 0;
+  color: #c2d1e2;
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 1.8;
+}
+
+.dashboard .analytics-page .analytics-heading-icon {
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+}
+
+@media (max-width: 900px) {
+  .dashboard .analytics-page .analytics-heading {
+    padding: 23px;
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard .analytics-page .analytics-heading {
+    gap: 16px;
+    padding: 21px;
+  }
+
+  .dashboard .analytics-page .analytics-heading h2 {
+    font-size: 22px;
+  }
+}
+
+
+/* Analytics header rounded corners */
+.dashboard .analytics-page .analytics-heading {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+
+/* CivicGuard analytics card polish */
+.dashboard .analytics-page .analytics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 22px 0;
+}
+
+.dashboard .analytics-page .analytics-stats-grid > .stat-card:not(.resolution-rate-card) {
+  min-height: 142px;
+  padding: 24px;
+  border: 1px solid #e1e8f1;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(22, 42, 70, 0.035);
+  gap: 10px;
+}
+
+.dashboard .analytics-page .analytics-stats-grid > .stat-card:not(.resolution-rate-card) p {
+  color: #5b6b82;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.dashboard .analytics-page .analytics-stats-grid > .stat-card:not(.resolution-rate-card) h3 {
+  margin: 0;
+  color: #122742;
+  font-size: clamp(29px, 2.5vw, 36px);
+  font-weight: 780;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard .analytics-page .analytics-stats-grid > .resolution-rate-card {
+  margin: 0;
+  border-radius: 16px;
+}
+
+.dashboard .analytics-page .analytics-chart-grid {
+  gap: 20px;
+  align-items: stretch;
+}
+
+.dashboard .analytics-page .analytics-chart-card {
+  border: 1px solid #e1e8f1;
+  border-radius: 16px;
+  padding: 24px;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(22, 42, 70, 0.035);
+}
+
+.dashboard .analytics-page .analytics-chart-heading {
+  min-height: 58px;
+  margin-bottom: 16px;
+}
+
+.dashboard .analytics-page .analytics-chart-heading h3 {
+  color: #142b46;
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
+.dashboard .analytics-page .analytics-chart-heading p {
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.dashboard .analytics-page .analytics-trend-card {
+  margin-top: 20px;
+}
+
+@media (max-width: 760px) {
+  .dashboard .analytics-page .analytics-stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+    margin: 16px 0;
+  }
+
+  .dashboard .analytics-page .analytics-stats-grid > .stat-card:not(.resolution-rate-card) {
+    min-height: 112px;
+    padding: 20px;
+  }
+
+  .dashboard .analytics-page .analytics-chart-card {
+    padding: 18px;
+  }
+
+  .dashboard .analytics-page .analytics-chart-heading {
+    min-height: 0;
+  }
+
+  .dashboard .analytics-page .analytics-trend-card {
+    margin-top: 16px;
+  }
+}
+
+
+/* CivicGuard users and permissions page */
+.dashboard .users-permissions-page {
+  display: grid;
+  gap: 22px;
+  padding: 4px 0 30px;
+  color: #142b46;
+}
+.dashboard .users-permissions-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px;
+  border: 1px solid #e1e8f1;
+  border-radius: 18px;
+  background: linear-gradient(125deg, #ffffff 0%, #f4f8fd 100%);
+  box-shadow: 0 5px 20px rgba(22, 42, 70, 0.04);
+}
+.dashboard .users-eyebrow {
+  margin: 0 0 8px;
+  color: #2874c8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.dashboard .users-permissions-heading h2 {
+  margin: 0 0 8px;
+  color: #122742;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 800;
+}
+.dashboard .users-permissions-heading p:not(.users-eyebrow) {
+  margin: 0;
+  color: #66788f;
+  line-height: 1.7;
+}
+.dashboard .users-heading-count {
+  display: grid;
+  place-items: center;
+  flex: 0 0 100px;
+  width: 100px;
+  height: 100px;
+  align-content: center;
+  border: 1px solid #d8e7f8;
+  border-radius: 20px;
+  background: #eaf3ff;
+  color: #1d5fa7;
+}
+.dashboard .users-heading-count span {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.dashboard .users-heading-count small {
+  margin-top: 4px;
+  font-weight: 650;
+}
+.dashboard .users-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.dashboard .users-summary-card {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid #e1e8f1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(22, 42, 70, 0.035);
+}
+.dashboard .users-summary-card span {
+  color: #64758b;
+  font-size: 13px;
+  font-weight: 650;
+}
+.dashboard .users-summary-card strong {
+  color: #122742;
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.dashboard .users-directory-card {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid #e1e8f1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(22, 42, 70, 0.035);
+}
+.dashboard .users-directory-heading h3 {
+  margin: 0 0 6px;
+  color: #142b46;
+  font-size: 18px;
+  font-weight: 800;
+}
+.dashboard .users-directory-heading p {
+  margin: 0;
+  color: #718096;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.dashboard .users-controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 220px) auto;
+  gap: 12px;
+  margin: 20px 0;
+}
+.dashboard .users-controls input,
+.dashboard .users-controls select {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid #dbe4ef;
+  border-radius: 10px;
+  background: #fff;
+  color: #243b53;
+  font: inherit;
+  font-size: 13px;
+}
+.dashboard .users-refresh-button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #c9ddf5;
+  border-radius: 10px;
+  background: #edf5ff;
+  color: #205f9e;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.dashboard .users-refresh-button:hover {
+  background: #deedff;
+}
+.dashboard .users-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.dashboard .users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: start;
+}
+.dashboard .users-table th {
+  padding: 13px 14px;
+  border-bottom: 1px solid #e4ebf3;
+  background: #f7f9fc;
+  color: #687b91;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.dashboard .users-table td {
+  padding: 15px 14px;
+  border-bottom: 1px solid #edf1f6;
+  color: #31465e;
+  font-size: 13px;
+  vertical-align: middle;
+}
+.dashboard .users-table tbody tr:hover {
+  background: #f8fbff;
+}
+.dashboard .users-table td code {
+  color: #60748b;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.dashboard .users-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+  font-weight: 700;
+}
+.dashboard .users-avatar {
+  display: inline-grid;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 11px;
+  background: #eaf3ff;
+  color: #2368ad;
+  font-weight: 800;
+}
+.dashboard .users-role-pill {
+  display: inline-flex;
+  padding: 5px 10px;
+  border: 1px solid #dce5ef;
+  border-radius: 999px;
+  background: #f4f7fa;
+  color: #4d6278;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.dashboard .users-role-pill.is-admin {
+  border-color: #c8ddf8;
+  background: #eaf3ff;
+  color: #1e5e9f;
+}
+.dashboard .users-feedback {
+  padding: 20px 12px;
+  color: #6c7f94;
+  text-align: center;
+}
+.dashboard .users-error {
+  padding: 14px 16px;
+  border: 1px solid #f0caca;
+  border-radius: 10px;
+  background: #fff5f5;
+  color: #a12b2b;
+  line-height: 1.7;
+}
+.dashboard .users-permissions-note {
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  border: 1px solid #e1eaf4;
+  border-radius: 10px;
+  background: #f8fbff;
+  color: #66788f;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.dashboard .users-permissions-note strong {
+  color: #284764;
+}
+@media (max-width: 760px) {
+  .dashboard .users-permissions-heading {
+    align-items: flex-start;
+    padding: 20px;
+  }
+  .dashboard .users-heading-count {
+    flex-basis: 76px;
+    width: 76px;
+    height: 76px;
+    border-radius: 16px;
+  }
+  .dashboard .users-heading-count span {
+    font-size: 24px;
+  }
+  .dashboard .users-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .dashboard .users-summary-card {
+    padding: 18px;
+  }
+  .dashboard .users-directory-card {
+    padding: 16px;
+  }
+  .dashboard .users-controls {
+    grid-template-columns: 1fr;
+  }
+}
+/* Users & Permissions â€” match Reports, GIS and Notifications headers */
+.dashboard .users-permissions-heading {
+  background: linear-gradient(120deg, #10243d 0%, #183957 100%) !important;
+  border: 0 !important;
+  border-bottom: 3px solid #3282d8 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 24px rgba(16, 36, 61, 0.14) !important;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.dashboard .users-permissions-heading .users-eyebrow,
+.dashboard .users-permissions-heading h2,
+.dashboard .users-permissions-heading p:not(.users-eyebrow) {
+  color: #ffffff;
+}
+
+.dashboard .users-permissions-heading .users-heading-count {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Users & Permissions: responsive bilingual table */
+.dashboard .users-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard .users-table {
+  width: 100%;
+  min-width: 720px;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.dashboard .users-table th,
+.dashboard .users-table td {
+  text-align: start;
+  vertical-align: middle;
+}
+
+.dashboard .users-table td code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.dashboard .users-display-name {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.dashboard .users-edit-button {
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid #c9d9ed;
+  border-radius: 9px;
+  background: #edf5ff;
+  color: #174c82;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dashboard .users-edit-button:hover:not(:disabled) {
+  background: #dcecff;
+}
+
+.dashboard .users-edit-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 760px) {
+  .dashboard .users-table {
+    min-width: 720px;
+  }
+
+  .dashboard .users-table th,
+  .dashboard .users-table td {
+    padding: 12px 10px;
+  }
+}
+
+/* Account ID: follow the selected page language */
+.dashboard .users-table th:nth-child(2),
+.dashboard .users-table td.users-account-id {
+  text-align: start !important;
+}
+
+.dashboard .users-table td.users-account-id code {
+  direction: ltr !important;
+  unicode-bidi: isolate;
+  display: inline-block;
+  max-width: 100%;
+  text-align: start;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Arabic: align the ID column to the right */
+html[dir="rtl"] .dashboard .users-table th:nth-child(2),
+html[dir="rtl"] .dashboard .users-table td.users-account-id {
+  text-align: right !important;
+}
+
+/* English: align the ID column to the left */
+html[dir="ltr"] .dashboard .users-table th:nth-child(2),
+html[dir="ltr"] .dashboard .users-table td.users-account-id {
+  text-align: left !important;
+}
+
+/* Users & Permissions — Add User action and bilingual modal */
+.dashboard .users-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 11px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 11px;
+  background: #ffffff;
+  color: #173b61;
+  font-weight: 750;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transition: background 160ms ease, transform 160ms ease;
+}
+.dashboard .users-add-button span {
+  font-size: 22px;
+  line-height: 1;
+}
+.dashboard .users-add-button:hover {
+  background: #eaf3ff;
+  transform: translateY(-1px);
+}
+.dashboard .users-add-button:focus-visible,
+.dashboard .add-user-modal button:focus-visible,
+.dashboard .add-user-modal input:focus-visible,
+.dashboard .add-user-modal select:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.45);
+  outline-offset: 2px;
+}
+.add-user-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(7, 20, 37, 0.66);
+  backdrop-filter: blur(5px);
+}
+.dashboard .add-user-modal {
+  width: min(100%, 500px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 26px;
+  border: 1px solid #dce6f2;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #142b46;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+}
+.add-user-modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.add-user-modal-heading p {
+  margin: 0 0 7px;
+  color: #3478c6;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.add-user-modal-heading h3 {
+  margin: 0;
+  color: #142b46;
+  font-size: 24px;
+  font-weight: 800;
+}
+.dashboard .add-user-modal .add-user-close {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid #dbe5f0;
+  border-radius: 9px;
+  background: #f7faff;
+  color: #294866;
+  font-size: 25px;
+  line-height: 1;
+}
+.add-user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.add-user-form label {
+  margin-top: 7px;
+  color: #2a405a;
+  font-size: 13px;
+  font-weight: 750;
+}
+.dashboard .add-user-form input,
+.dashboard .add-user-form select {
+  width: 100%;
+  min-height: 45px;
+  padding: 10px 12px;
+  border: 1px solid #ccd9e8;
+  border-radius: 9px;
+  background: #fbfdff;
+  color: #142b46;
+}
+.dashboard .add-user-form input:focus,
+.dashboard .add-user-form select:focus {
+  border-color: #3478c6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 120, 198, 0.12);
+}
+.add-user-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.dashboard .add-user-form-actions button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  font-weight: 750;
+}
+.dashboard .add-user-cancel {
+  border: 1px solid #d3deeb;
+  background: #f7f9fc;
+  color: #344a62;
+}
+.dashboard .add-user-submit {
+  flex: 1;
+  border: 1px solid #1d64d8;
+  background: #1d64d8;
+  color: #ffffff;
+}
+.dashboard .add-user-submit:hover:not(:disabled) {
+  background: #1855b8;
+}
+.dashboard .add-user-form-actions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.add-user-error {
+  margin-top: 8px;
+  padding: 11px 12px;
+  border: 1px solid #f0caca;
+  border-radius: 9px;
+  background: #fff5f5;
+  color: #a32828;
+  font-size: 13px;
+  line-height: 1.6;
+}
+@media (max-width: 760px) {
+  .dashboard .users-add-button {
+    min-height: 42px;
+    padding: 9px 12px;
+  }
+  .dashboard .add-user-modal {
+    padding: 20px;
+  }
+  .add-user-modal-heading h3 {
+    font-size: 21px;
+  }
+}
+
+
+/* Trend chart time-period selector */
+.dashboard .analytics-page .analytics-trend-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard .analytics-page .analytics-trend-period {
+  min-width: 145px;
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d7dfeb;
+  border-radius: 10px;
+  background: var(--card-bg, #fff);
+  color: var(--text-primary, #142b46);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .dashboard .analytics-page .analytics-trend-period {
+    width: 100%;
+  }
+}

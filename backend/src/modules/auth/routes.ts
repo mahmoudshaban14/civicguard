@@ -1,9 +1,12 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import crypto from 'node:crypto';
 import { validate } from '../../middleware/validate.js';
-import { loginSchema } from './schema.js';
-import { loginWithIdentifier } from './service.js';
+import { loginSchema, createUserSchema } from './schema.js';
+import { loginWithIdentifier, createManagedUser } from './service.js';
+
+import { requireAuth } from '../../middleware/auth.js';
+import { requireRole } from '../../middleware/require-role.js';
 
 export const authRouter = Router();
 
@@ -42,3 +45,21 @@ authRouter.post('/login', loginRateLimiter, validate({ body: loginSchema }), asy
     next(err);
   }
 });
+
+// POST /v1/auth/users
+// Only an authenticated administrator may create non-admin accounts.
+authRouter.post(
+  '/users',
+  requireAuth,
+  requireRole('admin'),
+  validate({ body: createUserSchema }),
+  async (req, res, next) => {
+    try {
+      const result = await createManagedUser(req.body);
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);

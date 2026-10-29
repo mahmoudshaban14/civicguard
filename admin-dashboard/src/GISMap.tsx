@@ -1,6 +1,7 @@
-
+﻿
 import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
+import { booleanPointInPolygon, pointOnFeature } from '@turf/turf'
 import {
   Marker,
   MapContainer,
@@ -54,6 +55,81 @@ type GovernorateFeature = {
 type GovernoratesData = {
   type: 'FeatureCollection'
   features: GovernorateFeature[]
+}
+
+
+type AreaFeature = {
+  type: 'Feature'
+  properties: {
+    shapeName: string
+    shapeID: string
+    shapeGroup: string
+    shapeType: string
+  }
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon'
+    coordinates: Position[][] | Position[][][]
+  }
+}
+
+type AreasData = {
+  type: 'FeatureCollection'
+  features: AreaFeature[]
+}
+type AreaTranslation = {
+  id: string
+  englishName: string
+  arabicName: string
+  governorateEnglish: string
+}
+
+function normalizeAreaName(value: string): string {
+  return value
+    .replace(/\u00c3[\u00ae\u00ee]/gi, 'i')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function normalizeGovernorateName(value: string): string {
+  const normalized = normalizeAreaName(value);
+
+  const aliases: Record<string, string> = {
+    'al sharqia': 'sharkia',
+    'sharkia': 'sharkia',
+    'asyut': 'assiut',
+    'assiut': 'assiut',
+    'beheira': 'behera',
+    'behera': 'behera',
+    'faiyum': 'fayoum',
+    'fayoum': 'fayoum',
+    'kafr el sheikh': 'kafr el sheikh',
+    'kafr el shikh': 'kafr el sheikh',
+    'qalyubia': 'qalyubia',
+    'kalyoubia': 'qalyubia',
+    'minya': 'minya',
+    'menia': 'minya',
+    'monufia': 'monufia',
+    'menoufia': 'monufia',
+    'sohag': 'sohag',
+    'suhag': 'sohag',
+  };
+
+  return aliases[normalized] ?? normalized;
+}
+
+const AREA_GOVERNORATE_OVERRIDES: Record<string, string> = {
+  '37247803B91562573257971': 'Port Said',
+  '37247803B61040397145628': 'Port Said',
+  '37247803B87412130883557': 'Port Said',
+  '37247803B22529416419300': 'Suez',
+  '37247803B59643082406240': 'Damietta',
+  '37247803B3923529194747': 'Alexandria',
+  '37247803B57319556498410': 'Suez',
+  '37247803B47496652532681': 'Al Sharqia',
+  '37247803B93568001164514': 'Al Sharqia',
 }
 
 
@@ -120,7 +196,7 @@ function FilterDropdown({
           <span className="gis-filter-value">
             {selectedOption?.label ?? value}
           </span>
-          <span className="gis-filter-chevron" aria-hidden="true">▾</span>
+          <span className="gis-filter-chevron" aria-hidden="true">{'\u25BE'}</span>
         </button>
 
         {open && !disabled && (
@@ -330,14 +406,49 @@ function getGovernorateBounds(feature: GovernorateFeature) {
 }
 
 
+function getAreaBounds(feature: AreaFeature) {
+  const positions: Position[] = []
+
+  function collectPositions(value: unknown): void {
+    if (!Array.isArray(value)) return
+
+    if (
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    ) {
+      positions.push([value[0], value[1]])
+      return
+    }
+
+    value.forEach(collectPositions)
+  }
+
+  collectPositions(feature.geometry.coordinates)
+
+  if (positions.length === 0) return null
+
+  const longitudes = positions.map(([longitude]) => longitude)
+  const latitudes = positions.map(([, latitude]) => latitude)
+
+  return [
+    [Math.min(...latitudes), Math.min(...longitudes)],
+    [Math.max(...latitudes), Math.max(...longitudes)],
+  ] as [[number, number], [number, number]]
+}
+
 function MapViewController({
   governorates,
   governorateFilter,
   hasManualGovernorateSelection,
+  areas,
+  areaFilter,
 }: {
   governorates: GovernoratesData | null
   governorateFilter: string
   hasManualGovernorateSelection: boolean
+  areas: AreasData | null
+  areaFilter: string
 }) {
   const map = useMap()
   const locationCenteredRef = useRef(false)
@@ -349,15 +460,16 @@ function MapViewController({
 
   // Try to center the map on the user's current device location once.
   useEffect(() => {
+    let cancelled = false
+
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        if (manualSelectionRef.current) return
+        if (cancelled || manualSelectionRef.current) return
 
         const { latitude, longitude } = position.coords
 
-        // Keep the map within the configured Egypt bounds.
         if (
           latitude < EGYPT_BOUNDS[0][0] ||
           latitude > EGYPT_BOUNDS[1][0] ||
@@ -368,17 +480,23 @@ function MapViewController({
         }
 
         locationCenteredRef.current = true
-        map.setView([latitude, longitude], 14, { animate: true })
+        map.setView([latitude, longitude], 14, { animate: false })
       },
       (error) => {
-        console.warn('Could not determine device location:', error.message)
+        if (!cancelled) {
+          console.warn('Could not determine device location:', error.message)
+        }
       },
       {
-        enableHighAccuracy: true,
+        enableHighAccuracy: false,
         timeout: 10000,
         maximumAge: 60000,
       },
     )
+
+    return () => {
+      cancelled = true
+    }
   }, [map])
 
   // Fit Egypt initially, unless device location succeeds.
@@ -393,6 +511,25 @@ function MapViewController({
         locationCenteredRef.current
       ) {
         return
+      }
+
+      if (areaFilter !== 'all') {
+        const area = areas?.features.find(
+          (item) => item.properties.shapeID === areaFilter,
+        )
+
+        if (area) {
+          const bounds = getAreaBounds(area)
+
+          if (bounds) {
+            map.fitBounds(bounds, {
+              padding: [35, 35],
+              maxZoom: 13,
+              animate: true,
+            })
+            return
+          }
+        }
       }
 
       if (governorateFilter === 'all') {
@@ -426,6 +563,8 @@ function MapViewController({
     governorates,
     governorateFilter,
     hasManualGovernorateSelection,
+    areas,
+    areaFilter,
   ])
 
   return null
@@ -477,6 +616,9 @@ function GISMap({ language }: { language: Language }) {
   const [governorates, setGovernorates] =
     useState<GovernoratesData | null>(null)
   const [governorateFilter, setGovernorateFilter] = useState('all')
+  const [areas, setAreas] = useState<AreasData | null>(null)
+  const [areaFilter, setAreaFilter] = useState('all')
+  const [areaTranslations, setAreaTranslations] = useState<AreaTranslation[]>([])
   const [hasManualGovernorateSelection, setHasManualGovernorateSelection] =
     useState(false)
 
@@ -593,7 +735,7 @@ function GISMap({ language }: { language: Language }) {
 
     const pollInterval = window.setInterval(() => {
       void loadReports()
-    }, 15000)
+    }, 60000)
 
     return () => {
       void supabase.removeChannel(channel)
@@ -733,6 +875,124 @@ function GISMap({ language }: { language: Language }) {
     [reports],
   )
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadAreas() {
+      try {
+        const response = await fetch('/egypt-areas.geojson')
+        if (!response.ok) {
+          throw new Error('Failed to load areas: HTTP ' + response.status)
+        }
+
+        const data = (await response.json()) as AreasData
+        if (!cancelled) setAreas(data)
+      } catch (error) {
+        console.error('Could not load Egypt areas:', error)
+      }
+    }
+
+    void loadAreas()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetch('/egypt-area-translations.json')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load area translations: ${response.status}`)
+        }
+        return response.json() as Promise<unknown>
+      })
+      .then((data) => {
+        const translations = Array.isArray(data)
+          ? data
+          : data &&
+              typeof data === 'object' &&
+              'value' in data &&
+              Array.isArray(data.value)
+            ? data.value
+            : data &&
+                typeof data === 'object' &&
+                'translations' in data &&
+                Array.isArray(data.translations)
+              ? data.translations
+              : null
+
+        if (!translations) {
+          throw new Error(
+            'Invalid area translations JSON: expected an array or an object containing a translations array.',
+          )
+        }
+
+        if (!cancelled) setAreaTranslations(translations as AreaTranslation[])
+      })
+      .catch((error) => {
+        console.error('Could not load area translations:', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+const areasWithGovernorates = useMemo(() => {
+    if (!areas || !governorates) return []
+
+    return areas.features
+      .filter((area) => normalizeAreaName(area.properties.shapeName) !== 'zemam out')
+      .map((area) => {
+        const shapeID = area.properties.shapeID
+        const overrideName = AREA_GOVERNORATE_OVERRIDES[shapeID]
+
+        if (overrideName) {
+          return {
+            area,
+            governorateName: overrideName,
+          }
+        }
+
+        try {
+          const representativePoint = pointOnFeature(area as never)
+          const governorate = governorates.features.find((feature) =>
+            booleanPointInPolygon(representativePoint, feature as never),
+          )
+
+          return {
+            area,
+            governorateName: governorate?.properties.name ?? '',
+          }
+        } catch {
+          return { area, governorateName: '' }
+        }
+      })
+      .filter((item) => item.governorateName !== '')
+  }, [areas, governorates])
+
+  const availableAreas = useMemo(
+    () =>
+      areasWithGovernorates
+        .filter(
+          (item) =>
+            governorateFilter === 'all' ||
+            item.governorateName === governorateFilter,
+        )
+        .sort((a, b) =>
+          a.area.properties.shapeName.localeCompare(
+            b.area.properties.shapeName,
+          ),
+        ),
+    [areasWithGovernorates, governorateFilter],
+  )
+
+  const selectedArea =
+    areas?.features.find(
+      (feature) => feature.properties.shapeID === areaFilter,
+    ) ?? null
   const filteredReports = useMemo(() => {
     const selectedGovernorate =
       governorates?.features.find(
@@ -765,7 +1025,7 @@ function GISMap({ language }: { language: Language }) {
       }
 
       if (!validCoordinates(report)) {
-        return true
+        return areaFilter === 'all'
       }
 
       const longitude = report.longitude!
@@ -780,8 +1040,18 @@ function GISMap({ language }: { language: Language }) {
         return false
       }
 
-      if (selectedGovernorate) {
-        return pointInGovernorate(longitude, latitude, selectedGovernorate)
+      if (
+        selectedGovernorate &&
+        !pointInGovernorate(longitude, latitude, selectedGovernorate)
+      ) {
+        return false
+      }
+
+      if (
+        selectedArea &&
+        !booleanPointInPolygon([longitude, latitude], selectedArea as never)
+      ) {
+        return false
       }
 
       return true
@@ -794,6 +1064,9 @@ function GISMap({ language }: { language: Language }) {
     departmentFilter,
     governorateFilter,
     governorates,
+    areaFilter,
+    areas,
+    selectedArea,
   ])
 
   const mappedReports = useMemo(
@@ -1017,6 +1290,7 @@ function GISMap({ language }: { language: Language }) {
           onChange={(value) => {
             setHasManualGovernorateSelection(true)
             setGovernorateFilter(value)
+            setAreaFilter('all')
           }}
           options={[
             { value: 'all', label: t('allEgypt') },
@@ -1031,6 +1305,70 @@ function GISMap({ language }: { language: Language }) {
                   language,
                 ),
               })),
+          ]}
+        />
+        <FilterDropdown
+          label={t('area')}
+          value={areaFilter}
+          disabled={!areas || !governorates}
+          onChange={setAreaFilter}
+          options={[
+            { value: 'all', label: t('allAreas') },
+            ...availableAreas.map(({ area, governorateName }) => {
+              const englishName = area.properties.shapeName
+              const normalizedName = normalizeAreaName(englishName)
+              const normalizedGovernorate = normalizeGovernorateName(governorateName)
+
+              const exactMatches = areaTranslations.filter(
+                (item) =>
+                  normalizeAreaName(item.englishName) === normalizedName &&
+                  normalizeGovernorateName(item.governorateEnglish) ===
+                    normalizedGovernorate,
+              )
+
+              // Fall back to the area name if governorate matching fails.
+              const nameMatches = areaTranslations.filter(
+                (item) =>
+                  normalizeAreaName(item.englishName) === normalizedName,
+              )
+
+              const matches =
+                exactMatches.length > 0 ? exactMatches : nameMatches
+
+              if (matches.length === 0) {
+                console.warn('[GISMap] Missing area translation', {
+                  shapeID: area.properties.shapeID,
+                  englishName,
+                  detectedGovernorate: governorateName,
+                })
+              }
+
+              // Preserve Arabic administrative qualifiers such as قسم and مركز.
+              const arabicNames = [
+                ...new Set(
+                  matches
+                    .map((item) => item.arabicName.trim())
+                    .filter(Boolean),
+                ),
+              ]
+
+              const displayName =
+                arabicNames.length === 1
+                  ? arabicNames[0]
+                  : arabicNames.length > 1
+                    ? [...arabicNames].sort(
+                        (a, b) => a.length - b.length,
+                      )[0]
+                    : englishName
+              const baseLabel = language === 'ar' ? displayName : englishName
+
+              const label = baseLabel
+
+              return {
+                value: area.properties.shapeID,
+                label,
+              }
+            }),
           ]}
         />
       </div>
@@ -1083,6 +1421,8 @@ function GISMap({ language }: { language: Language }) {
   governorates={governorates}
   governorateFilter={governorateFilter}
   hasManualGovernorateSelection={hasManualGovernorateSelection}
+  areas={areas}
+  areaFilter={areaFilter}
 />
 
 <TileLayer
@@ -1597,5 +1937,14 @@ function GISMap({ language }: { language: Language }) {
 }
 
 export default GISMap
+
+
+
+
+
+
+
+
+
 
 
