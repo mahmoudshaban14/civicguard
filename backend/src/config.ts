@@ -10,6 +10,9 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1, 'SUPABASE_ANON_KEY is required'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   CORS_ORIGIN: z.string().default('*'),
+  // General API rate limit per IP (login and AI have their own, stricter limits)
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1000).default(15 * 60 * 1000),
+  RATE_LIMIT_MAX: z.coerce.number().int().min(10).default(600),
   // Gemini image analysis. If GEMINI_API_KEY is empty the analyze endpoint
   // still works but returns a "manual review" fallback instead of calling AI.
   GEMINI_API_KEY: z.string().optional().default(''),
@@ -45,6 +48,8 @@ function loadConfig() {
       SUPABASE_ANON_KEY: 'test-anon-key',
       SUPABASE_SERVICE_ROLE_KEY: 'test-service-key',
       CORS_ORIGIN: '*',
+      RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000,
+      RATE_LIMIT_MAX: 600,
       GEMINI_API_KEY: '',
       GEMINI_MODEL: 'gemini-3.8-flash',
       AI_TIMEOUT_MS: 15000,

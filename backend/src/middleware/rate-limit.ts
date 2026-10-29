@@ -1,9 +1,11 @@
 import { rateLimit } from 'express-rate-limit';
 import crypto from 'node:crypto';
+import { config } from '../config.js';
 
 export const basicRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per IP
+  windowMs: config.RATE_LIMIT_WINDOW_MS,
+  max: config.RATE_LIMIT_MAX, // requests per IP per window (default 600 / 15 min)
+  skip: (req) => req.path === '/health',
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
