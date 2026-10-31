@@ -103,7 +103,7 @@ describe('Authority Routes (/v1/authority)', () => {
   describe('PATCH /v1/authority/reports/:id/status', () => {
     it('should reject invalid status transition for authority role', async () => {
       const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
-      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const mockProfile = { id: 'usr-auth', role: 'employee', department_id: validDeptId };
       const currentReport = {
         id: validReportId,
         status: 'submitted',
@@ -150,7 +150,7 @@ describe('Authority Routes (/v1/authority)', () => {
 
     it('should allow valid status transition and update status', async () => {
       const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
-      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const mockProfile = { id: 'usr-auth', role: 'employee', department_id: validDeptId };
       const currentReport = {
         id: validReportId,
         status: 'assigned',
@@ -289,7 +289,7 @@ describe('Authority Routes (/v1/authority)', () => {
 
     it('should allow authority user to reassign report belonging to own department', async () => {
       const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
-      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const mockProfile = { id: 'usr-auth', role: 'employee', department_id: validDeptId };
       const newDeptId = '33333333-4444-5555-6666-777777777777';
       const mockDept = { id: newDeptId, name: 'Waste Management Department' };
       const currentReport = {
@@ -359,7 +359,7 @@ describe('Authority Routes (/v1/authority)', () => {
 
     it('should return 403 when authority user tries to reassign report of another department', async () => {
       const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
-      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const mockProfile = { id: 'usr-auth', role: 'employee', department_id: validDeptId };
       const otherDeptId = '99999999-8888-7777-6666-555555555555';
       const mockDept = { id: otherDeptId, name: 'Other Department' };
       const currentReport = {
@@ -414,7 +414,7 @@ describe('Authority Routes (/v1/authority)', () => {
 
     it('should return 403 when authority user has no department_id', async () => {
       const mockUser = { id: 'usr-auth-nodept', email: 'nodept@example.com' };
-      const mockProfile = { id: 'usr-auth-nodept', role: 'authority', department_id: null };
+      const mockProfile = { id: 'usr-auth-nodept', role: 'employee', department_id: null };
       const mockDept = { id: validDeptId, name: 'Road Maintenance' };
       const currentReport = {
         id: validReportId,
@@ -504,7 +504,7 @@ describe('Authority Routes (/v1/authority)', () => {
 
     it('should reject authority user if report is not in their department', async () => {
       const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
-      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const mockProfile = { id: 'usr-auth', role: 'employee', department_id: validDeptId };
       const currentReport = {
         id: validReportId,
         assigned_department_id: otherDeptId,
@@ -549,7 +549,7 @@ describe('Authority Routes (/v1/authority)', () => {
 
     it('should allow authority user to update action_status on department report', async () => {
       const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
-      const mockProfile = { id: 'usr-auth', role: 'authority', department_id: validDeptId };
+      const mockProfile = { id: 'usr-auth', role: 'employee', department_id: validDeptId };
       const currentReport = {
         id: validReportId,
         assigned_department_id: validDeptId,

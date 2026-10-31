@@ -1,11 +1,12 @@
 import type { Request, Response, NextFunction } from 'express';
 import { getSupabaseAdmin } from '../db/client.js';
 import { AppError } from './error-handler.js';
+import { normalizeRole, type Role } from './roles.js';
 
 export interface AuthUser {
   id: string;
   email?: string;
-  role: 'citizen' | 'authority' | 'admin';
+  role: Role;
   department_id: string | null;
   full_name: string | null;
 }
@@ -75,7 +76,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   req.user = {
     id: authData.user.id,
     email: authData.user.email,
-    role: (profile?.role as 'citizen' | 'authority' | 'admin') || 'citizen',
+    role: normalizeRole(profile?.role),
     department_id: profile?.department_id || null,
     full_name: profile?.full_name || null,
   };

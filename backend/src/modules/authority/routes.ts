@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/require-role.js';
+import { STAFF_ROLES } from '../../middleware/roles.js';
 import { validate } from '../../middleware/validate.js';
 import {
   authorityReportsQuerySchema,
@@ -19,8 +20,8 @@ import {
 
 export const authorityRouter = Router();
 
-// Restrict all routes in this router to 'authority' or 'admin'
-authorityRouter.use(requireAuth, requireRole('authority', 'admin'));
+// Restrict all routes in this router to staff roles (employee, department_manager, admin)
+authorityRouter.use(requireAuth, requireRole(...STAFF_ROLES));
 
 // GET /v1/authority/reports?status&severity&department_id
 authorityRouter.get(

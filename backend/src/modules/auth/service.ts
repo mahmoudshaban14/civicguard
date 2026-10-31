@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { config } from '../../config.js';
 import { getSupabaseAdmin } from '../../db/client.js';
 import { AppError } from '../../middleware/error-handler.js';
+import { toWesternDigits } from '../../utils/digits.js';
 import type { LoginInput } from './schema.js';
 
 type NormalizedIdentifier =
@@ -10,20 +11,13 @@ type NormalizedIdentifier =
   | { kind: 'phone_number'; value: string }
   | { kind: 'invalid'; value: '' };
 
-const DIGIT_MAP: Record<string, string> = {
-  'Ù ': '0', 'Ù¡': '1', 'Ù¢': '2', 'Ù£': '3', 'Ù¤': '4',
-  'Ù¥': '5', 'Ù¦': '6', 'Ù§': '7', 'Ù¨': '8', 'Ù©': '9',
-  'Û°': '0', 'Û±': '1', 'Û²': '2', 'Û³': '3', 'Û´': '4',
-  'Ûµ': '5', 'Û¶': '6', 'Û·': '7', 'Û¸': '8', 'Û¹': '9',
-};
-
 export function normalizeLoginIdentifier(input: string): NormalizedIdentifier {
   const trimmed = input.trim();
   if (trimmed.includes('@')) {
     return { kind: 'email', value: trimmed.toLowerCase() };
   }
 
-  const ascii = trimmed.replace(/[Ù -Ù©Û°-Û¹]/g, (digit) => DIGIT_MAP[digit] ?? digit);
+  const ascii = toWesternDigits(trimmed);
   if (!/^[+\d\s().-]+$/.test(ascii)) {
     return { kind: 'invalid', value: '' };
   }
@@ -105,6 +99,21 @@ export async function loginWithIdentifier(input: LoginInput) {
 export async function createManagedUser(input: import('./schema.js').CreateUserInput) {
   const supabase = getSupabaseAdmin();
 
+  // Staff accounts must belong to an existing department (checked before any account exists).
+  if (input.role !== 'admin') {
+    const { data: department, error: departmentError } = await supabase
+      .from('departments')
+      .select('id')
+      .eq('id', input.department_id as string)
+      .maybeSingle();
+    if (departmentError) {
+      throw new AppError(503, 'DEPARTMENT_LOOKUP_FAILED', 'Unable to verify the department right now.');
+    }
+    if (!department) {
+      throw new AppError(400, 'INVALID_DEPARTMENT', 'The selected department does not exist.');
+    }
+  }
+
   const { data: created, error: createError } = await supabase.auth.admin.createUser({
     email: input.email,
     password: input.password,
@@ -131,6 +140,7 @@ export async function createManagedUser(input: import('./schema.js').CreateUserI
       full_name: input.full_name,
       display_name: input.full_name,
       role: input.role,
+      department_id: input.role === 'admin' ? null : input.department_id,
       national_id: input.national_id,
     })
     .eq('id', created.user.id);
@@ -163,6 +173,7 @@ export async function createManagedUser(input: import('./schema.js').CreateUserI
       email: input.email,
       full_name: input.full_name,
       role: input.role,
+      department_id: input.role === 'admin' ? null : (input.department_id ?? null),
     },
   };
 }

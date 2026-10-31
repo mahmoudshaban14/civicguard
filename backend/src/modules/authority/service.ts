@@ -1,4 +1,5 @@
 
+import { isDepartmentScoped } from '../../middleware/roles.js';
 import { getSupabaseAdmin } from '../../db/client.js';
 import type { AuthUser } from '../../middleware/auth.js';
 import { AppError } from '../../middleware/error-handler.js';
@@ -59,12 +60,12 @@ export async function listAuthorityReports(
     .range(offset, offset + limit - 1);
 
   // Department scoping: authority users are scoped to their department
-  if (user.role === 'authority') {
+  if (isDepartmentScoped(user.role)) {
     if (!user.department_id) {
       throw new AppError(
         403,
         'FORBIDDEN',
-        'Authority user is not associated with any department',
+        'Department staff user is not associated with any department',
       );
     }
 
@@ -114,13 +115,13 @@ export async function updateReportStatus(
 
   // 2. Department authority scoping
   if (
-    user.role === 'authority' &&
+    isDepartmentScoped(user.role) &&
     report.assigned_department_id !== user.department_id
   ) {
     throw new AppError(
       403,
       'FORBIDDEN',
-      'Authority users can only update reports in their assigned department',
+      'Department staff can only update reports in their assigned department',
     );
   }
 
@@ -156,7 +157,7 @@ export async function updateReportStatus(
     }
     if (
       !target ||
-      (user.role === 'authority' && target.assigned_department_id !== user.department_id)
+      (isDepartmentScoped(user.role) && target.assigned_department_id !== user.department_id)
     ) {
       throw new AppError(404, 'NOT_FOUND', 'Duplicate target report not found');
     }
@@ -246,12 +247,12 @@ export async function assignReportDepartment(
   }
 
   // 3. Department scoping check for authority users
-  if (user.role === 'authority') {
+  if (isDepartmentScoped(user.role)) {
     if (!user.department_id) {
       throw new AppError(
         403,
         'FORBIDDEN',
-        'Authority user is not associated with any department',
+        'Department staff user is not associated with any department',
       );
     }
 
@@ -259,7 +260,7 @@ export async function assignReportDepartment(
       throw new AppError(
         403,
         'FORBIDDEN',
-        'Authority users can only reassign reports currently assigned to their own department',
+        'Department staff can only reassign reports currently assigned to their own department',
       );
     }
   }
@@ -313,8 +314,8 @@ export async function updateReportActionStatus(
   }
 
   // 2. Department authority scoping
-  if (user.role === 'authority' && report.assigned_department_id !== user.department_id) {
-    throw new AppError(403, 'FORBIDDEN', 'Authority users can only update reports in their assigned department');
+  if (isDepartmentScoped(user.role) && report.assigned_department_id !== user.department_id) {
+    throw new AppError(403, 'FORBIDDEN', 'Department staff can only update reports in their assigned department');
   }
 
   // 3. Update action_status with getSupabaseAdmin() and set updated_by = user.id

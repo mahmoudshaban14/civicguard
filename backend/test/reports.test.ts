@@ -101,7 +101,7 @@ describe('GET /v1/reports', () => {
 
   it('should return 403 when authority user has no department_id', async () => {
     const mockUser = { id: 'usr-auth-null', email: 'authority@example.com' };
-    const mockProfile = { id: 'usr-auth-null', role: 'authority', department_id: null, full_name: 'Test Authority' };
+    const mockProfile = { id: 'usr-auth-null', role: 'employee', department_id: null, full_name: 'Test Authority' };
 
     const mockSupabase = {
       auth: {
@@ -135,7 +135,7 @@ describe('GET /v1/reports', () => {
 
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe('FORBIDDEN');
-    expect(res.body.error.message).toContain('Authority user is not associated with any department');
+    expect(res.body.error.message).toContain('Department staff user is not associated with any department');
   });
 });
 

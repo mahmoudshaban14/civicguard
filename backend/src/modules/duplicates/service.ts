@@ -1,3 +1,4 @@
+import { isDepartmentScoped } from '../../middleware/roles.js';
 import { config } from '../../config.js';
 import { getSupabaseAdmin } from '../../db/client.js';
 import type { AuthUser } from '../../middleware/auth.js';
@@ -131,7 +132,7 @@ export async function listReportDuplicates(user: AuthUser, reportId: string) {
     .maybeSingle();
   if (reportError) throw new Error(`Failed to fetch report: ${reportError.message}`);
   if (!report) throw new AppError(404, 'NOT_FOUND', 'Report not found');
-  if (user.role === 'authority' && report.assigned_department_id !== user.department_id) {
+  if (isDepartmentScoped(user.role) && report.assigned_department_id !== user.department_id) {
     throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view reports from other departments');
   }
 
@@ -155,7 +156,7 @@ export async function listReportDuplicates(user: AuthUser, reportId: string) {
     const isNewer = l.report_id === reportId; // this report is the newer one
     const other = byId.get(isNewer ? l.candidate_report_id : l.report_id);
     if (!other) continue;
-    if (user.role === 'authority' && other.assigned_department_id !== user.department_id) continue;
+    if (isDepartmentScoped(user.role) && other.assigned_department_id !== user.department_id) continue;
 
     let imageUrl: string | null = null;
     if (other.image_path) {
