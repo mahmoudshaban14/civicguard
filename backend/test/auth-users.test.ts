@@ -98,6 +98,7 @@ describe('PATCH /v1/auth/users/:id/promote', () => {
     targetExists?: boolean;
     targetRole?: string;
     targetDept?: string | null;
+    concurrentConflict?: boolean;
   }) {
     const updates: Record<string, unknown>[] = [];
     const supabase = {
@@ -136,22 +137,35 @@ describe('PATCH /v1/auth/users/:id/promote', () => {
             }),
             update: vi.fn((v: Record<string, unknown>) => {
               updates.push(v);
-              return {
-                eq: vi.fn().mockReturnValue({
-                  select: vi.fn().mockReturnValue({
-                    single: vi.fn().mockResolvedValue({
-                      data: {
-                        id: TARGET,
-                        role: 'department_manager',
-                        department_id: opts.targetDept !== undefined ? opts.targetDept : DEPT,
-                        email: 'employee@example.com',
-                        full_name: 'Emp',
+              const updateBuilder: Record<string, unknown> = {};
+              updateBuilder.eq = vi.fn().mockReturnValue(updateBuilder);
+              updateBuilder.select = vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue(
+                  opts.concurrentConflict
+                    ? { data: null, error: null }
+                    : {
+                        data: {
+                          id: TARGET,
+                          role: 'department_manager',
+                          department_id: opts.targetDept !== undefined ? opts.targetDept : DEPT,
+                          email: 'employee@example.com',
+                          full_name: 'Emp',
+                        },
+                        error: null,
                       },
-                      error: null,
-                    }),
-                  }),
+                ),
+                single: vi.fn().mockResolvedValue({
+                  data: {
+                    id: TARGET,
+                    role: 'department_manager',
+                    department_id: opts.targetDept !== undefined ? opts.targetDept : DEPT,
+                    email: 'employee@example.com',
+                    full_name: 'Emp',
+                  },
+                  error: null,
                 }),
-              };
+              });
+              return updateBuilder;
             }),
           };
         }
@@ -203,6 +217,13 @@ describe('PATCH /v1/auth/users/:id/promote', () => {
     const res = await promote();
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('INVALID_PROMOTION');
+  });
+
+  it('409 when target employee role or department changes concurrently during promotion', async () => {
+    mockPromote({ callerRole: 'admin', targetRole: 'employee', targetDept: DEPT, concurrentConflict: true });
+    const res = await promote();
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('PROMOTION_CONFLICT');
   });
 
   it('200 when admin promotes employee to department_manager, preserving department', async () => {

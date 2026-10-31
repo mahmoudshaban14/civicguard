@@ -2,7 +2,8 @@ import crypto from 'node:crypto';
 import { getSupabaseAdmin } from '../../db/client.js';
 import type { AuthUser } from '../../middleware/auth.js';
 import { AppError } from '../../middleware/error-handler.js';
-import { isDepartmentScoped } from '../../middleware/roles.js';
+import { isDepartmentScoped, type Role } from '../../middleware/roles.js';
+import { sniffImageMime } from '../analysis/service.js';
 import type {
   ListWorkOrdersQuery,
   CreateWorkOrderInput,
@@ -14,6 +15,11 @@ import type {
 } from './schema.js';
 
 const EVIDENCE_BUCKET = 'work-order-evidence';
+const MAX_EVIDENCE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+// Explicit role allowlists for staff operations
+const MANAGER_ROLES: Role[] = ['admin', 'department_manager'];
+const EMPLOYEE_ROLE: Role = 'employee';
 
 function checkDepartmentAccess(user: AuthUser, departmentId: string) {
   if (user.role === 'admin') return;
@@ -31,6 +37,69 @@ function checkDepartmentAccess(user: AuthUser, departmentId: string) {
       'You do not have access to work orders in another department',
     );
   }
+}
+
+function mapRpcError(error: { message?: string; code?: string }): AppError {
+  const msg = error.message || '';
+  const code = error.code || '';
+
+  if (code === '23505' || /one active per report|already exists|conflict/i.test(msg)) {
+    return new AppError(409, 'CONFLICT', 'An active work order already exists for this report');
+  }
+  if (/cannot review their own work|self/i.test(msg)) {
+    return new AppError(403, 'SELF_REVIEW_BLOCKED', msg);
+  }
+  if (/untrusted caller|only admins or department managers|only the assigned employee|not authorized|permission denied/i.test(msg)) {
+    return new AppError(403, 'FORBIDDEN', msg);
+  }
+  if (/not found/i.test(msg)) {
+    return new AppError(404, 'NOT_FOUND', msg);
+  }
+  if (/required|invalid|must belong|must be in progress|status|cannot be|maximum of 5|at least one/i.test(msg)) {
+    return new AppError(400, 'INVALID_REQUEST', msg);
+  }
+  return new AppError(500, 'DATABASE_ERROR', msg);
+}
+
+/** Lightweight visibility and existence check without fetching evidence or generating signed URLs */
+async function assertCanViewWorkOrder(user: AuthUser, workOrderId: string) {
+  if (user.role === 'citizen') {
+    throw new AppError(403, 'FORBIDDEN', 'Citizens cannot view work orders');
+  }
+
+  if (isDepartmentScoped(user.role) && !user.department_id) {
+    throw new AppError(
+      403,
+      'FORBIDDEN',
+      'Department staff user is not associated with any department',
+    );
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data: wo, error } = await supabase
+    .from('work_orders')
+    .select('id, department_id, assigned_to, status')
+    .eq('id', workOrderId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch work order: ${error.message}`);
+  }
+  if (!wo) {
+    throw new AppError(404, 'NOT_FOUND', 'Work order not found');
+  }
+
+  checkDepartmentAccess(user, wo.department_id);
+
+  if (user.role === EMPLOYEE_ROLE && wo.assigned_to !== user.id) {
+    throw new AppError(
+      403,
+      'FORBIDDEN',
+      'Employees can only view work orders assigned to them',
+    );
+  }
+
+  return wo;
 }
 
 export async function listWorkOrders(user: AuthUser, query: ListWorkOrdersQuery) {
@@ -79,7 +148,7 @@ export async function listWorkOrders(user: AuthUser, query: ListWorkOrdersQuery)
   // - Employee: only work orders assigned to them within their department
   // - Department Manager: all work orders within their department
   // - Admin: all work orders (optional department filter)
-  if (user.role === 'employee') {
+  if (user.role === EMPLOYEE_ROLE) {
     dbQuery = dbQuery
       .eq('department_id', user.department_id as string)
       .eq('assigned_to', user.id);
@@ -113,12 +182,9 @@ export async function listWorkOrders(user: AuthUser, query: ListWorkOrdersQuery)
 }
 
 export async function getWorkOrderById(user: AuthUser, workOrderId: string) {
-  if (user.role === 'citizen') {
-    throw new AppError(403, 'FORBIDDEN', 'Citizens cannot view work orders');
-  }
+  await assertCanViewWorkOrder(user, workOrderId);
 
   const supabase = getSupabaseAdmin();
-
   const { data: wo, error: fetchError } = await supabase
     .from('work_orders')
     .select(`
@@ -145,27 +211,13 @@ export async function getWorkOrderById(user: AuthUser, workOrderId: string) {
       updated_at
     `)
     .eq('id', workOrderId)
-    .maybeSingle();
+    .single();
 
-  if (fetchError) {
-    throw new Error(`Failed to fetch work order: ${fetchError.message}`);
-  }
-
-  if (!wo) {
+  if (fetchError || !wo) {
     throw new AppError(404, 'NOT_FOUND', 'Work order not found');
   }
 
-  checkDepartmentAccess(user, wo.department_id);
-
-  if (user.role === 'employee' && wo.assigned_to !== user.id) {
-    throw new AppError(
-      403,
-      'FORBIDDEN',
-      'Employees can only view work orders assigned to them',
-    );
-  }
-
-  // Fetch associated evidence items
+  // Fetch associated evidence items and generate signed read URLs
   const { data: evidenceRows, error: evidenceError } = await supabase
     .from('work_order_evidence')
     .select('id, work_order_id, kind, storage_path, notes, uploaded_by, uploaded_at')
@@ -198,8 +250,8 @@ export async function getWorkOrderById(user: AuthUser, workOrderId: string) {
 }
 
 export async function getWorkOrderEvents(user: AuthUser, workOrderId: string) {
-  // Same visibility check as viewing the work order
-  await getWorkOrderById(user, workOrderId);
+  // Blocker 5: Uses lightweight visibility check without generating signed evidence URLs
+  await assertCanViewWorkOrder(user, workOrderId);
 
   const supabase = getSupabaseAdmin();
   const { data: events, error } = await supabase
@@ -228,11 +280,8 @@ export async function getWorkOrderEvents(user: AuthUser, workOrderId: string) {
 }
 
 export async function createWorkOrder(user: AuthUser, input: CreateWorkOrderInput) {
-  if (user.role === 'citizen') {
-    throw new AppError(403, 'FORBIDDEN', 'Citizens cannot create work orders');
-  }
-  if (user.role === 'employee') {
-    throw new AppError(403, 'FORBIDDEN', 'Employees cannot create work orders');
+  if (!MANAGER_ROLES.includes(user.role)) {
+    throw new AppError(403, 'FORBIDDEN', 'Only admins and department managers can create work orders');
   }
   checkDepartmentAccess(user, input.department_id);
 
@@ -251,14 +300,7 @@ export async function createWorkOrder(user: AuthUser, input: CreateWorkOrderInpu
   });
 
   if (error) {
-    const msg = error.message;
-    if (/not found|required|match|invalid|must belong/i.test(msg)) {
-      throw new AppError(400, 'INVALID_WORK_ORDER', msg);
-    }
-    if (/unauthorized|only admins or department managers/i.test(msg)) {
-      throw new AppError(403, 'FORBIDDEN', msg);
-    }
-    throw new Error(`Failed to create work order: ${msg}`);
+    throw mapRpcError(error);
   }
 
   return { id: data as string };
@@ -269,7 +311,7 @@ export async function assignWorkOrder(
   workOrderId: string,
   input: AssignWorkOrderInput,
 ) {
-  if (user.role === 'citizen' || user.role === 'employee') {
+  if (!MANAGER_ROLES.includes(user.role)) {
     throw new AppError(
       403,
       'FORBIDDEN',
@@ -279,7 +321,6 @@ export async function assignWorkOrder(
 
   const supabase = getSupabaseAdmin();
 
-  // Verify work order department access before calling RPC
   const { data: wo, error: fetchError } = await supabase
     .from('work_orders')
     .select('department_id')
@@ -302,25 +343,18 @@ export async function assignWorkOrder(
   });
 
   if (error) {
-    const msg = error.message;
-    if (/not found/i.test(msg)) {
-      throw new AppError(404, 'NOT_FOUND', msg);
-    }
-    if (/must belong|status|cannot be assigned/i.test(msg)) {
-      throw new AppError(400, 'INVALID_ASSIGNMENT', msg);
-    }
-    if (/unauthorized|only admins or department managers/i.test(msg)) {
-      throw new AppError(403, 'FORBIDDEN', msg);
-    }
-    throw new Error(`Failed to assign work order: ${msg}`);
+    throw mapRpcError(error);
   }
 
   return { success: true };
 }
 
 export async function startWorkOrder(user: AuthUser, workOrderId: string) {
-  const supabase = getSupabaseAdmin();
+  if (user.role !== EMPLOYEE_ROLE) {
+    throw new AppError(403, 'FORBIDDEN', 'Only employees can start work orders');
+  }
 
+  const supabase = getSupabaseAdmin();
   const { data: wo, error: fetchError } = await supabase
     .from('work_orders')
     .select('id, assigned_to, department_id, status')
@@ -350,14 +384,7 @@ export async function startWorkOrder(user: AuthUser, workOrderId: string) {
   });
 
   if (error) {
-    const msg = error.message;
-    if (/assigned status/i.test(msg)) {
-      throw new AppError(400, 'INVALID_STATUS', msg);
-    }
-    if (/only the assigned employee/i.test(msg)) {
-      throw new AppError(403, 'FORBIDDEN', msg);
-    }
-    throw new Error(`Failed to start work order: ${msg}`);
+    throw mapRpcError(error);
   }
 
   return { success: true };
@@ -368,8 +395,16 @@ export async function createEvidenceUploadUrl(
   workOrderId: string,
   input: SignEvidenceUploadInput,
 ) {
-  const supabase = getSupabaseAdmin();
+  // Blocker 2: Only employee may request an upload URL. Reject manager, admin, citizen.
+  if (user.role !== EMPLOYEE_ROLE) {
+    throw new AppError(
+      403,
+      'FORBIDDEN',
+      'Only employees can request an evidence upload URL',
+    );
+  }
 
+  const supabase = getSupabaseAdmin();
   const { data: wo, error: fetchError } = await supabase
     .from('work_orders')
     .select('id, assigned_to, department_id, status')
@@ -385,7 +420,8 @@ export async function createEvidenceUploadUrl(
 
   checkDepartmentAccess(user, wo.department_id);
 
-  if (user.role === 'employee' && wo.assigned_to !== user.id) {
+  // Blocker 2: Must be the assigned employee. Reject unassigned employees.
+  if (wo.assigned_to !== user.id) {
     throw new AppError(
       403,
       'FORBIDDEN',
@@ -393,8 +429,16 @@ export async function createEvidenceUploadUrl(
     );
   }
 
+  // Blocker 2: Work order status must be in_progress. Reject all other statuses.
+  if (wo.status !== 'in_progress') {
+    throw new AppError(
+      400,
+      'INVALID_STATUS',
+      `Cannot upload evidence when work order status is '${wo.status}' (must be 'in_progress')`,
+    );
+  }
+
   const ext = input.file_name.split('.').pop()?.toLowerCase() ?? 'jpg';
-  const cleanName = input.file_name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const storagePath = `${workOrderId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
 
   const { data, error } = await supabase.storage
@@ -417,8 +461,11 @@ export async function submitWorkOrderCompletion(
   workOrderId: string,
   input: SubmitWorkOrderCompletionInput,
 ) {
-  const supabase = getSupabaseAdmin();
+  if (user.role !== EMPLOYEE_ROLE) {
+    throw new AppError(403, 'FORBIDDEN', 'Only employees can submit completion evidence');
+  }
 
+  const supabase = getSupabaseAdmin();
   const { data: wo, error: fetchError } = await supabase
     .from('work_orders')
     .select('id, assigned_to, department_id, status')
@@ -442,8 +489,27 @@ export async function submitWorkOrderCompletion(
     );
   }
 
-  // Ensure all storage paths belong to this work order
+  if (wo.status !== 'in_progress') {
+    throw new AppError(
+      400,
+      'INVALID_STATUS',
+      `Work order must be in progress to submit completion (current status: '${wo.status}')`,
+    );
+  }
+
+  // Blocker 3: Detect and reject duplicate paths
+  const pathSet = new Set(input.after_paths);
+  if (pathSet.size !== input.after_paths.length) {
+    throw new AppError(
+      400,
+      'DUPLICATE_PATHS',
+      'Duplicate evidence paths in submission are not allowed',
+    );
+  }
+
+  // Blocker 3: Validate each uploaded object before calling RPC to avoid partial registration
   for (const p of input.after_paths) {
+    // 1. Ensure path belongs to an authorized upload for this work order
     if (!p.startsWith(`${workOrderId}/`)) {
       throw new AppError(
         400,
@@ -451,8 +517,51 @@ export async function submitWorkOrderCompletion(
         `Evidence path '${p}' does not match work order prefix '${workOrderId}/'`,
       );
     }
+
+    // 2. Verify object exists in storage
+    const { data: fileBlob, error: downloadError } = await supabase.storage
+      .from(EVIDENCE_BUCKET)
+      .download(p);
+
+    if (downloadError || !fileBlob) {
+      throw new AppError(
+        400,
+        'EVIDENCE_NOT_FOUND',
+        `Uploaded evidence file '${p}' does not exist in storage`,
+      );
+    }
+
+    // 3. Validate actual file size and type (magic bytes)
+    const arrayBuffer = await fileBlob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length === 0) {
+      throw new AppError(
+        400,
+        'EMPTY_FILE',
+        `Evidence file '${p}' is empty`,
+      );
+    }
+
+    if (buffer.length > MAX_EVIDENCE_SIZE_BYTES) {
+      throw new AppError(
+        400,
+        'FILE_TOO_LARGE',
+        `Evidence file '${p}' exceeds the 5MB size limit`,
+      );
+    }
+
+    const sniffedMime = sniffImageMime(buffer);
+    if (!sniffedMime || !['image/jpeg', 'image/png', 'image/webp'].includes(sniffedMime)) {
+      throw new AppError(
+        400,
+        'INVALID_FILE_TYPE',
+        `Evidence file '${p}' is not a valid JPEG, PNG, or WebP image`,
+      );
+    }
   }
 
+  // All files verified; now execute atomic database transaction via RPC
   const { error } = await supabase.rpc('submit_work_order_completion', {
     p_work_order_id: workOrderId,
     p_actor: user.id,
@@ -461,14 +570,7 @@ export async function submitWorkOrderCompletion(
   });
 
   if (error) {
-    const msg = error.message;
-    if (/must be in progress|maximum of 5|at least one/i.test(msg)) {
-      throw new AppError(400, 'INVALID_SUBMISSION', msg);
-    }
-    if (/only the assigned employee/i.test(msg)) {
-      throw new AppError(403, 'FORBIDDEN', msg);
-    }
-    throw new Error(`Failed to submit work order completion: ${msg}`);
+    throw mapRpcError(error);
   }
 
   return { success: true };
@@ -479,7 +581,7 @@ export async function reviewWorkOrder(
   workOrderId: string,
   input: ReviewWorkOrderInput,
 ) {
-  if (user.role === 'citizen' || user.role === 'employee') {
+  if (!MANAGER_ROLES.includes(user.role)) {
     throw new AppError(
       403,
       'FORBIDDEN',
@@ -488,7 +590,6 @@ export async function reviewWorkOrder(
   }
 
   const supabase = getSupabaseAdmin();
-
   const { data: wo, error: fetchError } = await supabase
     .from('work_orders')
     .select('id, assigned_to, department_id, status')
@@ -504,7 +605,7 @@ export async function reviewWorkOrder(
 
   checkDepartmentAccess(user, wo.department_id);
 
-  // Self-review is strictly forbidden: assignee cannot review their own work
+  // Self-review is strictly forbidden
   if (wo.assigned_to === user.id) {
     throw new AppError(
       403,
@@ -521,14 +622,7 @@ export async function reviewWorkOrder(
   });
 
   if (error) {
-    const msg = error.message;
-    if (/cannot review their own work/i.test(msg)) {
-      throw new AppError(403, 'SELF_REVIEW_BLOCKED', msg);
-    }
-    if (/not awaiting verification|note is required|decision must be/i.test(msg)) {
-      throw new AppError(400, 'INVALID_REVIEW', msg);
-    }
-    throw new Error(`Failed to review work order: ${msg}`);
+    throw mapRpcError(error);
   }
 
   return { success: true };
@@ -539,7 +633,7 @@ export async function cancelWorkOrder(
   workOrderId: string,
   input: CancelWorkOrderInput,
 ) {
-  if (user.role === 'citizen' || user.role === 'employee') {
+  if (!MANAGER_ROLES.includes(user.role)) {
     throw new AppError(
       403,
       'FORBIDDEN',
@@ -548,7 +642,6 @@ export async function cancelWorkOrder(
   }
 
   const supabase = getSupabaseAdmin();
-
   const { data: wo, error: fetchError } = await supabase
     .from('work_orders')
     .select('id, department_id, status')
@@ -571,13 +664,8 @@ export async function cancelWorkOrder(
   });
 
   if (error) {
-    const msg = error.message;
-    if (/cannot be cancelled|reason is required/i.test(msg)) {
-      throw new AppError(400, 'INVALID_CANCELLATION', msg);
-    }
-    throw new Error(`Failed to cancel work order: ${msg}`);
+    throw mapRpcError(error);
   }
 
   return { success: true };
 }
-

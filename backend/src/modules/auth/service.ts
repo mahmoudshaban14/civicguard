@@ -211,6 +211,7 @@ export async function promoteUser(targetUserId: string, _input: import('./schema
     );
   }
 
+  // Blocker 4: Conditional update requiring target still has role 'employee' and the expected department_id.
   const { data: updated, error: updateError } = await supabase
     .from('profiles')
     .update({
@@ -218,11 +219,22 @@ export async function promoteUser(targetUserId: string, _input: import('./schema
       updated_at: new Date().toISOString(),
     })
     .eq('id', targetUserId)
+    .eq('role', 'employee')
+    .eq('department_id', profile.department_id)
     .select('id, email, full_name, role, department_id')
-    .single();
+    .maybeSingle();
 
   if (updateError) {
     throw new Error(`Failed to promote user: ${updateError.message}`);
+  }
+
+  // Detect zero updated rows (concurrent change of role or department) and return a conflict.
+  if (!updated) {
+    throw new AppError(
+      409,
+      'PROMOTION_CONFLICT',
+      'User role or department changed concurrently during promotion',
+    );
   }
 
   return { user: updated };

@@ -20,6 +20,7 @@ interface MockWoOptions {
   woAssignedTo?: string | null;
   woStatus?: string;
   rpcResult?: { data: unknown; error: unknown };
+  downloadResult?: { data: { arrayBuffer: () => Promise<ArrayBuffer> } | null; error: unknown };
 }
 
 function mockSupabase(opts: MockWoOptions) {
@@ -29,6 +30,7 @@ function mockSupabase(opts: MockWoOptions) {
   const woStatus = opts.woStatus ?? 'assigned';
 
   const rpcCalls: { fn: string; args: unknown }[] = [];
+  const woEqCalls: { col: string; val: unknown }[] = [];
 
   const singleWo = {
     id: WO_ID,
@@ -45,11 +47,36 @@ function mockSupabase(opts: MockWoOptions) {
   woQueryBuilder.select = vi.fn().mockReturnValue(woQueryBuilder);
   woQueryBuilder.order = vi.fn().mockReturnValue(woQueryBuilder);
   woQueryBuilder.range = vi.fn().mockReturnValue(woQueryBuilder);
-  woQueryBuilder.eq = vi.fn().mockReturnValue(woQueryBuilder);
+  woQueryBuilder.eq = vi.fn((col: string, val: unknown) => {
+    woEqCalls.push({ col, val });
+    return woQueryBuilder;
+  });
   woQueryBuilder.maybeSingle = vi.fn().mockResolvedValue({ data: singleWo, error: null });
   woQueryBuilder.single = vi.fn().mockResolvedValue({ data: singleWo, error: null });
   woQueryBuilder.then = (resolve: (val: unknown) => void) =>
     resolve({ data: [singleWo], error: null });
+
+  const createSignedUrl = vi.fn().mockResolvedValue({
+    data: { signedUrl: 'https://storage.example.com/signed-read' },
+    error: null,
+  });
+  const createSignedUploadUrl = vi.fn().mockResolvedValue({
+    data: { token: 'upload-token', signedUrl: 'https://storage.example.com/signed-upload' },
+    error: null,
+  });
+  const download = vi.fn((_path: string) => {
+    if (opts.downloadResult !== undefined) {
+      return Promise.resolve(opts.downloadResult);
+    }
+    const validJpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01]);
+    return Promise.resolve({
+      data: {
+        arrayBuffer: async () =>
+          validJpeg.buffer.slice(validJpeg.byteOffset, validJpeg.byteOffset + validJpeg.byteLength),
+      },
+      error: null,
+    });
+  });
 
   const supabase = {
     auth: {
@@ -129,14 +156,9 @@ function mockSupabase(opts: MockWoOptions) {
     }),
     storage: {
       from: vi.fn().mockReturnValue({
-        createSignedUrl: vi.fn().mockResolvedValue({
-          data: { signedUrl: 'https://storage.example.com/signed-read' },
-          error: null,
-        }),
-        createSignedUploadUrl: vi.fn().mockResolvedValue({
-          data: { token: 'upload-token', signedUrl: 'https://storage.example.com/signed-upload' },
-          error: null,
-        }),
+        createSignedUrl,
+        createSignedUploadUrl,
+        download,
       }),
     },
   };
@@ -145,7 +167,7 @@ function mockSupabase(opts: MockWoOptions) {
     supabase as unknown as import('@supabase/supabase-js').SupabaseClient,
   );
 
-  return { supabase, rpcCalls };
+  return { supabase, rpcCalls, woEqCalls, createSignedUrl, download };
 }
 
 afterEach(() => {
@@ -175,38 +197,59 @@ describe('Work Orders API (/v1/work-orders)', () => {
       expect(res.status).toBe(403);
     });
 
-    it('returns 200 with scoped work orders for employee', async () => {
-      mockSupabase({ callerId: USER_EMP, callerRole: 'employee', callerDept: DEPT_MINE });
+    it('returns 200 with scoped work orders for employee, asserting .eq() filters', async () => {
+      const { woEqCalls } = mockSupabase({ callerId: USER_EMP, callerRole: 'employee', callerDept: DEPT_MINE });
       const res = await request(app)
         .get('/v1/work-orders')
         .set('Authorization', 'Bearer token');
       expect(res.status).toBe(200);
       expect(res.body.work_orders).toHaveLength(1);
+      expect(woEqCalls).toContainEqual({ col: 'department_id', val: DEPT_MINE });
+      expect(woEqCalls).toContainEqual({ col: 'assigned_to', val: USER_EMP });
     });
 
-    it('returns 200 for department_manager', async () => {
-      mockSupabase({ callerId: USER_MGR, callerRole: 'department_manager', callerDept: DEPT_MINE });
+    it('returns 200 for department_manager scoped to department only', async () => {
+      const { woEqCalls } = mockSupabase({ callerId: USER_MGR, callerRole: 'department_manager', callerDept: DEPT_MINE });
       const res = await request(app)
         .get('/v1/work-orders')
         .set('Authorization', 'Bearer token');
       expect(res.status).toBe(200);
+      expect(woEqCalls).toContainEqual({ col: 'department_id', val: DEPT_MINE });
+      expect(woEqCalls.some(c => c.col === 'assigned_to')).toBe(false);
     });
 
-    it('returns 200 for admin', async () => {
-      mockSupabase({ callerId: USER_ADMIN, callerRole: 'admin', callerDept: null });
+    it('returns 200 for admin with cross-department access (no department filter)', async () => {
+      const { woEqCalls } = mockSupabase({ callerId: USER_ADMIN, callerRole: 'admin', callerDept: null });
       const res = await request(app)
         .get('/v1/work-orders')
         .set('Authorization', 'Bearer token');
       expect(res.status).toBe(200);
+      expect(woEqCalls.some(c => c.col === 'department_id')).toBe(false);
+      expect(woEqCalls.some(c => c.col === 'assigned_to')).toBe(false);
     });
   });
 
   describe('GET /v1/work-orders/:id', () => {
-    it('returns 403 when employee tries to view work order assigned to someone else', async () => {
+    it('returns 403 when employee tries to view work order assigned to someone else in same department', async () => {
       mockSupabase({
         callerId: USER_OTHER_EMP,
         callerRole: 'employee',
         callerDept: DEPT_MINE,
+        woDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+      });
+      const res = await request(app)
+        .get(`/v1/work-orders/${WO_ID}`)
+        .set('Authorization', 'Bearer token');
+      expect(res.status).toBe(403);
+    });
+
+    it('returns 403 when employee tries to view cross-department work order', async () => {
+      mockSupabase({
+        callerId: USER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woDept: DEPT_OTHER,
         woAssignedTo: USER_EMP,
       });
       const res = await request(app)
@@ -246,8 +289,8 @@ describe('Work Orders API (/v1/work-orders)', () => {
   });
 
   describe('GET /v1/work-orders/:id/events', () => {
-    it('returns 200 with timeline events for authorized manager', async () => {
-      mockSupabase({
+    it('returns 200 with timeline events for authorized manager without creating signed evidence URLs', async () => {
+      const { createSignedUrl } = mockSupabase({
         callerId: USER_MGR,
         callerRole: 'department_manager',
         callerDept: DEPT_MINE,
@@ -259,6 +302,7 @@ describe('Work Orders API (/v1/work-orders)', () => {
       expect(res.status).toBe(200);
       expect(res.body.events).toHaveLength(1);
       expect(res.body.events[0].action).toBe('created');
+      expect(createSignedUrl).not.toHaveBeenCalled();
     });
   });
 
@@ -377,12 +421,13 @@ describe('Work Orders API (/v1/work-orders)', () => {
   });
 
   describe('POST /v1/work-orders/:id/evidence/sign', () => {
-    it('returns 403 when non-assignee requests upload URL', async () => {
+    it('returns 403 when department manager requests upload URL', async () => {
       mockSupabase({
-        callerId: USER_OTHER_EMP,
-        callerRole: 'employee',
+        callerId: USER_MGR,
+        callerRole: 'department_manager',
         callerDept: DEPT_MINE,
-        woAssignedTo: USER_EMP,
+        woAssignedTo: USER_MGR,
+        woStatus: 'in_progress',
       });
       const res = await request(app)
         .post(`/v1/work-orders/${WO_ID}/evidence/sign`)
@@ -391,12 +436,58 @@ describe('Work Orders API (/v1/work-orders)', () => {
       expect(res.status).toBe(403);
     });
 
-    it('returns 200 with signed upload URL for assigned employee', async () => {
+    it('returns 403 when admin requests upload URL', async () => {
+      mockSupabase({
+        callerId: USER_ADMIN,
+        callerRole: 'admin',
+        callerDept: null,
+        woStatus: 'in_progress',
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/evidence/sign`)
+        .set('Authorization', 'Bearer token')
+        .send({ file_name: 'photo.jpg' });
+      expect(res.status).toBe(403);
+    });
+
+    it('returns 403 when non-assignee employee requests upload URL', async () => {
+      mockSupabase({
+        callerId: USER_OTHER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/evidence/sign`)
+        .set('Authorization', 'Bearer token')
+        .send({ file_name: 'photo.jpg' });
+      expect(res.status).toBe(403);
+    });
+
+    it('returns 400 when work order status is not in_progress (e.g. assigned)', async () => {
       mockSupabase({
         callerId: USER_EMP,
         callerRole: 'employee',
         callerDept: DEPT_MINE,
         woAssignedTo: USER_EMP,
+        woStatus: 'assigned',
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/evidence/sign`)
+        .set('Authorization', 'Bearer token')
+        .send({ file_name: 'photo.jpg' });
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_STATUS');
+    });
+
+    it('returns 200 with signed upload URL for assigned employee when status is in_progress', async () => {
+      mockSupabase({
+        callerId: USER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
       });
       const res = await request(app)
         .post(`/v1/work-orders/${WO_ID}/evidence/sign`)
@@ -409,12 +500,62 @@ describe('Work Orders API (/v1/work-orders)', () => {
   });
 
   describe('POST /v1/work-orders/:id/submit', () => {
+    const validPath = `${WO_ID}/completed-photo.jpg`;
+
+    it('returns 400 when work order status is not in_progress', async () => {
+      mockSupabase({
+        callerId: USER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'assigned',
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/submit`)
+        .set('Authorization', 'Bearer token')
+        .send({ after_paths: [validPath] });
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_STATUS');
+    });
+
+    it('returns 403 when non-assignee attempts to submit completion', async () => {
+      mockSupabase({
+        callerId: USER_OTHER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/submit`)
+        .set('Authorization', 'Bearer token')
+        .send({ after_paths: [validPath] });
+      expect(res.status).toBe(403);
+    });
+
+    it('returns 400 when submission contains duplicate paths', async () => {
+      mockSupabase({
+        callerId: USER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/submit`)
+        .set('Authorization', 'Bearer token')
+        .send({ after_paths: [validPath, validPath] });
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('DUPLICATE_PATHS');
+    });
+
     it('returns 400 when evidence path does not match work order prefix', async () => {
       mockSupabase({
         callerId: USER_EMP,
         callerRole: 'employee',
         callerDept: DEPT_MINE,
         woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
       });
       const res = await request(app)
         .post(`/v1/work-orders/${WO_ID}/submit`)
@@ -424,8 +565,72 @@ describe('Work Orders API (/v1/work-orders)', () => {
       expect(res.body.error.code).toBe('INVALID_EVIDENCE_PATH');
     });
 
+    it('returns 400 when evidence file does not exist in storage', async () => {
+      mockSupabase({
+        callerId: USER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
+        downloadResult: { data: null, error: { message: 'Object not found' } },
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/submit`)
+        .set('Authorization', 'Bearer token')
+        .send({ after_paths: [validPath] });
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('EVIDENCE_NOT_FOUND');
+    });
+
+    it('returns 400 when evidence file exceeds 5MB size limit', async () => {
+      const largeBuffer = Buffer.alloc(5 * 1024 * 1024 + 100);
+      mockSupabase({
+        callerId: USER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
+        downloadResult: {
+          data: {
+            arrayBuffer: async () =>
+              largeBuffer.buffer.slice(largeBuffer.byteOffset, largeBuffer.byteOffset + largeBuffer.byteLength),
+          },
+          error: null,
+        },
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/submit`)
+        .set('Authorization', 'Bearer token')
+        .send({ after_paths: [validPath] });
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('returns 400 when evidence file has invalid magic bytes (not valid image)', async () => {
+      const textBuffer = Buffer.from('this is plain text not an image');
+      mockSupabase({
+        callerId: USER_EMP,
+        callerRole: 'employee',
+        callerDept: DEPT_MINE,
+        woAssignedTo: USER_EMP,
+        woStatus: 'in_progress',
+        downloadResult: {
+          data: {
+            arrayBuffer: async () =>
+              textBuffer.buffer.slice(textBuffer.byteOffset, textBuffer.byteOffset + textBuffer.byteLength),
+          },
+          error: null,
+        },
+      });
+      const res = await request(app)
+        .post(`/v1/work-orders/${WO_ID}/submit`)
+        .set('Authorization', 'Bearer token')
+        .send({ after_paths: [validPath] });
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_FILE_TYPE');
+    });
+
     it('returns 200 and calls submit_work_order_completion RPC when valid', async () => {
-      const validPath = `${WO_ID}/completed-photo.jpg`;
       const { rpcCalls } = mockSupabase({
         callerId: USER_EMP,
         callerRole: 'employee',
@@ -551,3 +756,4 @@ describe('Work Orders API (/v1/work-orders)', () => {
     });
   });
 });
+
