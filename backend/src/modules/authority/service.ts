@@ -114,15 +114,30 @@ export async function updateReportStatus(
   }
 
   // 2. Department authority scoping
-  if (
-    isDepartmentScoped(user.role) &&
-    report.assigned_department_id !== user.department_id
-  ) {
-    throw new AppError(
-      403,
-      'FORBIDDEN',
-      'Department staff can only update reports in their assigned department',
-    );
+  if (isDepartmentScoped(user.role)) {
+    if (!user.department_id) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Department staff user is not associated with any department',
+      );
+    }
+
+    if (!report.assigned_department_id || report.assigned_department_id !== user.department_id) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Department staff can only update reports in their assigned department',
+      );
+    }
+
+    if (input.department !== undefined) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Department staff cannot change or reassign report departments',
+      );
+    }
   }
 
   // 3. Status transition check
@@ -210,6 +225,14 @@ export async function assignReportDepartment(
   reportId: string,
   input: AssignReportDepartmentInput,
 ) {
+  if (user.role !== 'admin') {
+    throw new AppError(
+      403,
+      'FORBIDDEN',
+      'Only administrators can assign or reassign reports to a department',
+    );
+  }
+
   const supabase = getSupabaseAdmin();
 
   // 1. Fetch department details
@@ -314,8 +337,17 @@ export async function updateReportActionStatus(
   }
 
   // 2. Department authority scoping
-  if (isDepartmentScoped(user.role) && report.assigned_department_id !== user.department_id) {
-    throw new AppError(403, 'FORBIDDEN', 'Department staff can only update reports in their assigned department');
+  if (isDepartmentScoped(user.role)) {
+    if (!user.department_id) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Department staff user is not associated with any department',
+      );
+    }
+    if (!report.assigned_department_id || report.assigned_department_id !== user.department_id) {
+      throw new AppError(403, 'FORBIDDEN', 'Department staff can only update reports in their assigned department');
+    }
   }
 
   // 3. Update action_status with getSupabaseAdmin() and set updated_by = user.id

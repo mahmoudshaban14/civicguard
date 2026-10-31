@@ -51,4 +51,29 @@ describe('department isolation for staff roles', () => {
     mockAs('authority', MY_DEPT, MY_DEPT);
     expect((await patch()).status).toBe(200);
   });
+
+  it.each(['department_manager', 'employee'])('%s with null department_id gets 403', async (role) => {
+    mockAs(role, null, MY_DEPT);
+    expect((await patch()).status).toBe(403);
+  });
+  it.each(['department_manager', 'employee'])('%s cannot change a report with null assigned_department_id', async (role) => {
+    mockAs(role, MY_DEPT, null as unknown as string);
+    expect((await patch()).status).toBe(403);
+  });
+  it.each(['department_manager', 'employee'])('%s cannot reassign report department in status update', async (role) => {
+    mockAs(role, MY_DEPT, MY_DEPT);
+    const res = await request(app)
+      .patch(`/v1/authority/reports/${REPORT}/status`)
+      .set('Authorization', 'Bearer t')
+      .send({ status: 'assigned', department: 'Other Dept' });
+    expect(res.status).toBe(403);
+  });
+  it.each(['department_manager', 'employee'])('%s cannot call assign endpoint (admin only)', async (role) => {
+    mockAs(role, MY_DEPT, MY_DEPT);
+    const res = await request(app)
+      .post(`/v1/authority/reports/${REPORT}/assign`)
+      .set('Authorization', 'Bearer t')
+      .send({ department_id: OTHER_DEPT });
+    expect(res.status).toBe(403);
+  });
 });

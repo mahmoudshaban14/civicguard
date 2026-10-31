@@ -231,13 +231,13 @@ export async function getReportById(user: AuthUser, reportId: string) {
     throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view this report');
   }
 
-  if (
-    isDepartmentScoped(user.role) &&
-    user.department_id &&
-    report.assigned_department_id &&
-    report.assigned_department_id !== user.department_id
-  ) {
-    throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view reports from other departments');
+  if (isDepartmentScoped(user.role)) {
+    if (!user.department_id) {
+      throw new AppError(403, 'FORBIDDEN', 'Department staff user is not associated with any department');
+    }
+    if (!report.assigned_department_id || report.assigned_department_id !== user.department_id) {
+      throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view reports from other departments');
+    }
   }
 
   // 3. Fetch timeline events from report_events

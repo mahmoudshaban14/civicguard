@@ -2,8 +2,8 @@
 import { rateLimit } from 'express-rate-limit';
 import crypto from 'node:crypto';
 import { validate } from '../../middleware/validate.js';
-import { loginSchema, createUserSchema } from './schema.js';
-import { loginWithIdentifier, createManagedUser } from './service.js';
+import { loginSchema, createUserSchema, promoteUserParamsSchema, promoteUserBodySchema } from './schema.js';
+import { loginWithIdentifier, createManagedUser, promoteUser } from './service.js';
 
 import { requireAuth } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/require-role.js';
@@ -58,6 +58,24 @@ authRouter.post(
       const result = await createManagedUser(req.body);
       res.setHeader('Cache-Control', 'no-store');
       res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// PATCH /v1/auth/users/:id/promote
+// Only an authenticated administrator may promote an employee to department manager.
+authRouter.patch(
+  '/users/:id/promote',
+  requireAuth,
+  requireRole('admin'),
+  validate({ params: promoteUserParamsSchema, body: promoteUserBodySchema }),
+  async (req, res, next) => {
+    try {
+      const result = await promoteUser(req.params.id as string, req.body);
+      res.setHeader('Cache-Control', 'no-store');
+      res.json(result);
     } catch (err) {
       next(err);
     }

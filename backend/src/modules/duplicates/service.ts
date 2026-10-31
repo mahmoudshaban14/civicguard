@@ -132,8 +132,13 @@ export async function listReportDuplicates(user: AuthUser, reportId: string) {
     .maybeSingle();
   if (reportError) throw new Error(`Failed to fetch report: ${reportError.message}`);
   if (!report) throw new AppError(404, 'NOT_FOUND', 'Report not found');
-  if (isDepartmentScoped(user.role) && report.assigned_department_id !== user.department_id) {
-    throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view reports from other departments');
+  if (isDepartmentScoped(user.role)) {
+    if (!user.department_id) {
+      throw new AppError(403, 'FORBIDDEN', 'Department staff user is not associated with any department');
+    }
+    if (!report.assigned_department_id || report.assigned_department_id !== user.department_id) {
+      throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view reports from other departments');
+    }
   }
 
   const { data: links, error: linksError } = await supabase
@@ -156,7 +161,7 @@ export async function listReportDuplicates(user: AuthUser, reportId: string) {
     const isNewer = l.report_id === reportId; // this report is the newer one
     const other = byId.get(isNewer ? l.candidate_report_id : l.report_id);
     if (!other) continue;
-    if (isDepartmentScoped(user.role) && other.assigned_department_id !== user.department_id) continue;
+    if (isDepartmentScoped(user.role) && (!user.department_id || other.assigned_department_id !== user.department_id)) continue;
 
     let imageUrl: string | null = null;
     if (other.image_path) {

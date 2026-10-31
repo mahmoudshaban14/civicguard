@@ -287,24 +287,10 @@ describe('Authority Routes (/v1/authority)', () => {
       );
     });
 
-    it('should allow authority user to reassign report belonging to own department', async () => {
+    it('should forbid authority/employee user from reassigning report department', async () => {
       const mockUser = { id: 'usr-auth', email: 'auth@example.com' };
       const mockProfile = { id: 'usr-auth', role: 'employee', department_id: validDeptId };
       const newDeptId = '33333333-4444-5555-6666-777777777777';
-      const mockDept = { id: newDeptId, name: 'Waste Management Department' };
-      const currentReport = {
-        id: validReportId,
-        status: 'assigned',
-        assigned_department_id: validDeptId, // matches authority's department
-      };
-      const updatedReport = {
-        id: validReportId,
-        status: 'assigned',
-        assigned_department_id: newDeptId,
-        department: 'Waste Management Department',
-        status_changed_by: 'usr-auth',
-        status_note: 'Reassigning to waste',
-      };
 
       const mockSupabase = {
         auth: {
@@ -321,27 +307,6 @@ describe('Authority Routes (/v1/authority)', () => {
               maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
             };
           }
-          if (table === 'departments') {
-            return {
-              select: vi.fn().mockReturnThis(),
-              eq: vi.fn().mockReturnThis(),
-              maybeSingle: vi.fn().mockResolvedValue({ data: mockDept, error: null }),
-            };
-          }
-          if (table === 'reports') {
-            return {
-              select: vi.fn().mockReturnThis(),
-              eq: vi.fn().mockReturnThis(),
-              maybeSingle: vi.fn().mockResolvedValue({ data: currentReport, error: null }),
-              update: vi.fn().mockReturnValue({
-                eq: vi.fn().mockReturnValue({
-                  select: vi.fn().mockReturnValue({
-                    single: vi.fn().mockResolvedValue({ data: updatedReport, error: null }),
-                  }),
-                }),
-              }),
-            };
-          }
           return {};
         }),
       };
@@ -353,8 +318,7 @@ describe('Authority Routes (/v1/authority)', () => {
         .set('Authorization', 'Bearer auth-token')
         .send({ department_id: newDeptId, note: 'Reassigning to waste' });
 
-      expect(res.status).toBe(200);
-      expect(res.body.report.assigned_department_id).toBe(newDeptId);
+      expect(res.status).toBe(403);
     });
 
     it('should return 403 when authority user tries to reassign report of another department', async () => {

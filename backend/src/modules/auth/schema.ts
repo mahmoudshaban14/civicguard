@@ -32,3 +32,16 @@ export const createUserSchema = z.object({
 });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+export const promoteUserParamsSchema = z.object({
+  id: z.string().guid('User ID must be a valid UUID'),
+});
+
+export const promoteUserBodySchema = z.object({
+  role: z.literal('department_manager', {
+    message: 'Promotion is only allowed to department_manager',
+  }),
+});
+
+export type PromoteUserInput = z.infer<typeof promoteUserBodySchema>;
+

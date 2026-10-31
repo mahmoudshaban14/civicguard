@@ -177,3 +177,53 @@ export async function createManagedUser(input: import('./schema.js').CreateUserI
     },
   };
 }
+
+export async function promoteUser(targetUserId: string, _input: import('./schema.js').PromoteUserInput) {
+  const supabase = getSupabaseAdmin();
+
+  const { data: profile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('id, role, department_id, email, full_name')
+    .eq('id', targetUserId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error(`Failed to fetch user profile: ${fetchError.message}`);
+  }
+
+  if (!profile) {
+    throw new AppError(404, 'NOT_FOUND', 'User not found');
+  }
+
+  if (profile.role !== 'employee') {
+    throw new AppError(
+      400,
+      'INVALID_PROMOTION',
+      `Only employees can be promoted to department managers (current role: '${profile.role}')`,
+    );
+  }
+
+  if (!profile.department_id) {
+    throw new AppError(
+      400,
+      'INVALID_PROMOTION',
+      'Cannot promote an employee without an assigned department',
+    );
+  }
+
+  const { data: updated, error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      role: 'department_manager',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', targetUserId)
+    .select('id, email, full_name, role, department_id')
+    .single();
+
+  if (updateError) {
+    throw new Error(`Failed to promote user: ${updateError.message}`);
+  }
+
+  return { user: updated };
+}

@@ -91,8 +91,10 @@ authorityRouter.patch(
 );
 
 // POST /v1/authority/reports/:id/assign
+// Only administrators can assign or reassign reports across departments.
 authorityRouter.post(
   '/reports/:id/assign',
+  requireRole('admin'),
   validate({ params: reportIdParamsSchema, body: assignReportDepartmentSchema }),
   async (req, res, next) => {
     try {

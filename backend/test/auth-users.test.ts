@@ -84,3 +84,136 @@ describe('POST /v1/auth/users', () => {
     expect(profileUpdates[0]).toMatchObject({ role: 'admin', department_id: null });
   });
 });
+
+describe('PATCH /v1/auth/users/:id/promote', () => {
+  const TARGET = '22222222-2222-4222-8222-222222222222';
+  const promote = (id = TARGET, body: object = { role: 'department_manager' }, token = 'Bearer t') =>
+    request(app)
+      .patch(`/v1/auth/users/${id}/promote`)
+      .set('Authorization', token)
+      .send(body);
+
+  function mockPromote(opts: {
+    callerRole: string;
+    targetExists?: boolean;
+    targetRole?: string;
+    targetDept?: string | null;
+  }) {
+    const updates: Record<string, unknown>[] = [];
+    const supabase = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'caller' } }, error: null }),
+      },
+      from: vi.fn((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn((col: string, val: string) => {
+              if (val === 'caller') {
+                return {
+                  maybeSingle: vi.fn().mockResolvedValue({
+                    data: { id: 'caller', role: opts.callerRole, department_id: null, full_name: 'Admin' },
+                    error: null,
+                  }),
+                };
+              }
+              // target user
+              if (opts.targetExists === false) {
+                return { maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) };
+              }
+              return {
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: {
+                    id: TARGET,
+                    role: opts.targetRole ?? 'employee',
+                    department_id: opts.targetDept !== undefined ? opts.targetDept : DEPT,
+                    email: 'employee@example.com',
+                    full_name: 'Emp',
+                  },
+                  error: null,
+                }),
+              };
+            }),
+            update: vi.fn((v: Record<string, unknown>) => {
+              updates.push(v);
+              return {
+                eq: vi.fn().mockReturnValue({
+                  select: vi.fn().mockReturnValue({
+                    single: vi.fn().mockResolvedValue({
+                      data: {
+                        id: TARGET,
+                        role: 'department_manager',
+                        department_id: opts.targetDept !== undefined ? opts.targetDept : DEPT,
+                        email: 'employee@example.com',
+                        full_name: 'Emp',
+                      },
+                      error: null,
+                    }),
+                  }),
+                }),
+              };
+            }),
+          };
+        }
+        return {};
+      }),
+    };
+    vi.spyOn(clientModule, 'getSupabaseAdmin').mockReturnValue(supabase as unknown as import('@supabase/supabase-js').SupabaseClient);
+    return { updates };
+  }
+
+  it('401 without a token', async () => {
+    const res = await request(app).patch(`/v1/auth/users/${TARGET}/promote`).send({ role: 'department_manager' });
+    expect(res.status).toBe(401);
+  });
+
+  it.each(['citizen', 'employee', 'department_manager'])(
+    '403 when caller is %s',
+    async (callerRole) => {
+      mockPromote({ callerRole });
+      const res = await promote();
+      expect(res.status).toBe(403);
+    },
+  );
+
+  it('400 when attempting to promote to admin or invalid role', async () => {
+    mockPromote({ callerRole: 'admin' });
+    const res = await promote(TARGET, { role: 'admin' });
+    expect(res.status).toBe(400);
+  });
+
+  it('404 when target user does not exist', async () => {
+    mockPromote({ callerRole: 'admin', targetExists: false });
+    const res = await promote();
+    expect(res.status).toBe(404);
+  });
+
+  it.each(['citizen', 'department_manager', 'admin'])(
+    '400 when target user role is %s (not employee)',
+    async (targetRole) => {
+      mockPromote({ callerRole: 'admin', targetRole });
+      const res = await promote();
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_PROMOTION');
+    },
+  );
+
+  it('400 when target employee has no assigned department', async () => {
+    mockPromote({ callerRole: 'admin', targetRole: 'employee', targetDept: null });
+    const res = await promote();
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_PROMOTION');
+  });
+
+  it('200 when admin promotes employee to department_manager, preserving department', async () => {
+    const { updates } = mockPromote({ callerRole: 'admin', targetRole: 'employee', targetDept: DEPT });
+    const res = await promote();
+    expect(res.status).toBe(200);
+    expect(res.body.user).toMatchObject({
+      id: TARGET,
+      role: 'department_manager',
+      department_id: DEPT,
+    });
+    expect(updates[0]).toMatchObject({ role: 'department_manager' });
+  });
+});
