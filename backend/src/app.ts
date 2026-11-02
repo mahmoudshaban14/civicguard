@@ -10,7 +10,7 @@ import { analysisRouter } from './modules/analysis/routes.js';
 import { uploadsRouter } from './modules/uploads/routes.js';
 import { notificationsRouter } from './modules/notifications/routes.js';
 import { authorityRouter } from './modules/authority/routes.js';
-
+import { workOrdersRouter } from './modules/work-orders/routes.js';
 export const app = express();
 
 // Security headers
@@ -83,7 +83,7 @@ app.use('/v1/reports', reportsRouter);
 app.use('/v1/uploads', uploadsRouter);
 app.use('/v1/notifications', notificationsRouter);
 app.use('/v1/authority', authorityRouter);
-
+app.use('/v1/work-orders', workOrdersRouter);
 // 404 Route Handler
 app.use((req, res) => {
   const requestId = req.id;

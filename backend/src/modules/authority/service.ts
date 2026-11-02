@@ -59,7 +59,7 @@ export async function listAuthorityReports(
     .range(offset, offset + limit - 1);
 
   // Department scoping: authority users are scoped to their department
-  if (user.role === 'authority') {
+  if (user.role === 'department_manager') {
     if (!user.department_id) {
       throw new AppError(
         403,
@@ -114,7 +114,7 @@ export async function updateReportStatus(
 
   // 2. Department authority scoping
   if (
-    user.role === 'authority' &&
+    user.role === 'department_manager' &&
     report.assigned_department_id !== user.department_id
   ) {
     throw new AppError(
@@ -156,7 +156,7 @@ export async function updateReportStatus(
     }
     if (
       !target ||
-      (user.role === 'authority' && target.assigned_department_id !== user.department_id)
+      (user.role === 'department_manager' && target.assigned_department_id !== user.department_id)
     ) {
       throw new AppError(404, 'NOT_FOUND', 'Duplicate target report not found');
     }
@@ -231,7 +231,7 @@ export async function assignReportDepartment(
   }
 
   // 3. Department scoping check for authority users
-  if (user.role === 'authority') {
+  if (user.role === 'department_manager') {
     if (!user.department_id) {
       throw new AppError(
         403,
@@ -298,7 +298,7 @@ export async function updateReportActionStatus(
   }
 
   // 2. Department authority scoping
-  if (user.role === 'authority' && report.assigned_department_id !== user.department_id) {
+  if (user.role === 'department_manager' && report.assigned_department_id !== user.department_id) {
     throw new AppError(403, 'FORBIDDEN', 'Authority users can only update reports in their assigned department');
   }
 

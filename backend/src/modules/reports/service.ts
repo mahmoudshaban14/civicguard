@@ -40,7 +40,7 @@ export async function listReports(user: AuthUser, query: ListReportsQuery) {
   // 1. If 'mine' is requested or user is a citizen -> force user's own reports
   if (query.mine || user.role === 'citizen') {
     dbQuery = dbQuery.eq('user_id', user.id);
-  } else if (user.role === 'authority') {
+  } else if (user.role === 'department_manager') {
     // 2. Department authority users see reports assigned to their department
     if (!user.department_id) {
       throw new AppError(403, 'FORBIDDEN', 'Authority user is not associated with any department');
@@ -231,7 +231,7 @@ export async function getReportById(user: AuthUser, reportId: string) {
   }
 
   if (
-    user.role === 'authority' &&
+    user.role === 'department_manager' &&
     user.department_id &&
     report.assigned_department_id &&
     report.assigned_department_id !== user.department_id

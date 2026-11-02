@@ -20,7 +20,7 @@ import {
 export const authorityRouter = Router();
 
 // Restrict all routes in this router to 'authority' or 'admin'
-authorityRouter.use(requireAuth, requireRole('authority', 'admin'));
+authorityRouter.use(requireAuth, requireRole('department_manager', 'admin'));
 
 // GET /v1/authority/reports?status&severity&department_id
 authorityRouter.get(

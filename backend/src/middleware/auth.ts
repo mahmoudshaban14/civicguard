@@ -1,17 +1,24 @@
+
 import type { Request, Response, NextFunction } from 'express';
 import { getSupabaseAdmin } from '../db/client.js';
 import { AppError } from './error-handler.js';
 
+export type UserRole =
+  | 'citizen'
+  | 'employee'
+  | 'department_manager'
+  | 'admin';
+
 export interface AuthUser {
   id: string;
   email?: string;
-  role: 'citizen' | 'authority' | 'admin';
+  role: UserRole;
   department_id: string | null;
   full_name: string | null;
+  is_active: boolean;
 }
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       id?: string;
@@ -21,7 +28,11 @@ declare global {
   }
 }
 
-export async function requireAuth(req: Request, _res: Response, next: NextFunction) {
+export async function requireAuth(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -29,56 +40,53 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   }
 
   const token = authHeader.substring(7).trim();
+
   if (!token) {
     throw new AppError(401, 'UNAUTHORIZED', 'Authentication token required');
   }
 
   const supabase = getSupabaseAdmin();
-  const { data: authData, error: authError } = await supabase.auth.getUser(token);
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser(token);
 
   if (authError || !authData.user) {
     throw new AppError(401, 'UNAUTHORIZED', 'Invalid or expired authentication token');
   }
 
-  // Query profile: try full schema (with department_id, full_name), fallback to id, role if pre-migration
-  let profile: { id: string; role?: string; department_id?: string | null; full_name?: string | null } | null = null;
-  const { data: adminProfile, error: pError } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, role, department_id, full_name')
+    .select('id, role, department_id, full_name, is_active')
     .eq('id', authData.user.id)
     .maybeSingle();
 
-  if (pError || !adminProfile) {
-    const { createScopedClient } = await import('../db/client.js');
-    const userClient = createScopedClient(token);
-    const { data: userScopedProfile, error: uError } = await userClient
-      .from('profiles')
-      .select('id, role, department_id, full_name')
-      .eq('id', authData.user.id)
-      .maybeSingle();
+  if (profileError || !profile) {
+    throw new AppError(403, 'FORBIDDEN', 'User profile not found');
+  }
 
-    if (uError) {
-      // Fallback for un-migrated database without department_id/full_name
-      const { data: legacyProfile } = await userClient
-        .from('profiles')
-        .select('id, role')
-        .eq('id', authData.user.id)
-        .maybeSingle();
-      profile = legacyProfile;
-    } else {
-      profile = userScopedProfile;
-    }
-  } else {
-    profile = adminProfile;
+  const allowedRoles: UserRole[] = [
+    'citizen',
+    'employee',
+    'department_manager',
+    'admin',
+  ];
+
+  if (!allowedRoles.includes(profile.role as UserRole)) {
+    throw new AppError(403, 'FORBIDDEN', 'User role is not supported');
+  }
+
+  if (profile.is_active !== true) {
+    throw new AppError(403, 'ACCOUNT_INACTIVE', 'Your account is inactive');
   }
 
   req.user = {
     id: authData.user.id,
     email: authData.user.email,
-    role: (profile?.role as 'citizen' | 'authority' | 'admin') || 'citizen',
-    department_id: profile?.department_id || null,
-    full_name: profile?.full_name || null,
+    role: profile.role as UserRole,
+    department_id: profile.department_id ?? null,
+    full_name: profile.full_name ?? null,
+    is_active: profile.is_active,
   };
+
   req.token = token;
 
   next();

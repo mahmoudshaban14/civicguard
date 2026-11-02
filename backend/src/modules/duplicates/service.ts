@@ -131,7 +131,7 @@ export async function listReportDuplicates(user: AuthUser, reportId: string) {
     .maybeSingle();
   if (reportError) throw new Error(`Failed to fetch report: ${reportError.message}`);
   if (!report) throw new AppError(404, 'NOT_FOUND', 'Report not found');
-  if (user.role === 'authority' && report.assigned_department_id !== user.department_id) {
+  if (user.role === 'department_manager' && report.assigned_department_id !== user.department_id) {
     throw new AppError(403, 'FORBIDDEN', 'You do not have permission to view reports from other departments');
   }
 
@@ -155,7 +155,7 @@ export async function listReportDuplicates(user: AuthUser, reportId: string) {
     const isNewer = l.report_id === reportId; // this report is the newer one
     const other = byId.get(isNewer ? l.candidate_report_id : l.report_id);
     if (!other) continue;
-    if (user.role === 'authority' && other.assigned_department_id !== user.department_id) continue;
+    if (user.role === 'department_manager' && other.assigned_department_id !== user.department_id) continue;
 
     let imageUrl: string | null = null;
     if (other.image_path) {
