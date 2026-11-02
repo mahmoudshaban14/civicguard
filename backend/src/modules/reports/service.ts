@@ -321,3 +321,86 @@ export async function getNearbyReports(query: import('./schema.js').NearbyReport
 
   return nearbyReports;
 }
+
+const EVIDENCE_BUCKET = 'work-order-evidence';
+const RESOLUTION_PHOTO_URL_TTL_SECONDS = 600;
+
+/**
+ * Citizen-facing "after" photos of a resolved report.
+ * Released only to the report owner, only when the report is `resolved`, and only when
+ * its work order was approved (`completed` + `last_review_decision = 'approved'`).
+ * Only `after` evidence is exposed (never `additional`), with short-lived signed URLs.
+ * Every "not available" case returns the same 404 so a citizen cannot probe work order state.
+ */
+export async function getResolutionPhotos(user: AuthUser, reportId: string) {
+  if (user.role !== 'citizen') {
+    throw new AppError(403, 'FORBIDDEN', 'Resolution photos are available to the reporting citizen only');
+  }
+
+  const unavailable = () =>
+    new AppError(404, 'NOT_FOUND', 'Resolution photos are not available for this report');
+
+  const supabase = getSupabaseAdmin();
+
+  const { data: report, error: reportError } = await supabase
+    .from('reports')
+    .select('id, user_id, status')
+    .eq('id', reportId)
+    .maybeSingle();
+
+  if (reportError) {
+    throw new Error(`Failed to fetch report: ${reportError.message}`);
+  }
+  if (!report || report.user_id !== user.id) {
+    throw unavailable();
+  }
+  if (report.status !== 'resolved') {
+    throw unavailable();
+  }
+
+  const { data: workOrder, error: woError } = await supabase
+    .from('work_orders')
+    .select('id, completed_at')
+    .eq('report_id', reportId)
+    .eq('status', 'completed')
+    .eq('last_review_decision', 'approved')
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (woError) {
+    throw new Error(`Failed to fetch work order: ${woError.message}`);
+  }
+  if (!workOrder) {
+    throw unavailable();
+  }
+
+  const { data: evidenceRows, error: evidenceError } = await supabase
+    .from('work_order_evidence')
+    .select('id, storage_path')
+    .eq('work_order_id', workOrder.id)
+    .eq('kind', 'after')
+    .order('uploaded_at', { ascending: true });
+
+  if (evidenceError) {
+    throw new Error(`Failed to fetch resolution photos: ${evidenceError.message}`);
+  }
+
+  const photos: { id: string; url: string }[] = [];
+  for (const row of evidenceRows ?? []) {
+    const { data: signed, error: signError } = await supabase.storage
+      .from(EVIDENCE_BUCKET)
+      .createSignedUrl(row.storage_path, RESOLUTION_PHOTO_URL_TTL_SECONDS);
+    if (signError || !signed?.signedUrl) {
+      throw new Error(`Failed to sign resolution photo: ${signError?.message ?? 'no URL returned'}`);
+    }
+    photos.push({ id: row.id, url: signed.signedUrl });
+  }
+
+  return {
+    report_id: reportId,
+    resolved_at: workOrder.completed_at,
+    expires_in_seconds: RESOLUTION_PHOTO_URL_TTL_SECONDS,
+    photos,
+  };
+}

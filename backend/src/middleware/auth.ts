@@ -41,44 +41,30 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     throw new AppError(401, 'UNAUTHORIZED', 'Invalid or expired authentication token');
   }
 
-  // Query profile: try full schema (with department_id, full_name), fallback to id, role if pre-migration
-  let profile: { id: string; role?: string; department_id?: string | null; full_name?: string | null } | null = null;
-  const { data: adminProfile, error: pError } = await supabase
+  // Single authoritative profile lookup with the service-role client.
+  // Fail closed: no profile, an unreadable profile, or an inactive account is rejected.
+  // Requires the profiles.is_active migration (20261101210000) to be applied first.
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, role, department_id, full_name')
+    .select('id, role, department_id, full_name, is_active')
     .eq('id', authData.user.id)
     .maybeSingle();
 
-  if (pError || !adminProfile) {
-    const { createScopedClient } = await import('../db/client.js');
-    const userClient = createScopedClient(token);
-    const { data: userScopedProfile, error: uError } = await userClient
-      .from('profiles')
-      .select('id, role, department_id, full_name')
-      .eq('id', authData.user.id)
-      .maybeSingle();
+  if (profileError || !profile) {
+    throw new AppError(403, 'FORBIDDEN', 'User profile not found');
+  }
 
-    if (uError) {
-      // Fallback for un-migrated database without department_id/full_name
-      const { data: legacyProfile } = await userClient
-        .from('profiles')
-        .select('id, role')
-        .eq('id', authData.user.id)
-        .maybeSingle();
-      profile = legacyProfile;
-    } else {
-      profile = userScopedProfile;
-    }
-  } else {
-    profile = adminProfile;
+  // is_active is NOT NULL DEFAULT true, so only an explicit false deactivates the account.
+  if (profile.is_active === false) {
+    throw new AppError(403, 'ACCOUNT_INACTIVE', 'Your account is inactive');
   }
 
   req.user = {
     id: authData.user.id,
     email: authData.user.email,
-    role: normalizeRole(profile?.role),
-    department_id: profile?.department_id || null,
-    full_name: profile?.full_name || null,
+    role: normalizeRole(profile.role),
+    department_id: profile.department_id ?? null,
+    full_name: profile.full_name ?? null,
   };
   req.token = token;
 

@@ -12,6 +12,7 @@ import {
   createReport,
   getReportById,
   getNearbyReports,
+  getResolutionPhotos,
 } from './service.js';
 
 export const reportsRouter = Router();
@@ -74,6 +75,22 @@ reportsRouter.get(
   async (req, res, next) => {
     try {
       const result = await getReportById(req.user!, req.params.id as string);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /v1/reports/:id/resolution-photos
+// Approved "after" photos for the reporting citizen, only once the report is resolved.
+reportsRouter.get(
+  '/:id/resolution-photos',
+  requireAuth,
+  validate({ params: getReportParamsSchema }),
+  async (req, res, next) => {
+    try {
+      const result = await getResolutionPhotos(req.user!, req.params.id as string);
       res.json(result);
     } catch (err) {
       next(err);
