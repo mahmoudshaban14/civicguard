@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { adminApiClient } from './lib/api'
 import './App.css'
-import { FileText, MapPinned, Bell, Check, BarChart3, UsersRound } from 'lucide-react'
+import { FileText, MapPinned, Bell, Check, BarChart3, UsersRound, Settings2, ClipboardList} from 'lucide-react'
 import {
   ResponsiveContainer,
   PieChart,
@@ -21,6 +21,8 @@ import {
   Area,
 } from 'recharts'
 import GISMap from './GISMap'
+import WorkOrders from './WorkOrders'
+import Settings from './Settings'
 import { getTranslation, translateStatus, translateCategory, type Language } from './i18n'
 
 type Profile = {
@@ -76,7 +78,7 @@ function App() {
   const [reportsError, setReportsError] = useState('')
   const [filter, setFilter] = useState('all')
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(() => new Set())
-  const [activePage, setActivePage] = useState<'overview' | 'reports' | 'gis' | 'notifications' | 'users'>('gis')
+  const [activePage, setActivePage] = useState<'overview' | 'reports' | 'gis' | 'notifications' | 'users' | 'workorders' | 'settings'>('gis')
   const [managedUsers, setManagedUsers] = useState<Array<{
     id: string
     role: string
@@ -104,6 +106,33 @@ function App() {
   useEffect(() => {
     setNotificationDropdownOpen(false)
   }, [activePage])
+
+  // Initialize and synchronize civicguard-theme (light / dark / system)
+  useEffect(() => {
+    function applyAppTheme() {
+      const stored = localStorage.getItem('civicguard-theme');
+      const theme = stored === 'dark' || stored === 'light' || stored === 'system' ? stored : 'system';
+      const root = document.documentElement;
+      if (theme === 'system') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      } else {
+        root.setAttribute('data-theme', theme);
+      }
+    }
+
+    applyAppTheme();
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const mqHandler = () => {
+      const stored = localStorage.getItem('civicguard-theme');
+      if (stored === 'system' || !stored) {
+        applyAppTheme();
+      }
+    };
+    mq.addEventListener('change', mqHandler);
+    return () => mq.removeEventListener('change', mqHandler);
+  }, []);
 
   useEffect(() => {
   localStorage.setItem('civicguard-language', language)
@@ -479,13 +508,22 @@ function App() {
     }
   }
 
-  async function handleSignOut() {
+  async function handleSignOut(): Promise<boolean> {
     setError('')
 
-    const { error: signOutError } = await supabase.auth.signOut()
+    try {
+      const { error: signOutError } = await supabase.auth.signOut()
 
-    if (signOutError) {
-      setError(`Could not sign out: ${signOutError.message}`)
+      if (signOutError) {
+        setError('Could not sign out: ' + signOutError.message)
+        return false
+      }
+
+      return true
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setError('Could not sign out: ' + message)
+      return false
     }
   }
 
@@ -780,6 +818,17 @@ const resolvedRate =
   >
     <MapPinned size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'gisMap')}
   </a>
+  <a
+    href="#workorders"
+    className={`nav-link ${activePage === 'workorders' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('workorders')
+    }}
+  >
+    <ClipboardList size={18} strokeWidth={1.8} aria-hidden="true" />
+    {language === 'ar' ? 'أوامر العمل' : 'Work Orders'}
+  </a>
 
   <a
     href="#reports"
@@ -811,6 +860,16 @@ const resolvedRate =
     }}
   >
     <UsersRound size={18} strokeWidth={1.8} aria-hidden="true" /> {language === 'ar' ? 'المستخدمون والصلاحيات' : 'Users & Permissions'}
+  </a>
+  <a
+    href="#settings"
+    className={`nav-link ${activePage === 'settings' ? 'active' : ''}`}
+    onClick={(event) => {
+      event.preventDefault()
+      setActivePage('settings')
+    }}
+  >
+    <Settings2 size={18} strokeWidth={1.8} aria-hidden="true" /> {getTranslation(language, 'settings')}
   </a>
 </nav>
 
@@ -911,6 +970,11 @@ const resolvedRate =
           </button>
         </header>
 
+        {error && (
+          <p className="auth-error dashboard-global-error" role="alert">
+            {error}
+          </p>
+        )}
 {activePage === 'overview' && (
   <section className="analytics-page" id="overview">
     <section className="analytics-heading">
@@ -1262,6 +1326,14 @@ const resolvedRate =
         </section>
 )}
 {activePage === 'gis' && <GISMap language={language} />}
+{activePage === 'workorders' && (
+  <WorkOrders
+    language={language}
+    reports={reports}
+    reportsLoading={reportsLoading}
+    reportsError={reportsError}
+  />
+)}
 
 {activePage === 'users' && (
   <section className="users-permissions-page" id="users">
@@ -1729,6 +1801,20 @@ const resolvedRate =
       </div>
     )}
   </section>
+)}
+{activePage === 'settings' && user && profile && (
+  <Settings
+    user={user}
+    profile={profile}
+    language={language}
+    onLanguageChange={(lang) => {
+      setLanguage(lang)
+    }}
+    onSignOut={handleSignOut}
+    onProfileUpdate={(updated) => {
+      setProfile((prev) => (prev ? { ...prev, ...updated } : prev))
+    }}
+  />
 )}
         <footer>{language === 'ar' ? 'CivicGuard \u00B7 \u0628\u0648\u0627\u0628\u0629 \u0627\u0644\u0625\u062f\u0627\u0631\u0629' : 'CivicGuard \u00B7 Admin Portal'}</footer>
       </main>

@@ -1,0 +1,1541 @@
+/**
+ * WorkOrders.css - CivicGuard Work Orders Stylesheet
+ * Strictly scoped under .work-orders-page
+ * Preserves CivicGuard Design Tokens (--cg-navy, --cg-blue, --cg-surface, --cg-border, etc.)
+ */
+
+.work-orders-page {
+  width: 100%;
+  min-width: 0;
+  color: var(--cg-text, #182230);
+  padding-bottom: 32px;
+  box-sizing: border-box;
+}
+
+.work-orders-page * {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   1. Page Header (Command-Center Design consistent with Reports Page)
+   ========================================================================== */
+.work-orders-page .wo-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  background: linear-gradient(120deg, #10243d 0%, #183957 100%);
+  border: 0;
+  border-bottom: 3px solid #3282d8;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(16, 36, 61, 0.08);
+  color: #ffffff;
+}
+
+.work-orders-page .wo-page-heading-copy {
+  flex: 1 1 300px;
+}
+
+.work-orders-page .wo-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.work-orders-page .wo-header-icon {
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.work-orders-page .wo-page-heading-copy h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 760;
+  line-height: 1.4;
+  letter-spacing: -0.4px;
+}
+
+.work-orders-page .wo-header-description {
+  margin: 6px 0 0;
+  color: #d2deec;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.work-orders-page .wo-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Primary Button */
+.work-orders-page .wo-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  min-height: 42px;
+  border: 1px solid var(--cg-blue, #3478f6);
+  border-radius: 10px;
+  background: var(--cg-blue, #3478f6);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(52, 120, 246, 0.25);
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-btn-primary:hover:not(:disabled) {
+  background: var(--cg-primary-hover, #2366df);
+  border-color: var(--cg-primary-hover, #2366df);
+  transform: translateY(-1px);
+}
+
+.work-orders-page .wo-btn-primary:disabled,
+.work-orders-page .wo-btn-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  background: #94a3b8;
+  border-color: #94a3b8;
+  box-shadow: none;
+}
+
+/* Secondary Button */
+.work-orders-page .wo-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  min-height: 40px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 9px;
+  background: #ffffff;
+  color: var(--cg-text, #182230);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-btn-secondary:hover {
+  background: #f7f9fc;
+  border-color: #cbd5e1;
+}
+
+/* ==========================================================================
+   2. KPI Cards (Honest Presentation: Distinguishes Unavailable from Zero)
+   ========================================================================== */
+.work-orders-page .wo-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.work-orders-page .wo-kpi-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px 16px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 14px;
+  background: var(--cg-surface, #ffffff);
+  box-shadow: 0 2px 10px rgba(18, 38, 63, 0.03);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.work-orders-page .wo-kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #3478f6;
+}
+
+.work-orders-page .wo-kpi-card:nth-child(2)::before { background: #f3a847; }
+.work-orders-page .wo-kpi-card:nth-child(3)::before { background: #8b5cf6; }
+.work-orders-page .wo-kpi-card:nth-child(4)::before { background: #20a889; }
+
+.work-orders-page .wo-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(18, 38, 63, 0.06);
+}
+
+.work-orders-page .wo-kpi-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--cg-text-muted, #8490a3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.work-orders-page .wo-kpi-icon-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.work-orders-page .wo-icon-blue   { color: #2563eb; background: #eff6ff; }
+.work-orders-page .wo-icon-amber  { color: #d97706; background: #fffbeb; }
+.work-orders-page .wo-icon-violet { color: #7c3aed; background: #f5f3ff; }
+.work-orders-page .wo-icon-green  { color: #059669; background: #ecfdf5; }
+
+.work-orders-page .wo-kpi-number-wrap {
+  margin: 10px 0 6px;
+}
+
+.work-orders-page .wo-kpi-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 750;
+  line-height: 1.1;
+  color: var(--cg-navy, #17375f);
+  letter-spacing: -0.5px;
+}
+
+.work-orders-page .wo-kpi-placeholder {
+  display: inline-block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 2px;
+}
+
+.work-orders-page .wo-kpi-subtext {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   3. Toolbar Panel & Filters
+   ========================================================================== */
+.work-orders-page .wo-toolbar-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: var(--cg-surface, #ffffff);
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(18, 38, 63, 0.02);
+}
+
+.work-orders-page .wo-search-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 280px;
+  min-width: 220px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 9px;
+  background: #fbfcfe;
+  color: #64748b;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.work-orders-page .wo-search-control:focus-within {
+  border-color: var(--cg-blue, #3478f6);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(52, 120, 246, 0.12);
+}
+
+.work-orders-page .wo-search-control input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--cg-text, #182230);
+  font: inherit;
+  font-size: 13px;
+}
+
+.work-orders-page .wo-clear-search-btn {
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+}
+
+.work-orders-page .wo-clear-search-btn:hover {
+  color: #ef4444;
+}
+
+.work-orders-page .wo-filters-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.work-orders-page .wo-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 9px;
+  background: #ffffff;
+  color: #64748b;
+}
+
+.work-orders-page .wo-select-wrap select {
+  border: 0;
+  outline: 0;
+  appearance: none;
+  background: transparent;
+  color: var(--cg-text, #182230);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  padding-inline-end: 18px;
+}
+
+.work-orders-page .wo-select-arrow {
+  position: absolute;
+  inset-inline-end: 8px;
+  pointer-events: none;
+  color: #94a3b8;
+}
+
+.work-orders-page .wo-reset-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid #ef4444;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #ef4444;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.work-orders-page .wo-reset-filters-btn:hover {
+  background: #fef2f2;
+}
+
+/* ==========================================================================
+   4. Table Styles
+   ========================================================================== */
+.work-orders-page .wo-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 12px;
+  background: var(--cg-surface, #ffffff);
+  box-shadow: 0 2px 8px rgba(18, 38, 63, 0.02);
+}
+
+.work-orders-page .wo-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.work-orders-page .wo-table th {
+  padding: 13px 16px;
+  background: #f8fafd;
+  border-bottom: 1px solid var(--cg-border, #e8edf4);
+  color: var(--cg-text-muted, #8490a3);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 13px;
+  color: var(--cg-text, #182230);
+}
+
+.work-orders-page .wo-table-row {
+  transition: background 0.12s ease;
+}
+
+.work-orders-page .wo-table-row:hover {
+  background: #f8fbff;
+}
+
+.work-orders-page .wo-table-row:last-child td {
+  border-bottom: 0;
+}
+
+.work-orders-page .wo-reference-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--cg-blue, #3478f6);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-reference-btn:hover {
+  color: var(--cg-primary-hover, #2366df);
+}
+
+.work-orders-page .wo-report-code-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: monospace, inherit;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-title-cell strong {
+  display: block;
+  color: var(--cg-navy, #17375f);
+  font-weight: 600;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-dept-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-assignee-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* Priority Badges */
+.work-orders-page .wo-priority-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-priority-low      { background: #ecfdf5; color: #047857; }
+.work-orders-page .wo-priority-medium   { background: #fefce8; color: #a16207; }
+.work-orders-page .wo-priority-high     { background: #fff7ed; color: #c2410c; }
+.work-orders-page .wo-priority-critical { background: #fef2f2; color: #b91c1c; }
+
+/* Status Badges */
+.work-orders-page .wo-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.work-orders-page .wo-status-pending              { background: #f1f5f9; color: #475569; }
+.work-orders-page .wo-status-assigned             { background: #eff6ff; color: #1d4ed8; }
+.work-orders-page .wo-status-in_progress          { background: #fffbeb; color: #b45309; }
+.work-orders-page .wo-status-pending_verification { background: #f5f3ff; color: #6d28d9; }
+.work-orders-page .wo-status-completed            { background: #ecfdf5; color: #047857; }
+.work-orders-page .wo-status-cancelled            { background: #fef2f2; color: #b91c1c; }
+
+.work-orders-page .wo-date-cell {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-actions-col-th {
+  text-align: center;
+}
+
+.work-orders-page .wo-actions-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.work-orders-page .wo-action-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--cg-blue, #3478f6);
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.work-orders-page .wo-action-icon-btn:hover {
+  background: #eff6ff;
+  border-color: var(--cg-blue, #3478f6);
+}
+
+/* Empty State */
+.work-orders-page .wo-empty-cell {
+  padding: 60px 24px !important;
+  text-align: center;
+}
+
+.work-orders-page .wo-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.work-orders-page .wo-empty-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #f1f5f9;
+  color: #94a3b8;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+}
+
+.work-orders-page .wo-empty-state h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cg-navy, #17375f);
+}
+
+.work-orders-page .wo-empty-state p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.work-orders-page .wo-empty-actions {
+  margin-top: 10px;
+}
+
+/* ==========================================================================
+   5. Details Drawer / Modal
+   ========================================================================== */
+.work-orders-page .wo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(14, 24, 42, 0.48);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.work-orders-page .wo-details-drawer {
+  width: min(680px, 100%);
+  height: 100%;
+  background: #ffffff;
+  box-shadow: -8px 0 32px rgba(15, 35, 60, 0.14);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: woDrawerSlideIn 0.22s ease-out;
+}
+
+@keyframes woDrawerSlideIn {
+  from { transform: translateX(24px); opacity: 0.8; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.work-orders-page[dir="rtl"] .wo-details-drawer {
+  animation: woDrawerSlideInRTL 0.22s ease-out;
+}
+
+@keyframes woDrawerSlideInRTL {
+  from { transform: translateX(-24px); opacity: 0.8; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+.work-orders-page .wo-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--cg-border, #e8edf4);
+  background: #ffffff;
+}
+
+.work-orders-page .wo-drawer-title-group h2 {
+  margin: 6px 0 10px;
+  font-size: 20px;
+  font-weight: 750;
+  color: var(--cg-navy, #17375f);
+  line-height: 1.35;
+}
+
+.work-orders-page .wo-drawer-reference {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cg-blue, #3478f6);
+  letter-spacing: 0.5px;
+}
+
+.work-orders-page .wo-drawer-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.work-orders-page .wo-drawer-close-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 9px;
+  background: #ffffff;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  flex-shrink: 0;
+}
+
+.work-orders-page .wo-drawer-close-btn:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.work-orders-page .wo-drawer-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.work-orders-page .wo-drawer-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cg-navy, #17375f);
+}
+
+.work-orders-page .wo-report-preview-box {
+  padding: 16px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 12px;
+  background: #fbfcfe;
+}
+
+.work-orders-page .wo-report-preview-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.work-orders-page .wo-report-preview-meta > div label {
+  display: block;
+  font-size: 11px;
+  color: #8490a3;
+  margin-bottom: 2px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.work-orders-page .wo-report-preview-meta > div strong {
+  font-size: 13px;
+  color: var(--cg-text, #182230);
+}
+
+.work-orders-page .wo-maps-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cg-blue, #3478f6);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.work-orders-page .wo-maps-link:hover {
+  text-decoration: underline;
+}
+
+.work-orders-page .wo-report-desc-field label,
+.work-orders-page .wo-report-ai-card label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8490a3;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.work-orders-page .wo-report-desc-field p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--cg-text, #182230);
+}
+
+.work-orders-page .wo-report-ai-card {
+  padding: 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.work-orders-page .wo-report-ai-card p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #1e3a8a;
+}
+
+.work-orders-page .wo-order-description-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #334155;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Evidence Cards */
+.work-orders-page .wo-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.work-orders-page .wo-evidence-card {
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.work-orders-page .wo-evidence-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8fafd;
+  border-bottom: 1px solid var(--cg-border, #e8edf4);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.work-orders-page .wo-evidence-tag {
+  font-size: 9px;
+  font-weight: 750;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.work-orders-page .wo-tag-verified {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.work-orders-page .wo-tag-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.work-orders-page .wo-evidence-image-viewport {
+  height: 180px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.work-orders-page .wo-evidence-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0f172a;
+}
+
+.work-orders-page .wo-evidence-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+}
+
+.work-orders-page .wo-evidence-pending-text {
+  max-width: 200px;
+  line-height: 1.4;
+  color: #64748b;
+  font-size: 11.5px;
+}
+
+.work-orders-page .wo-evidence-note-block {
+  margin-top: 14px;
+}
+
+.work-orders-page .wo-evidence-note-block label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8490a3;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.work-orders-page .wo-evidence-note-block p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #334155;
+  background: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Timeline */
+.work-orders-page .wo-timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-inline-start: 8px;
+}
+
+.work-orders-page .wo-timeline-node {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.work-orders-page .wo-timeline-node:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: -16px;
+  inset-inline-start: 5px;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.work-orders-page .wo-timeline-bullet {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #3478f6;
+  background: #ffffff;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.work-orders-page .wo-timeline-content strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--cg-navy, #17375f);
+}
+
+.work-orders-page .wo-timeline-content time {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.work-orders-page .wo-timeline-content p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.work-orders-page .wo-subdued-text {
+  color: #94a3b8;
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.work-orders-page .wo-drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--cg-border, #e8edf4);
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   6. Create Work Order Modal & Report Selector
+   ========================================================================== */
+.work-orders-page .wo-modal-overlay.wo-modal-center,
+.work-orders-page .wo-modal-overlay {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.work-orders-page .wo-create-dialog {
+  width: min(640px, 100%);
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(15, 35, 60, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: woModalPop 0.18s ease-out;
+}
+
+@keyframes woModalPop {
+  from { transform: scale(0.97); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.work-orders-page .wo-create-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--cg-border, #e8edf4);
+  background: #ffffff;
+}
+
+.work-orders-page .wo-create-dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.work-orders-page .wo-create-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.work-orders-page .wo-create-dialog-title h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  color: var(--cg-navy, #17375f);
+}
+
+.work-orders-page .wo-create-dialog-title p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.work-orders-page .wo-dialog-close-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 9px;
+  background: #ffffff;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.work-orders-page .wo-dialog-close-btn:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.work-orders-page .wo-create-form {
+  overflow-y: auto;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Callouts: Info & Warning */
+.work-orders-page .wo-callout-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  color: #1e40af;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.work-orders-page .wo-callout-info strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 2px;
+  color: #1e3a8a;
+}
+
+.work-orders-page .wo-callout-info p {
+  margin: 0;
+  color: #1e40af;
+}
+
+.work-orders-page .wo-callout-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  color: #92400e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.work-orders-page .wo-callout-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.work-orders-page .wo-callout-warning p {
+  margin: 0;
+}
+
+.work-orders-page .wo-form-fieldset {
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 12px;
+  padding: 16px 18px 18px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fbfcfe;
+}
+
+.work-orders-page .wo-form-legend {
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--cg-navy, #17375f);
+  padding: 0 8px;
+}
+
+.work-orders-page .wo-report-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #64748b;
+}
+
+.work-orders-page .wo-report-search-input-wrap input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--cg-text, #182230);
+}
+
+.work-orders-page .wo-search-clear-mini {
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.work-orders-page .wo-report-select-dropdown-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.work-orders-page .wo-report-picker-select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 9px;
+  background: #ffffff;
+  color: var(--cg-text, #182230);
+  font: inherit;
+  font-size: 13px;
+  appearance: none;
+  cursor: pointer;
+  padding-inline-end: 28px;
+}
+
+.work-orders-page .wo-picker-arrow {
+  position: absolute;
+  inset-inline-end: 10px;
+  pointer-events: none;
+  color: #64748b;
+}
+
+/* Selected Report Preview in Create Flow */
+.work-orders-page .wo-selected-report-preview-card {
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(52, 120, 246, 0.05);
+}
+
+.work-orders-page .wo-preview-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.work-orders-page .wo-preview-code {
+  font-size: 13px;
+  font-weight: 750;
+  color: #1e40af;
+}
+
+.work-orders-page .wo-preview-dept {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.work-orders-page .wo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  font-size: 12px;
+}
+
+.work-orders-page .wo-preview-grid label {
+  display: block;
+  font-size: 10.5px;
+  color: #8490a3;
+  margin-bottom: 2px;
+}
+
+.work-orders-page .wo-preview-grid span {
+  font-weight: 600;
+  color: var(--cg-text, #182230);
+}
+
+.work-orders-page .wo-preview-desc {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.work-orders-page .wo-preview-desc label {
+  display: block;
+  font-size: 10.5px;
+  color: #8490a3;
+  margin-bottom: 2px;
+}
+
+.work-orders-page .wo-preview-desc p {
+  margin: 0;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* Form Fields */
+.work-orders-page .wo-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.work-orders-page .wo-form-field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--cg-navy, #17375f);
+}
+
+.work-orders-page .wo-required-mark {
+  color: #ef4444;
+}
+
+.work-orders-page .wo-form-field input,
+.work-orders-page .wo-form-field select,
+.work-orders-page .wo-form-field textarea {
+  width: 100%;
+  border: 1px solid var(--cg-border, #e8edf4);
+  border-radius: 9px;
+  padding: 9px 12px;
+  background: #ffffff;
+  color: var(--cg-text, #182230);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.work-orders-page .wo-form-field input:focus,
+.work-orders-page .wo-form-field select:focus,
+.work-orders-page .wo-form-field textarea:focus {
+  border-color: var(--cg-blue, #3478f6);
+  box-shadow: 0 0 0 3px rgba(52, 120, 246, 0.12);
+}
+
+.work-orders-page .wo-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.work-orders-page .wo-create-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.work-orders-page .wo-spin {
+  animation: woSpin 1s linear infinite;
+}
+
+@keyframes woSpin {
+  100% { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   7. RTL Adjustments
+   ========================================================================== */
+.work-orders-page[dir="rtl"] .wo-page-heading-copy h1 {
+  letter-spacing: 0;
+}
+
+.work-orders-page[dir="rtl"] .wo-report-code-badge {
+  direction: ltr;
+  display: inline-block;
+}
+
+.work-orders-page[dir="rtl"] .wo-reference-btn {
+  direction: ltr;
+}
+
+/* ==========================================================================
+   8. Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .work-orders-page .wo-kpis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .work-orders-page .wo-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .work-orders-page .wo-header-actions .wo-btn-primary {
+    width: 100%;
+  }
+
+  .work-orders-page .wo-kpis-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .work-orders-page .wo-toolbar-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .work-orders-page .wo-filters-group {
+    width: 100%;
+  }
+
+  .work-orders-page .wo-select-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .work-orders-page .wo-select-wrap select {
+    width: 100%;
+  }
+
+  .work-orders-page .wo-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .work-orders-page .wo-evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .work-orders-page .wo-report-preview-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   CIVICGUARD WORK ORDERS DARK THEME
+   CSS-only visual overrides; no behavior changes.
+   ========================================================= */
+
+html[data-theme="dark"] .work-orders-page {
+  color: #e5edf7;
+}
+
+/* Main surfaces */
+html[data-theme="dark"] .work-orders-page .wo-kpi-card,
+html[data-theme="dark"] .work-orders-page .wo-toolbar-panel,
+html[data-theme="dark"] .work-orders-page .wo-table-wrapper,
+html[data-theme="dark"] .work-orders-page .wo-details-drawer,
+html[data-theme="dark"] .work-orders-page .wo-create-dialog,
+html[data-theme="dark"] .work-orders-page .wo-evidence-card,
+html[data-theme="dark"] .work-orders-page .wo-report-preview-box,
+html[data-theme="dark"] .work-orders-page .wo-report-ai-card {
+  background: #111c2e;
+  color: #e5edf7;
+  border-color: #29384d;
+  box-shadow: 0 5px 22px rgba(0, 0, 0, 0.18);
+}
+
+/* Headings and supporting text */
+html[data-theme="dark"] .work-orders-page .wo-page-heading-copy h1,
+html[data-theme="dark"] .work-orders-page .wo-drawer-title-group h2,
+html[data-theme="dark"] .work-orders-page .wo-create-dialog-title h2,
+html[data-theme="dark"] .work-orders-page .wo-drawer-section h3,
+html[data-theme="dark"] .work-orders-page .wo-title-cell strong,
+html[data-theme="dark"] .work-orders-page .wo-timeline-content strong {
+  color: #e5edf7;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-header-description,
+html[data-theme="dark"] .work-orders-page .wo-kpi-subtext,
+html[data-theme="dark"] .work-orders-page .wo-empty-state p,
+html[data-theme="dark"] .work-orders-page .wo-report-desc-field p,
+html[data-theme="dark"] .work-orders-page .wo-report-ai-card p,
+html[data-theme="dark"] .work-orders-page .wo-order-description-text,
+html[data-theme="dark"] .work-orders-page .wo-timeline-content p,
+html[data-theme="dark"] .work-orders-page .wo-timeline-content time,
+html[data-theme="dark"] .work-orders-page .wo-subdued-text {
+  color: #a8b7ca;
+}
+
+/* Toolbar and form controls */
+html[data-theme="dark"] .work-orders-page .wo-search-control,
+html[data-theme="dark"] .work-orders-page .wo-search-control input,
+html[data-theme="dark"] .work-orders-page .wo-select-wrap select,
+html[data-theme="dark"] .work-orders-page .wo-form-field input,
+html[data-theme="dark"] .work-orders-page .wo-form-field select,
+html[data-theme="dark"] .work-orders-page .wo-form-field textarea {
+  background: #0d1829;
+  color: #e5edf7;
+  border-color: #34465e;
+}
+
+html[data-theme="dark"] .work-orders-page input::placeholder,
+html[data-theme="dark"] .work-orders-page textarea::placeholder {
+  color: #8293aa;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-select-wrap select option {
+  background: #111c2e;
+  color: #e5edf7;
+}
+
+/* Table */
+html[data-theme="dark"] .work-orders-page .wo-table {
+  background: #111c2e;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-table th {
+  background: #17263b;
+  color: #aebed2;
+  border-color: #29384d;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-table td {
+  color: #d2ddec;
+  border-color: #29384d;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-table-row:hover {
+  background: #192940;
+}
+
+/* Drawer and dialog internals */
+html[data-theme="dark"] .work-orders-page .wo-drawer-header,
+html[data-theme="dark"] .work-orders-page .wo-drawer-footer,
+html[data-theme="dark"] .work-orders-page .wo-create-dialog-header,
+html[data-theme="dark"] .work-orders-page .wo-evidence-card-header {
+  border-color: #29384d;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-drawer-scroll-body,
+html[data-theme="dark"] .work-orders-page .wo-create-form {
+  color: #e5edf7;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-report-preview-meta > div label,
+html[data-theme="dark"] .work-orders-page .wo-report-preview-meta > div strong,
+html[data-theme="dark"] .work-orders-page .wo-evidence-note-block label,
+html[data-theme="dark"] .work-orders-page .wo-evidence-note-block p {
+  color: #d2ddec;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-callout-info {
+  background: #172b45;
+  border-color: #315276;
+  color: #c5ddff;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-empty-state,
+html[data-theme="dark"] .work-orders-page .wo-empty-icon-wrap,
+html[data-theme="dark"] .work-orders-page .wo-evidence-placeholder,
+html[data-theme="dark"] .work-orders-page .wo-evidence-note-block {
+  background: #17263b;
+  border-color: #34465e;
+  color: #d2ddec;
+}
+
+/* Keep semantic status and priority colors distinct and legible. */
+html[data-theme="dark"] .work-orders-page .wo-priority-low {
+  background: #123b32;
+  color: #86efc2;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-priority-medium {
+  background: #423617;
+  color: #fcd978;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-priority-high {
+  background: #482b19;
+  color: #fdba8c;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-priority-critical {
+  background: #481f29;
+  color: #fda4af;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-status-pending {
+  background: #263449;
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-status-assigned {
+  background: #18365b;
+  color: #a8ceff;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-status-in_progress {
+  background: #423617;
+  color: #fcd978;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-status-pending_verification {
+  background: #35265a;
+  color: #d2b8ff;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-status-completed {
+  background: #123b32;
+  color: #86efc2;
+}
+
+html[data-theme="dark"] .work-orders-page .wo-status-cancelled {
+  background: #481f29;
+  color: #fda4af;
+}
+
