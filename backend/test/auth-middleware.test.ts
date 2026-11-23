@@ -32,9 +32,13 @@ describe('requireAuth profile gate', () => {
     expect((await hit()).status).toBe(403);
   });
 
-  it('rejects when the profile query fails (e.g. is_active migration not applied)', async () => {
+  it('fails closed with a distinct 500 when the profile query fails (e.g. is_active migration not applied)', async () => {
     mock({ data: null, error: { message: 'column profiles.is_active does not exist', code: '42703' } });
-    expect((await hit()).status).toBe(403);
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await hit();
+    expect(res.status).toBe(500);
+    expect(JSON.stringify(res.body)).toContain('PROFILE_LOOKUP_FAILED');
+    expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('is_active'));
   });
 
   it('selects is_active from profiles', async () => {

@@ -50,7 +50,14 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     .eq('id', authData.user.id)
     .maybeSingle();
 
-  if (profileError || !profile) {
+  if (profileError) {
+    // A failed query is a server/DB problem (e.g. the is_active migration is not applied yet),
+    // not a missing profile. Still fail closed, but say so and log the real cause.
+    console.error(`[auth] profile lookup failed: ${profileError.message}`);
+    throw new AppError(500, 'PROFILE_LOOKUP_FAILED', 'Could not load the user profile');
+  }
+
+  if (!profile) {
     throw new AppError(403, 'FORBIDDEN', 'User profile not found');
   }
 
